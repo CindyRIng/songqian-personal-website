@@ -21,7 +21,7 @@ import PostRow from '../components/writing/PostRow.astro';
 import { localizePath, useTranslations, localeMeta } from '../i18n/utils';
 import type { Locale } from '../i18n/config';
 import { lt, profile } from '../data/profile';
-import type { PostEntry } from '../lib/posts';
+import { hasCoverAsset, type PostEntry } from '../lib/posts';
 import type { TranslationKey } from '../i18n/ui';
 
 interface Props {
@@ -38,6 +38,7 @@ const { lang, post, Content, headings, related, older, newer } = Astro.props;
 const t = useTranslations(lang);
 
 const siteUrl = Astro.site ?? new URL('https://songqian.dev');
+const cover = hasCoverAsset(post.cover) ? post.cover : undefined;
 const canonical = new URL(localizePath(post.path, lang), siteUrl).href;
 const writingHref = localizePath('/writing', lang);
 const authorName = lt(profile.name, lang) || profile.latinName;
@@ -89,13 +90,25 @@ const articleJsonLd = {
 
     <PostHeader post={post} lang={lang} />
 
-    <PostCover
-      slug={post.slug}
-      title={post.title}
-      year={post.date.getUTCFullYear()}
-      size="hero"
-      class="aspect-[16/9] sm:aspect-[2/1]"
-    />
+    {cover ? (
+      <figure class="overflow-hidden rounded-xl bg-surface ring-1 ring-line">
+        <img
+          src={cover}
+          alt={post.coverAlt ?? ''}
+          class="aspect-[16/9] w-full object-cover sm:aspect-[2/1]"
+          loading="eager"
+          decoding="async"
+        />
+      </figure>
+    ) : (
+      <PostCover
+        slug={post.slug}
+        title={post.title}
+        year={post.date.getUTCFullYear()}
+        size="hero"
+        class="aspect-[16/9] sm:aspect-[2/1]"
+      />
+    )}
 
     <Toc headings={headings} lang={lang} />
 

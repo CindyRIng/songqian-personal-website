@@ -1,0 +1,49 @@
+---
+# Fuente: https://github.com/CindyRIng/boss-client README (2026-11).
+title: 'BOSS Client'
+tagline: 'Un cliente local de solo lectura para BOSS Zhipin: una sesión de navegador, un proceso propietario y cuatro formas de acceso.'
+description: 'boss-client convierte BOSS Zhipin en una fuente de datos local de solo lectura: sesión residente de cloak-browser, 16 operaciones estables, entradas CLI / REST / OpenAPI 3.1 / MCP / SKILL, proceso propietario en systemd y caché SQLite.'
+year: 2026
+role: 'Diseño y desarrollo (en solitario)'
+team: 'En solitario'
+status: shipped
+tags: ['tool']
+stack: ['TypeScript', 'MCP', 'OpenAPI', 'SQLite', 'systemd']
+cover: 'generated:boss-client'
+coverAlt: 'Portada generativa: una B serif enorme sobre un degradado frío por capas.'
+metrics:
+  - label: 'Operaciones estables'
+    value: '16'
+  - label: 'Vida de la sesión'
+    value: '~10 días'
+  - label: 'Entradas'
+    value: '4'
+links:
+  repo: 'https://github.com/CindyRIng/boss-client'
+featured: false
+order: 4
+---
+
+Un portal de empleo es una de las señales públicas más ricas que tiene un comercial: las empresas que contratan dicen qué están construyendo, a qué ritmo y dónde gastan. El problema es que BOSS Zhipin es un producto de navegador. Todo lo útil —búsqueda, paginación, detalle de oferta, detalle de empresa con registro mercantil— vive detrás de una página y un login. Un script que golpea los endpoints pierde la sesión; dos scripts que comparten cuenta se pelean por el mismo perfil de navegador.
+
+boss-client convierte esos datos en una fuente local de solo lectura. Un proceso propietario sostiene la sesión del navegador y una caché SQLite; todo lo demás es un cliente. El servicio expone 16 operaciones estables generadas desde un único registro hacia cuatro formas: comandos CLI, API REST con contrato OpenAPI 3.1 y documentación autocontenida, servidor MCP stdio y flujo SKILL para agentes.
+
+## Un solo propietario
+
+El perfil del navegador es un recurso de instancia única. `boss-client.service` corre bajo systemd y es el único proceso autorizado a poseerlo, con un fichero de bloqueo que lo garantiza. CLI y MCP no abren navegadores: hacen proxy a la API REST local. Eso eliminó toda una clase de fallos en la que dos agentes competían por el mismo perfil.
+
+## Solo lectura como restricción de diseño
+
+Sin mensajes, sin postulaciones, sin editar el CV. No es una limitación de la que disculparse: es lo que permite dejar la herramienta encendida. También simplifica el contrato: sin claves de idempotencia, sin escrituras a medias. Las peticiones de baja frecuencia y una caché con TTL mantienen la cuenta lejos de los límites.
+
+## Contratos de una sola fuente
+
+Las operaciones se definen como modelos zod. Los generadores emiten el documento OpenAPI, la lista de herramientas MCP y el árbol de comandos CLI desde esas mismas definiciones, así que las cuatro interfaces no pueden divergir. La caché guarda solo registros estructurados: ofertas, empresas, ciudades, sesiones de búsqueda; nunca HTML, cookies ni códigos de login.
+
+## Lo que aprendí
+
+El navegador es la API. Aceptado eso, la ingeniería interesante es la vida de la sesión, la propiedad única y la caché, no la astucia del scraping. El login es un QR retransmitido a la terminal, así que la herramienta funciona sin pantalla y el perfil nunca sale de la máquina.
+
+## Límites conocidos
+
+Las sesiones duran unos diez días y al final necesitan un escaneo nuevo. La estructura de las páginas puede cambiar sin aviso. Y al ser de solo lectura, BOSS Client nunca enviará una candidatura por ti.

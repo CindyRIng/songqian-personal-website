@@ -1,0 +1,44 @@
+---
+# Proyecto de fin de grado (2025-11 → 2026-05). No es código abierto; datos del informe de diseño.
+title: 'Robot recogepelotas'
+tagline: 'Proyecto de fin de grado: un robot que recoge pelotas de tenis — primero la arquitectura, después el hardware.'
+description: 'Diseño de sistema en cinco capas para un robot recogepelotas: tracción diferencial de dos ruedas, mecanismo de recogida de rodillo, estructura impresa en 3D y un plan de ROS / embebidos / visión dimensionado para un estudiante y un semestre.'
+year: 2026
+role: 'Diseño y desarrollo (en solitario)'
+team: 'Proyecto de fin de grado (individual)'
+status: archived
+tags: ['experiment']
+stack: ['ROS', 'Embedded C', 'Python', '3D Printing', 'Computer Vision']
+cover: 'generated:tennis-ball-robot'
+coverAlt: 'Portada generativa: una T serif enorme sobre un degradado verde y suave.'
+metrics:
+  - label: 'Capas de arquitectura'
+    value: '5'
+  - label: 'Tracción'
+    value: 'Diferencial'
+  - label: 'Plan de desarrollo'
+    value: '16 semanas'
+featured: false
+order: 3
+---
+
+Los proyectos de fin de grado suelen juzgarse por una demo. Yo lo traté primero como un ejercicio de arquitectura, porque un robot que recoge pelotas en una pista es un problema de sistema mucho antes que un problema de motores.
+
+## El problema
+
+Una pista de tenis genera una tarea que suena trivial pero es constante: las pelotas se dispersan tras cada ejercicio y recogerlas a mano es lento y poco elegante. Existen recogepelotas comerciales, pero son caros, pesados y asumen una pista plana y bien iluminada. Mi encargo era más simple y más difícil: diseñar un robot pequeño para una pista universitaria normal, y diseñarlo para que un solo estudiante pudiera construirlo en un semestre.
+
+## Cinco capas
+
+La decisión central fue una arquitectura de cinco capas: hardware, abstracción de comportamiento, transporte, aplicación y vista.
+
+- **Hardware**: chasis, dos ruedas de tracción diferencial y un mecanismo de recogida de rodillo, impreso en 3D alrededor de motores comerciales.
+- **Abstracción de comportamiento**: convierte «encontrar una pelota», «acercarse» y «recoger» en habilidades combinables.
+- **Transporte**: lleva estado y comandos entre el controlador embebido y el ordenador de a bordo.
+- **Aplicación** decide qué hacer; **vista** expone el estado para depurar y demostrar.
+
+El objetivo de las capas es la sustituibilidad: un comportamiento no debe saber si corre sobre un chasis simulado o el real. Eso también me dio un plan defendible en 3–4 meses: investigación, chasis y mecanismo, control y ROS, visión, integración y pruebas.
+
+## Lo que me enseñó
+
+El mecanismo es una restricción de software. La geometría del rodillo decidía la velocidad del robot, y ningún código de control arregla una mala trayectoria de recogida. Un diagrama de capas solo sirve si cambia quién toma una decisión. Y la honestidad de alcance importa: lo que terminé es un diseño de sistema defendible con un presupuesto de prototipo honesto, no un producto pulido. La tesis está archivada; el repositorio no es abierto.

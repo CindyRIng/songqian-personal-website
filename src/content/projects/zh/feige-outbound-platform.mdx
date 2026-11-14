@@ -1,0 +1,45 @@
+---
+# 事实来源：https://github.com/CindyRIng/feige-outbound-platform README（2026-11）。
+title: '飞鸽外呼本地平台'
+tagline: '把飞鸽外呼做成常驻本地的平台：四入口、全本地转写、无人值守的话单流水线。'
+description: '飞鸽外呼本地平台（FOP）把飞鸽外呼网页端封装成本地服务：REST / CLI / MCP / SKILL 四入口、多账号自动登录与 JWT 保活、MiniMax 本地转写与双声道说话人拆分、DeepSeek 后处理，以及可恢复的话单流水线。'
+year: 2026
+role: '设计 & 开发（独立）'
+team: '独立完成'
+status: shipped
+tags: ['product', 'tool']
+stack: ['TypeScript', 'Fastify', 'SQLite', 'MiniMax ASR', 'DeepSeek', 'MCP']
+cover: 'generated:feige-outbound-platform'
+coverAlt: '生成式封面：巨大的衬线字母 F 叠在冷调分层渐变纸面上。'
+metrics:
+  - label: '测试通过'
+    value: '93/93'
+  - label: '验收项'
+    value: '27/27'
+  - label: 'REST 操作'
+    value: '35'
+links:
+  repo: 'https://github.com/CindyRIng/feige-outbound-platform'
+featured: true
+order: 2
+---
+
+外呼是销售团队把话变成数据的地方，也是大部分数据被丢掉的地方。飞鸽的网页端只能当网页用：录音只保留一段时间，转写覆盖不全，没有 token、没有 SDK、没有回调。Agent 或脚本想对一通电话做点什么，都得靠一个开着浏览器的人。
+
+FOP（feige-outbound-platform）就是补这最后一公里的本地平台。它有两半。北向是四个入口：回环地址上的 REST v1（Fastify、Bearer、OpenAPI 3.1 + Swagger）、CLI、MCP stdio 服务、SKILL 文档。南向是自动化：真实网页登录（含阿里云滑块）、7 天 JWT 保活、话单增量与全量同步、回拨呼出的排队状态机。
+
+## 100% 本地转写
+
+我最满意的一个决定是：转写是我们自己的。录音下载后按 sha256 归档为 WAV，再用 MiniMax asr-1.0 本地转写。实测录音是 8kHz 双声道，销售和客户各占一个声道——把两个声道拆开，说话人分离就是免费的，比靠 diarization 猜可靠得多。长通话在静音点切块，每块结果缓存，重试可以断点续跑而不是从头再来；词表负责把公司名的九种同音误听归一。
+
+## 分析要有 schema，不能凭感觉
+
+DeepSeek 后处理用固定 prompt + JSON schema，校验失败就沿升级链重试。输出是结构化的摘要、意图、关键词、行动项、风险与质检建议，而不是需要人再读一遍的一段文字。
+
+## 所有入口只走一道门
+
+CLI 和 MCP 从不直接碰数据库或浏览器，全部通过 REST v1。可写的 MCP 工具默认关闭、需要确认。服务跑在 systemd 下，无显示环境用 Xvfb 登录，audio → ASR → 分析流水线由可恢复的作业队列驱动。
+
+## 诚实的限制
+
+上游没有 SIP 线路，真实呼出是回拨模式，坐席手机必须先接听；v1 不做 AI 语音外呼。默认账号的 ASR 并发是 1，全量回补会很慢。93 个单测、27 项验收都过了，限制我也写在了旁边。

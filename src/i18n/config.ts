@@ -38,10 +38,8 @@ export const SITE = {
   url: 'https://songqian-personal-website.pages.dev',
   name: 'Song Qian',
   handle: 'songqian',
-  email: 'hello@songqian.dev',
-  twitter: 'https://twitter.com/songqian',
+  email: 'cindyring_dream@outlook.com',
   github: 'https://github.com/CindyRIng',
-  linkedin: 'https://www.linkedin.com/in/songqian',
-  /** Used by the footer's "handcrafted for N years" counter. */
-  siteLaunch: '2026-01-01',
+  /** Used by the footer's "handcrafted for N months" counter (first sketch of this site). */
+  siteLaunch: '2026-07-14',
 } as const;

@@ -1,0 +1,64 @@
+---
+title: 'Le tennis vu comme un réseau de neurones'
+description: 'Voir chaque frappe comme une mise à jour de paramètres et chaque match comme un jeu de test. Penser sur-apprentissage, généralisation et taux d’apprentissage a changé ma façon de m’entraîner.'
+date: 2026-07-12
+tags: ['tennis', 'apprentissage', 'réseaux de neurones', 'entraînement']
+category: life
+featured: false
+cover: '/images/posts/tennis-as-neural-training.webp'
+coverAlt: 'Couverture abstraite : grille de lignes fines et cercles concentriques sur papier chaud'
+---
+
+Pendant un moment, chaque entraînement se terminait par la même sensation : j’ai encore raté cette balle, je ne suis sans doute pas fait pour le tennis.
+
+Cette manière de me juger paraît naturelle, mais elle n’offre aucune étape suivante. J’ai fini par regarder l’entraînement sous un autre angle : considérer le joueur comme un système en cours d’entraînement et chaque frappe comme une mise à jour de paramètres. Cela n’a pas amélioré ma technique du jour au lendemain, mais cela m’a enlevé un poids émotionnel considérable et m’a dit quoi changer la fois suivante.
+
+## Tu n’es pas un saint, tu es une fonction
+
+Partons d’une abstraction minimale : à tout instant tu es dans un état S, et ton cerveau produit une action A. La correspondance peut s’écrire A = π(S), où π est ta politique, déterminée par un grand nombre de paramètres internes.
+
+S est l’état : position, vitesse et effet de la balle, ta posture et ton équilibre, les habitudes de l’adversaire, le score et la sensation corporelle du moment. A est l’action : quand tu démarres, ton jeu de jambes, la trajectoire du geste, l’angle de la raquette, la répartition de la force, la zone visée. Les paramètres de π sont tes habitudes motrices, tes schémas de coordination et tes priorités.
+
+S’entraîner, c’est donc ajuster ces paramètres. Un entraîneur qui corrige ton geste te donne un signal de perte. La répétition fait avancer les paramètres de quelques pas dans la même direction. Le jour où un geste se met soudain en place, c’est une convergence locale.
+
+Ce que cette abstraction apporte de plus utile, c’est qu’elle transforme « j’ai mal joué » en « la sortie de mon système dans tel état n’était pas assez bonne ». Le premier juge la personne. Le second juge une fonction que l’on peut modifier.
+
+## Sur-apprentissage : pourquoi tu brilles à l’exercice et t’effondres en match
+
+S’il fallait expliquer la différence entre un débutant et quelqu’un de plus avancé en un mot, je choisirais le sur-apprentissage.
+
+Les exercices avec balles envoyées sont un jeu d’entraînement : placement stable, rythme fixe, un seul type d’effet. On peut y faire descendre la perte très bas — l’exercice paraît fluide et le geste propre. Mais dès qu’on joue un match, la balle varie : effet, profondeur, rythme. La performance s’effondre. En apprentissage automatique, c’est une perte faible à l’entraînement et élevée en test : du sur-apprentissage.
+
+La solution n’est pas d’abandonner les exercices, mais de les étager.
+
+D’abord des balles stables pour construire un modèle de geste : c’est de l’apprentissage supervisé, avec une bonne réponse claire. Ensuite introduire de la variété — effets, profondeurs, rythmes et pression du score différents — pour que le geste commence à généraliser. En match, arrêter de chercher le coup optimal à chaque balle ; l’objectif est que le geste entraîné fonctionne encore dans des états jamais vus.
+
+Le plus intéressant, c’est que les meilleurs joueurs ne sont pas ceux qui ont le jeu d’entraînement le plus parfait, mais ceux qui généralisent le mieux : changez le court, l’adversaire, les balles, ils produisent toujours un niveau stable.
+
+## Baisse le taux d’apprentissage : une variable à la fois
+
+Une autre erreur fréquente est un taux d’apprentissage trop élevé.
+
+Un taux élevé, c’est vouloir changer trop de choses à la fois : la prise aujourd’hui, le armé demain, la production de force après-demain, en repartant de zéro chaque fois. Les paramètres oscillent et rien ne converge.
+
+Ma règle est simple maintenant : une variable principale par séance. Cette semaine uniquement le point de contact. La suivante uniquement le transfert du poids. Le reste peut être laid, parce que je sais ce que je travaille.
+
+Je note aussi la « perte » sur trois couches :
+
+- Le résultat : ai-je gagné le point, perdu, ou commis une faute directe.
+- L’action : la qualité technique du coup, de un à cinq, sans regarder le score.
+- La sensation : le coup était-il léger ou forcé, est-ce que j’attaquais ou survivais.
+
+Regarder les trois ensemble évite qu’un match perdu invalide tout un bloc d’entraînement. Parfois le score est mauvais alors que la qualité de l’action monte. Parfois on gagne parce que l’adversaire offre les points, et notre propre perte n’a pas baissé.
+
+> La sortie de ton système dans cet état n’était pas bonne. Cela ne veut pas dire que tu n’es pas bon. Tu dois juste ajuster quelques paramètres pour que le prochain état similaire se passe mieux.
+
+## La théorie est un système d’exploitation en arrière-plan, pas un fardeau
+
+Je ne pense pas aux équations en jouant. Sur le court, j’ai seulement une ou deux choses en tête : regarder la balle, le poids, le point de contact.
+
+Mais après l’entraînement, ce cadre m’aide à faire le point. Je me demande : dans quel état ma sortie a-t-elle été la pire aujourd’hui ? Était-ce un problème de geste, ou est-ce que je n’ai simplement pas perçu cet état ? Quel paramètre changer, et comment le vérifier la prochaine fois ?
+
+Le plus grand bénéfice de traiter l’entraînement comme un réglage de paramètres est de remplacer l’auto-évaluation par l’évaluation du processus. Tu n’as plus à répondre chaque jour à « suis-je assez bon ? ». Tu dois seulement répondre à « qu’est-ce que j’ajuste ensuite ? ». Le premier consomme de l’émotion ; le second produit du mouvement.
+
+C’est à peu près ce que signifie m’entraîner aujourd’hui : non pas me prouver quelque chose chaque jour, mais mettre à jour quelques paramètres chaque jour.

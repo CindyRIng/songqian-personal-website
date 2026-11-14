@@ -30,12 +30,12 @@ const categoryKey = `writing.category.${post.category}` as TranslationKey;
   </p>
 
   <h1
-    class="font-serif text-[clamp(1.9rem,4.6vw,2.4rem)] font-[550] leading-[1.14] tracking-[-0.022em] text-ink-strong text-balance"
+    class="font-serif text-[clamp(1.875rem,1.45rem+1.7vw,2.375rem)] font-[550] leading-[1.12] tracking-[-0.018em] text-ink-strong text-balance"
   >
     {post.title}
   </h1>
 
-  <p class="font-serif text-[1.0625rem] leading-[1.65] text-muted text-pretty">
+  <p class="font-serif text-[1.25rem] leading-[1.5] tracking-[-0.006em] text-muted text-pretty">
     {post.description}
   </p>
 
@@ -44,7 +44,7 @@ const categoryKey = `writing.category.${post.category}` as TranslationKey;
     {post.isFallback && <FallbackNote lang={lang} sourceLang={post.lang} />}
     {
       post.updated && (
-        <p class="font-sans text-[0.75rem] leading-none text-faint">
+        <p class="font-sans text-[0.75rem] leading-none text-subtle">
           {t('common.updated')}
           {' '}
           <time datetime={isoDate(post.updated)}>{formatDate(post.updated, lang, 'short')}</time>

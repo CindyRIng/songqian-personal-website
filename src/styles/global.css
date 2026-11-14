@@ -53,7 +53,14 @@
   --shadow-sm: 0 1px 2px rgb(51 48 43 / 0.05);
   --shadow-md: 0 2px 6px rgb(51 48 43 / 0.05), 0 16px 40px -20px rgb(51 48 43 / 0.22);
   --shadow-lg: 0 4px 12px rgb(51 48 43 / 0.06), 0 28px 64px -28px rgb(51 48 43 / 0.3);
-  --ring: rgb(92 120 56 / 0.5);
+  /* focus ring: 6.63:1 on canvas / 6.24:1 on surface (WCAG 1.4.11) */
+  --ring: #455d27;
+
+  /* overlay — lightbox scrim, deliberately dark in both themes */
+  --overlay: rgb(28 26 22 / 0.66);
+  --overlay-ink: #f7f2ed;
+  --overlay-ink-soft: rgb(247 242 237 / 0.74);
+  --overlay-line: rgb(247 242 237 / 0.18);
 
   /* grain (paper texture) */
   --grain-opacity: 0.022;
@@ -66,12 +73,15 @@
   --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     monospace;
 
-  /* motion */
-  --ease-out: cubic-bezier(0.23, 0.88, 0.26, 0.92);
+  /* motion — one small, consistent set (see .work/design-audit.md §8) */
+  --ease-out: cubic-bezier(0.22, 0.68, 0.24, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
-  --dur-1: 150ms;
-  --dur-2: 300ms;
-  --dur-3: 600ms;
+  --dur-1: 120ms; /* colour / border / hover */
+  --dur-2: 200ms; /* transform / translate */
+  --dur-3: 300ms; /* panels, indicators */
+  --dur-enter: 420ms; /* first reveal */
+  --dur-theme: 600ms; /* radial theme wipe */
 
   /* geometry */
   --content: 34rem; /* 544px */
@@ -85,18 +95,18 @@
   color-scheme: dark;
 
   --canvas: #0e1611;
-  --surface: #121c15;
-  --elevated: #16211a;
+  --surface: #16211a;
+  --elevated: #1b271f;
   --scrim: rgb(14 22 17 / 0.72);
 
   --ink: #e4e8de;
   --ink-strong: #f3f5ee;
   --muted: #a0a998;
-  --subtle: #74806c;
-  --faint: #566150;
+  --subtle: #828f79;
+  --faint: #6b7664;
 
-  --line: rgb(228 232 222 / 0.1);
-  --line-strong: rgb(228 232 222 / 0.18);
+  --line: rgb(228 232 222 / 0.16);
+  --line-strong: rgb(228 232 222 / 0.26);
 
   --accent: #a6c684;
   --accent-strong: #c3dda6;
@@ -111,7 +121,12 @@
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
   --shadow-md: 0 2px 6px rgb(0 0 0 / 0.3), 0 18px 44px -20px rgb(0 0 0 / 0.7);
   --shadow-lg: 0 4px 12px rgb(0 0 0 / 0.35), 0 32px 72px -28px rgb(0 0 0 / 0.8);
-  --ring: rgb(166 198 132 / 0.45);
+  --ring: #a6c684;
+
+  --overlay: rgb(0 0 0 / 0.72);
+  --overlay-ink: #f7f2ed;
+  --overlay-ink-soft: rgb(247 242 237 / 0.74);
+  --overlay-line: rgb(247 242 237 / 0.18);
 
   --grain-opacity: 0.03;
 }
@@ -206,8 +221,13 @@
 
   :focus-visible {
     outline: 2px solid var(--ring);
-    outline-offset: 3px;
-    border-radius: 4px;
+    outline-offset: 2px;
+  }
+
+  @media (forced-colors: active) {
+    :focus-visible {
+      outline: 2px solid Highlight;
+    }
   }
 
   a {
@@ -241,6 +261,24 @@
   video {
     max-width: 100%;
     height: auto;
+  }
+
+  /* CJK display typography — no negative tracking, looser leading (clreq). */
+  :lang(zh) :is(h1, h2, h3, h4, h5, h6),
+  :lang(ja) :is(h1, h2, h3, h4, h5, h6) {
+    letter-spacing: 0.01em;
+    line-height: 1.25;
+    font-synthesis-weight: none;
+  }
+
+  :lang(zh) p,
+  :lang(ja) p {
+    line-height: 1.85;
+  }
+
+  /* Anchors and the skip link share one scroll offset for the fixed nav. */
+  html {
+    scroll-padding-top: 7rem;
   }
 
   /* Native cross-document view transitions */
@@ -682,10 +720,10 @@
      Gated behind `.js` so the site is fully readable without JavaScript. */
   .js [data-reveal] {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
     transition:
-      opacity 700ms var(--ease-out),
-      transform 700ms var(--ease-out);
+      opacity var(--dur-enter) var(--ease-out),
+      transform var(--dur-enter) var(--ease-out);
     transition-delay: var(--reveal-delay, 0ms);
     will-change: opacity, transform;
   }
@@ -722,29 +760,347 @@
   .draw-underline:hover {
     background-size: 100% 1px;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .draw-underline {
+      transition: none;
+    }
+  }
 }
 
 /* --------------------------------------------------------------------------
-   7. Theme reveal via View Transitions
+   7. Motion — page enter, view transitions, theme wipe
    -------------------------------------------------------------------------- */
+
+/* Page enter: the content column blooms from a still-contentful 55% opacity
+   (so first paint / LCP is never delayed), while the chrome settles down.
+   When a cross-document view transition runs, BaseLayout tags the document
+   with `.vt-nav` and this is skipped in favour of the crossfade below. */
+@keyframes page-settle {
+  from {
+    opacity: 0.55;
+  }
+}
+@keyframes chrome-settle {
+  from {
+    opacity: 0.6;
+    transform: translateY(8px);
+  }
+}
+
+.js body > main {
+  animation: page-settle var(--dur-enter) var(--ease-out);
+}
+
+.js body > nav,
+.js body > footer {
+  animation: chrome-settle 280ms var(--ease-out);
+}
+
+.js.vt-nav body > main,
+.js.vt-nav body > nav,
+.js.vt-nav body > footer {
+  animation: none;
+}
+
+/* Cross-document navigation: a quick, quiet crossfade between pages. The
+   theme wipe opts out (it animates the new snapshot's clip-path itself). */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation: none;
   mix-blend-mode: normal;
 }
 
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+html:not(.theme-transition)::view-transition-old(root) {
+  animation: vt-fade-out 160ms ease-out both;
+}
+html:not(.theme-transition)::view-transition-new(root) {
+  animation: vt-fade-in 240ms var(--ease-out) both;
+}
+
+/* The active nav pill is a shared element: it glides between pages. */
+::view-transition-group(nav-active) {
+  animation-duration: 300ms;
+  animation-timing-function: var(--ease-spring);
+}
+
+/* Theme wipe (radial reveal from the toggle) */
 html.theme-transition::view-transition-old(root) {
+  animation: none;
   z-index: 1;
 }
 html.theme-transition::view-transition-new(root) {
+  animation: none;
   z-index: 2;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .js body > main,
+  .js body > nav,
+  .js body > footer {
+    animation: none;
+  }
+
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. Reading experience — headings, code copy, lightbox
+   -------------------------------------------------------------------------- */
+
+/* Jumping from the TOC must clear the fixed mobile pill. */
+.prose :is(h2, h3, h4)[id] {
+  scroll-margin-top: 7rem;
+}
+
+/* Heading anchors — appended by ReadingEnhancements (decorative, pointer-only:
+   keyboard readers already have the TOC). */
+.heading-anchor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35em;
+  height: 1.35em;
+  margin-left: 0.28em;
+  border-radius: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.5em;
+  font-weight: 400;
+  color: var(--faint);
+  opacity: 0;
+  translate: -0.25em 0;
+  vertical-align: 0.2em;
+  text-decoration: none;
+  transition:
+    opacity var(--dur-1) ease-out,
+    translate var(--dur-2) var(--ease-out),
+    color var(--dur-1) ease-out,
+    background-color var(--dur-1) ease-out;
+}
+
+.prose :is(h2, h3):hover .heading-anchor,
+.prose :is(h2, h3):focus-within .heading-anchor {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.heading-anchor:hover {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+
+/* Code block copy button — revealed on hover/focus, check-mark on success.
+   JS wraps each pre in .code-frame so the button never scrolls with the code. */
+.code-frame {
+  position: relative;
+}
+
+.code-copy {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.75rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: color-mix(in oklab, var(--elevated) 88%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--subtle);
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  line-height: 1;
+  opacity: 0;
+  translate: 0 -2px;
+  transition:
+    opacity var(--dur-1) ease-out,
+    translate var(--dur-2) var(--ease-out),
+    color var(--dur-1) ease-out,
+    border-color var(--dur-1) ease-out,
+    background-color var(--dur-1) ease-out;
+  cursor: pointer;
+}
+
+.code-frame:hover .code-copy,
+.code-frame:focus-within .code-copy,
+.code-copy:focus-visible {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.code-copy:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+  background: var(--elevated);
+}
+
+.code-copy[data-copied] {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+
+.code-copy .icon-check {
+  display: none;
+}
+
+.code-copy[data-copied] .icon-copy {
+  display: none;
+}
+
+.code-copy[data-copied] .icon-check {
+  display: block;
+  animation: check-in var(--dur-3) var(--ease-spring);
+}
+
+@keyframes check-in {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+@media (hover: none) {
+  .code-copy {
+    opacity: 0.85;
+    translate: 0 0;
+  }
+}
+
+/* Quiet image lightbox — a native <dialog> in the top layer. */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  border: 0;
+  width: fit-content;
+  max-width: min(94vw, 1120px);
+  max-height: 88dvh;
+  background: transparent;
+  color: var(--overlay-ink);
+  overflow: visible;
+}
+
+.lightbox[open] {
+  display: grid;
+  place-items: center;
+}
+
+.lightbox::backdrop {
+  background: var(--overlay);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  backdrop-filter: blur(10px) saturate(1.05);
+  animation: backdrop-in var(--dur-2) ease-out;
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.lightbox figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  max-height: 88dvh;
+}
+
+.lightbox img {
+  display: block;
+  max-width: 100%;
+  max-height: 78dvh;
+  width: auto;
+  height: auto;
+  margin-inline: auto;
+  border-radius: var(--radius-md);
+  box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.55);
+  animation: lightbox-in var(--dur-2) var(--ease-out);
+}
+
+@keyframes lightbox-in {
+  from {
+    opacity: 0;
+    scale: 0.965;
+  }
+}
+
+.lightbox figcaption {
+  max-width: 62ch;
+  margin-inline: auto;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  text-align: center;
+  color: var(--overlay-ink-soft);
+}
+
+.lightbox-close {
+  position: fixed;
+  top: max(0.75rem, env(safe-area-inset-top, 0px));
+  right: max(0.75rem, env(safe-area-inset-right, 0px));
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--overlay-line);
+  background: color-mix(in oklab, var(--overlay-ink) 10%, transparent);
+  color: var(--overlay-ink);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) ease-out,
+    border-color var(--dur-1) ease-out;
+}
+
+.lightbox-close:hover {
+  background: color-mix(in oklab, var(--overlay-ink) 18%, transparent);
+  border-color: color-mix(in oklab, var(--overlay-ink) 32%, transparent);
+}
+
+html.lightbox-open,
+html.lightbox-open body {
+  overflow: hidden;
+}
+
+.prose img.is-zoomable {
+  cursor: zoom-in;
+}
+
+.prose img.is-zoomable:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heading-anchor,
+  .code-copy {
+    transition: none;
+  }
+
+  .code-copy[data-copied] .icon-check,
+  .lightbox img,
+  .lightbox::backdrop {
+    animation: none;
   }
 }
 
@@ -768,5 +1124,32 @@ html.theme-transition::view-transition-new(root) {
   }
   ::-webkit-scrollbar-thumb:hover {
     background: var(--subtle);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   9. Print — content must never be hidden on paper
+   -------------------------------------------------------------------------- */
+@media print {
+  .js [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .js body > main,
+  .js body > nav,
+  .js body > footer {
+    animation: none !important;
+  }
+
+  nav,
+  [data-toc-rail],
+  [data-toc-inline],
+  .grain::before {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
   }
 }

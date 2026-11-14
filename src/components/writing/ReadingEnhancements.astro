@@ -1,0 +1,256 @@
+---
+/**
+ * ReadingEnhancements — progressive article polish, all JavaScript-only.
+ *
+ *   - heading anchors (#) on hover/focus for h2/h3;
+ *   - copy buttons for code blocks (check-mark feedback + aria-live);
+ *   - a quiet native <dialog> lightbox for prose images;
+ *
+ * Nothing here is required to read an article: without JS there are no
+ * anchors, no copy buttons and images simply stay inline. Rendered only on
+ * article pages by BaseLayout; the script itself also guards on `.post-body`.
+ *
+ * Micro-copy: prefers the ui.ts keys when they exist (writing.copyCode,
+ * writing.codeCopied, a11y.close) and falls back to a local six-locale map
+ * until those keys land — TODO: drop the fallback once ui.ts has them.
+ */
+import Icon from '../ui/Icon.astro';
+import { useTranslations } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+import type { TranslationKey } from '../../i18n/ui';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const fallback = {
+  copyCode: {
+    en: 'Copy code',
+    zh: '复制代码',
+    ja: 'コードをコピー',
+    es: 'Copiar código',
+    fr: 'Copier le code',
+    de: 'Code kopieren',
+  },
+  codeCopied: {
+    en: 'Code copied',
+    zh: '代码已复制',
+    ja: 'コードをコピーしました',
+    es: 'Código copiado',
+    fr: 'Code copié',
+    de: 'Code kopiert',
+  },
+  close: {
+    en: 'Close',
+    zh: '关闭',
+    ja: '閉じる',
+    es: 'Cerrar',
+    fr: 'Fermer',
+    de: 'Schließen',
+  },
+  linkToSection: {
+    en: 'Link to this section',
+    zh: '链接到本节',
+    ja: 'この節へのリンク',
+    es: 'Enlace a esta sección',
+    fr: 'Lien vers cette section',
+    de: 'Link zu diesem Abschnitt',
+  },
+} as const satisfies Record<string, Record<Locale, string>>;
+
+const keyOrFallback = (key: string, table: Record<Locale, string>): string => {
+  const value = t(key as TranslationKey);
+  return value === key ? (table[lang] ?? table.en) : value;
+};
+
+const labels = {
+  copyCode: keyOrFallback('writing.copyCode', fallback.copyCode),
+  codeCopied: keyOrFallback('writing.codeCopied', fallback.codeCopied),
+  close: keyOrFallback('a11y.close', fallback.close),
+  linkToSection: keyOrFallback('writing.linkToSection', fallback.linkToSection),
+};
+---
+
+<div hidden data-reading-config data-labels={JSON.stringify(labels)}></div>
+
+<dialog data-lightbox class="lightbox">
+  <figure>
+    <img data-lightbox-img alt="" />
+    <figcaption data-lightbox-caption></figcaption>
+  </figure>
+  <button
+    type="button"
+    data-lightbox-close
+    class="lightbox-close"
+    aria-label={labels.close}
+  >
+    <Icon name="close" size={18} />
+  </button>
+</dialog>
+
+<script>
+  interface ReadingLabels {
+    copyCode: string;
+    codeCopied: string;
+    close: string;
+    linkToSection: string;
+  }
+
+  const COPY_ICON =
+    '<svg class="icon-copy" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>';
+  const CHECK_ICON =
+    '<svg class="icon-check" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m20 6.5-11 11-5-5"/></svg>';
+
+  const config = document.querySelector<HTMLElement>('[data-reading-config]');
+  const body = document.querySelector<HTMLElement>('.post-body');
+
+  if (body && config) {
+    let labels: ReadingLabels;
+    try {
+      labels = JSON.parse(config.dataset.labels ?? '{}') as ReadingLabels;
+    } catch {
+      labels = { copyCode: 'Copy code', codeCopied: 'Copied', close: 'Close', linkToSection: 'Link to this section' };
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Heading anchors                                                     */
+    /* ------------------------------------------------------------------ */
+    for (const heading of body.querySelectorAll<HTMLHeadingElement>('h2[id], h3[id]')) {
+      const anchor = document.createElement('a');
+      anchor.className = 'heading-anchor';
+      anchor.href = `#${heading.id}`;
+      anchor.textContent = '#';
+      anchor.setAttribute('aria-hidden', 'true');
+      anchor.tabIndex = -1;
+      heading.append(anchor);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Code copy buttons                                                   */
+    /* ------------------------------------------------------------------ */
+    const liveRegion = document.createElement('span');
+    liveRegion.className = 'sr-only';
+    liveRegion.setAttribute('role', 'status');
+    liveRegion.setAttribute('aria-live', 'polite');
+    document.body.append(liveRegion);
+
+    const copyText = async (text: string): Promise<boolean> => {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        // Clipboard API unavailable (http, permissions) — legacy fallback.
+        try {
+          const area = document.createElement('textarea');
+          area.value = text;
+          area.setAttribute('readonly', '');
+          area.style.position = 'fixed';
+          area.style.opacity = '0';
+          document.body.append(area);
+          area.select();
+          const ok = document.execCommand('copy');
+          area.remove();
+          return ok;
+        } catch {
+          return false;
+        }
+      }
+    };
+
+    for (const pre of body.querySelectorAll<HTMLPreElement>('pre')) {
+      const code = pre.querySelector('code');
+      if (!code) continue;
+
+      const frame = document.createElement('div');
+      frame.className = 'code-frame';
+      pre.before(frame);
+      frame.append(pre);
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'code-copy';
+      button.setAttribute('aria-label', labels.copyCode);
+      button.title = labels.copyCode;
+      button.innerHTML = COPY_ICON + CHECK_ICON;
+      frame.append(button);
+
+      let resetTimer = 0;
+      button.addEventListener('click', async () => {
+        const ok = await copyText(code.innerText);
+        if (!ok) return;
+        button.dataset.copied = '';
+        button.setAttribute('aria-label', labels.codeCopied);
+        liveRegion.textContent = labels.codeCopied;
+        window.clearTimeout(resetTimer);
+        resetTimer = window.setTimeout(() => {
+          delete button.dataset.copied;
+          button.setAttribute('aria-label', labels.copyCode);
+          liveRegion.textContent = '';
+        }, 1800);
+      });
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Image lightbox (native <dialog>)                                    */
+    /* ------------------------------------------------------------------ */
+    const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+    const dialogImage = dialog?.querySelector<HTMLImageElement>('[data-lightbox-img]');
+    const dialogCaption = dialog?.querySelector<HTMLElement>('[data-lightbox-caption]');
+    const closeButton = dialog?.querySelector<HTMLButtonElement>('[data-lightbox-close]');
+
+    if (
+      dialog &&
+      dialogImage &&
+      dialogCaption &&
+      closeButton &&
+      typeof dialog.showModal === 'function'
+    ) {
+      let lastTrigger: HTMLImageElement | null = null;
+
+      const openLightbox = (image: HTMLImageElement) => {
+        lastTrigger = image;
+        dialogImage.src = image.currentSrc || image.src;
+        dialogImage.alt = image.alt;
+        const figure = image.closest('figure');
+        const caption = figure?.querySelector('figcaption')?.textContent?.trim() || image.alt;
+        dialogCaption.textContent = caption;
+        dialogCaption.hidden = caption.length === 0;
+        dialog.setAttribute('aria-label', image.alt || labels.close);
+        dialog.showModal();
+        document.documentElement.classList.add('lightbox-open');
+        closeButton.focus();
+      };
+
+      for (const image of body.querySelectorAll<HTMLImageElement>('img[alt]')) {
+        if (!image.alt.trim() || image.closest('a') || image.closest('[data-lightbox]')) continue;
+        image.classList.add('is-zoomable');
+        image.tabIndex = 0;
+        image.setAttribute('role', 'button');
+        image.addEventListener('click', () => openLightbox(image));
+        image.addEventListener('keydown', (event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          openLightbox(image);
+        });
+      }
+
+      dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+
+      closeButton.addEventListener('click', () => dialog.close());
+
+      dialog.addEventListener('close', () => {
+        document.documentElement.classList.remove('lightbox-open');
+        dialogImage.removeAttribute('src');
+        if (lastTrigger) {
+          lastTrigger.focus();
+          lastTrigger = null;
+        }
+      });
+    }
+  }
+</script>

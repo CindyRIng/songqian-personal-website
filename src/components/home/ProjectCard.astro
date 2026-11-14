@@ -1,14 +1,15 @@
 ---
 /**
- * ProjectCard — one "selected work" card on the home page.
+ * ProjectCard — one "selected work" entry on the home page.
  *
- * A shared generated cover plate (src/components/projects/CoverArt.astro, so
- * home and the Projects page use identical art), a gentle zoom on hover, then a
- * single quiet meta line (`year · status`) above the serif title and tagline.
+ * A compact horizontal editorial row: generated cover plate on the left, then a
+ * quiet `year · status` meta line above the serif title and a two-line tagline.
+ * The whole row is the link; hover washes the row and zooms the plate slightly.
  */
 import Icon from '../ui/Icon.astro';
 import CoverArt from '../projects/CoverArt.astro';
 import { useTranslations } from '../../i18n/utils';
+import { initialsOf } from '../../lib/format';
 import type { Locale } from '../../i18n/config';
 import type { ProjectStatus } from '../../lib/projects';
 
@@ -24,8 +25,13 @@ interface Props {
   eyebrow?: string;
 }
 
-const { lang, slug, title, tagline, year, status, href, index, eyebrow } = Astro.props;
+const { lang, slug, title, tagline, year, status, href, index } = Astro.props;
 const t = useTranslations(lang);
+
+/** The plate wordmark is intentionally short so it never wraps at card size. */
+const shortTitle = /^[\u3040-\u30ff\u3400-\u9fff]/.test(title.trim())
+  ? [...title.trim()].slice(0, 2).join('')
+  : (title.trim().split(/\s+/)[0] ?? title);
 
 const statusKey = {
   live: 'status.live',
@@ -37,47 +43,44 @@ const statusKey = {
 
 const isQuiet = status === 'archived' || status === 'concept';
 const dotClass = isQuiet ? 'bg-faint' : 'bg-accent';
-const statusClass = isQuiet ? 'text-faint' : 'text-subtle';
 ---
 
 <a
   href={href}
-  class="group/card flex flex-col gap-3 rounded-[18px] focus-visible:outline-offset-4"
+  class="group/card -mx-2 flex flex-col gap-3 rounded-[18px] p-2 transition-colors duration-200 hover:bg-hover focus-visible:outline-offset-2 min-[480px]:flex-row min-[480px]:items-center min-[480px]:gap-5 min-[480px]:pr-3"
 >
   <div
-    class="relative overflow-hidden rounded-[18px] border border-line motion-safe:transition-[box-shadow,border-color] motion-safe:duration-500 group-hover/card:border-line-strong group-hover/card:shadow-md"
+    class="relative w-full shrink-0 overflow-hidden rounded-[13px] border border-line-strong motion-safe:transition-shadow motion-safe:duration-300 group-hover/card:shadow-md min-[480px]:w-[7.5rem] sm:w-[9rem]"
   >
     <CoverArt
       slug={slug}
-      title={title}
+      title={shortTitle}
+      mono={initialsOf(title, 2)}
       index={index}
-      eyebrow={eyebrow}
-      class="aspect-[4/3] w-full motion-safe:transition-transform motion-safe:duration-[900ms] motion-safe:ease-out motion-safe:group-hover/card:scale-[1.03]"
+      class="aspect-[16/9] w-full motion-safe:transition-transform motion-safe:duration-[900ms] motion-safe:ease-out motion-safe:group-hover/card:scale-[1.04] min-[480px]:aspect-[4/3]"
     />
-    <span
-      aria-hidden="true"
-      class="pointer-events-none absolute bottom-2.5 right-2.5 grid size-7 translate-y-1 place-items-center rounded-full border border-line bg-elevated/95 text-ink opacity-0 shadow-sm backdrop-blur transition-[opacity,translate] duration-300 ease-out group-hover/card:translate-y-0 group-hover/card:opacity-100 motion-safe:transition-[opacity,translate]"
-    >
-      <Icon name="arrow-up-right" size={13} />
-    </span>
   </div>
 
-  <div class="flex flex-col gap-1.5">
-    <p
-      class="flex flex-wrap items-center gap-x-1.5 gap-y-1 font-mono text-[0.625rem] uppercase leading-none tracking-[0.12em]"
-    >
+  <div class="flex min-w-0 flex-1 flex-col gap-1">
+    <p class="flex items-center gap-1.5 font-mono text-[0.6875rem] uppercase leading-none tracking-[0.1em]">
       <span class="text-subtle">{year}</span>
       <span aria-hidden="true" class="text-faint">·</span>
-      <span class:list={['inline-flex items-center gap-1.5', statusClass]}>
+      <span class="inline-flex items-center gap-1.5 text-subtle">
         <span aria-hidden="true" class:list={['size-1 rounded-full', dotClass]}></span>
         {t(statusKey[status])}
       </span>
     </p>
     <h3
-      class="font-serif text-[0.9375rem] font-[550] leading-snug tracking-[-0.01em] text-ink-strong sm:text-[1rem]"
+      class="text-pretty font-serif text-[1.0625rem] font-[550] leading-snug tracking-[-0.012em] text-ink-strong"
     >
       {title}
     </h3>
-    <p class="line-clamp-2 font-serif text-[0.8125rem] leading-[1.45] text-muted">{tagline}</p>
+    <p class="line-clamp-2 text-pretty font-serif text-[0.8125rem] leading-[1.5] text-muted">{tagline}</p>
   </div>
+
+  <Icon
+    name="arrow-up-right"
+    size={15}
+    class="hidden shrink-0 text-faint opacity-0 min-[480px]:block transition-[opacity,transform] duration-300 ease-out group-hover/card:-translate-y-0.5 group-hover/card:translate-x-0.5 group-hover/card:text-accent group-hover/card:opacity-100"
+  />
 </a>

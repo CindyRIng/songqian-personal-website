@@ -22,7 +22,7 @@ const subscribeHref = `mailto:${profile.email}?subject=${encodeURIComponent(t('h
 
 <div class:list={['flex flex-col gap-2.5', className]}>
   <div
-    class="flex items-center gap-2 rounded-full border border-line bg-surface/60 p-1 pl-4 transition-colors duration-300 hover:border-line-strong hover:bg-surface"
+    class="flex items-center gap-2 rounded-full border border-line bg-surface/60 p-1 pl-4 transition-[background-color,border-color,box-shadow] duration-300 hover:border-line-strong hover:bg-surface hover:shadow-sm"
   >
     <a
       href={subscribeHref}
@@ -31,7 +31,7 @@ const subscribeHref = `mailto:${profile.email}?subject=${encodeURIComponent(t('h
       <Icon
         name="mail"
         size={15}
-        class="text-faint transition-colors duration-200 group-hover/sub:text-accent"
+        class="text-faint transition-[color,transform] duration-300 ease-out group-hover/sub:text-accent motion-safe:group-hover/sub:translate-x-0.5"
       />
       <span class="truncate">{t('home.subscribe')}</span>
     </a>
@@ -45,7 +45,7 @@ const subscribeHref = `mailto:${profile.email}?subject=${encodeURIComponent(t('h
     </a>
   </div>
 
-  <p class="px-4 font-sans text-[0.6875rem] leading-relaxed text-faint">
+  <p class="px-4 font-sans text-[0.75rem] leading-relaxed text-subtle">
     {t('home.subscribeNote')}
   </p>
 </div>

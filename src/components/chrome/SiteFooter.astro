@@ -43,7 +43,7 @@ const panelPath = currentPath;
 <footer
   class="relative z-10 mx-auto w-full max-w-[calc(var(--content)+3rem)] px-6 pb-[max(2rem,env(safe-area-inset-bottom,0px))] sm:px-8"
 >
-  <div class="border-t border-line pt-6">
+  <div class="border-t border-line pt-8">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
       <p class="font-sans text-[0.75rem] leading-relaxed text-subtle">
         <span>{t('footer.handcrafted')}</span>
@@ -51,7 +51,7 @@ const panelPath = currentPath;
         <span aria-hidden="true" class="px-1.5 text-faint">·</span>
         <a
           href={`mailto:${profile.email}`}
-          class="transition-colors duration-200 hover:text-ink"
+          class="draw-underline transition-colors duration-200 hover:text-ink"
         >{t('footer.contact')}</a>
       </p>
 
@@ -65,7 +65,7 @@ const panelPath = currentPath;
             size={12}
             class="text-faint transition-colors duration-200 group-hover/rss:text-accent"
           />
-          <span>{t('home.rss')}</span>
+          <span class="draw-underline">{t('home.rss')}</span>
         </a>
 
         <a
@@ -74,7 +74,7 @@ const panelPath = currentPath;
           aria-label={t('footer.top')}
           title={t('footer.top')}
         >
-          <span>{t('footer.top')}</span>
+          <span class="draw-underline">{t('footer.top')}</span>
           <Icon
             name="arrow-up"
             size={12}
@@ -88,12 +88,12 @@ const panelPath = currentPath;
       class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line/60 pt-3.5"
     >
       <p
-        class="flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-[0.6875rem] leading-relaxed text-faint"
+        class="flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-[0.75rem] leading-relaxed text-subtle"
       >
         <span>© {year} {name}</span>
-        <span aria-hidden="true">·</span>
+        <span aria-hidden="true" class="text-faint">·</span>
         <span>{t('footer.rights')}</span>
-        <span aria-hidden="true">·</span>
+        <span aria-hidden="true" class="text-faint">·</span>
         <span>{t('footer.built')}</span>
       </p>
 

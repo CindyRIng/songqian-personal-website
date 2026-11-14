@@ -78,7 +78,26 @@ const ringOffset = 8 + ((h >> 17) % 24); // px bleed of the ring cluster
 const ghostX = 8 + ((h >> 19) % 12); // px offset of the outlined echo
 const ghostRise = 6 + ((h >> 21) % 8); // px the echo rises above the monogram
 
-const initial = (mono ?? title.trim().charAt(0) ?? 'S').slice(0, 2).toUpperCase();
+/**
+ * Monogram: supplied `mono` wins; otherwise use the initials of up to two
+ * Latin words (Fuma Platform → FP) so sibling projects never share a mark,
+ * and fall back to the first character for CJK titles.
+ */
+function monogramOf(value: string): string {
+  const words = value.trim().split(/[\s\-–—/]+/).filter(Boolean);
+  if (words.length >= 2) {
+    const letters = words.slice(0, 2).map((word) => word[0]);
+    if (letters.every((letter) => /[A-Za-z]/.test(letter))) {
+      return letters.join('').toUpperCase();
+    }
+  }
+  return value.trim().charAt(0).toUpperCase();
+}
+
+const initial = (mono ?? monogramOf(title) ?? 'S').slice(0, 2).toUpperCase();
+/** The outlined echo reads as a designed offset for Latin letters; on dense
+ *  CJK glyphs it reads as a misprint, so it is only rendered for Latin marks. */
+const latinMonogram = /^[A-Z]{1,2}$/.test(initial);
 const wordmark = title.toUpperCase();
 const paddedIndex = typeof index === 'number' ? String(index).padStart(2, '0') : index;
 
@@ -101,6 +120,7 @@ const style = [
   class:list={['cover-art', `cover-art--${variant}`, className]}
   style={style}
   data-cover-seed={slug}
+  data-latin-monogram={latinMonogram ? 'true' : 'false'}
   aria-hidden="true"
 >
   <div class="art-base"></div>
@@ -283,6 +303,18 @@ const style = [
     color: color-mix(in oklab, var(--ink-strong) 84%, var(--accent));
     text-shadow: 0 1px 0 color-mix(in oklab, var(--canvas) 36%, transparent);
     user-select: none;
+  }
+
+  .cover-art[data-latin-monogram='false'] .art-ghost {
+    display: none;
+  }
+
+  /* CJK glyphs fill the full em box: give them line-height and no crop. */
+  .cover-art[data-latin-monogram='false'] .art-initial {
+    line-height: 1;
+    margin-bottom: 0;
+    margin-left: -0.02em;
+    letter-spacing: 0;
   }
 
   .art-ghost {

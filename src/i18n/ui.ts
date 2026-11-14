@@ -25,6 +25,7 @@ export const ui = {
 
     'a11y.skip': 'Skip to content',
     'a11y.external': 'opens in a new tab',
+    'a11y.close': 'Close',
 
     'common.readMore': 'Read more',
     'common.backHome': 'Back home',
@@ -88,6 +89,8 @@ export const ui = {
     'writing.category.engineering': 'Engineering',
     'writing.category.life': 'Life',
     'writing.category.notes': 'Notes',
+    'writing.copyCode': 'Copy code',
+    'writing.codeCopied': 'Code copied',
 
     'projects.title': 'Projects',
     'projects.subtitle': 'Things I have designed, built and shipped.',
@@ -145,6 +148,7 @@ export const ui = {
 
     'a11y.skip': '跳到正文',
     'a11y.external': '在新标签页打开',
+    'a11y.close': '关闭',
 
     'common.readMore': '阅读全文',
     'common.backHome': '返回首页',
@@ -208,6 +212,8 @@ export const ui = {
     'writing.category.engineering': '工程',
     'writing.category.life': '生活',
     'writing.category.notes': '随笔',
+    'writing.copyCode': '复制代码',
+    'writing.codeCopied': '已复制代码',
 
     'projects.title': '项目',
     'projects.subtitle': '我设计、构建并交付过的东西。',
@@ -238,7 +244,7 @@ export const ui = {
     'notfound.text': '你要找的页面不存在，或者已经搬走了。',
     'notfound.back': '返回首页',
 
-    'footer.handcrafted': '由宋倩手工打造',
+    'footer.handcrafted': '由宋谦手工打造',
     'footer.years': '已持续 {n} 年',
     'footer.months': '已持续 {n} 个月',
     'footer.contact': '联系我',
@@ -265,6 +271,7 @@ export const ui = {
 
     'a11y.skip': '本文へスキップ',
     'a11y.external': '新しいタブで開く',
+    'a11y.close': '閉じる',
 
     'common.readMore': '続きを読む',
     'common.backHome': 'ホームへ戻る',
@@ -328,6 +335,8 @@ export const ui = {
     'writing.category.engineering': 'エンジニアリング',
     'writing.category.life': '暮らし',
     'writing.category.notes': 'ノート',
+    'writing.copyCode': 'コードをコピー',
+    'writing.codeCopied': 'コードをコピーしました',
 
     'projects.title': 'プロジェクト',
     'projects.subtitle': 'デザインし、作り、届けてきたもの。',
@@ -385,6 +394,7 @@ export const ui = {
 
     'a11y.skip': 'Saltar al contenido',
     'a11y.external': 'se abre en una pestaña nueva',
+    'a11y.close': 'Cerrar',
 
     'common.readMore': 'Leer más',
     'common.backHome': 'Volver al inicio',
@@ -448,6 +458,8 @@ export const ui = {
     'writing.category.engineering': 'Ingeniería',
     'writing.category.life': 'Vida',
     'writing.category.notes': 'Notas',
+    'writing.copyCode': 'Copiar código',
+    'writing.codeCopied': 'Código copiado',
 
     'projects.title': 'Proyectos',
     'projects.subtitle': 'Cosas que he diseñado, construido y lanzado.',
@@ -505,6 +517,7 @@ export const ui = {
 
     'a11y.skip': 'Aller au contenu',
     'a11y.external': "s'ouvre dans un nouvel onglet",
+    'a11y.close': 'Fermer',
 
     'common.readMore': 'Lire la suite',
     'common.backHome': "Retour à l'accueil",
@@ -568,6 +581,8 @@ export const ui = {
     'writing.category.engineering': 'Ingénierie',
     'writing.category.life': 'Vie',
     'writing.category.notes': 'Notes',
+    'writing.copyCode': 'Copier le code',
+    'writing.codeCopied': 'Code copié',
 
     'projects.title': 'Projets',
     'projects.subtitle': 'Ce que j’ai conçu, construit et livré.',
@@ -625,6 +640,7 @@ export const ui = {
 
     'a11y.skip': 'Zum Inhalt springen',
     'a11y.external': 'öffnet in neuem Tab',
+    'a11y.close': 'Schließen',
 
     'common.readMore': 'Weiterlesen',
     'common.backHome': 'Zur Startseite',
@@ -688,6 +704,8 @@ export const ui = {
     'writing.category.engineering': 'Engineering',
     'writing.category.life': 'Leben',
     'writing.category.notes': 'Notizen',
+    'writing.copyCode': 'Code kopieren',
+    'writing.codeCopied': 'Code kopiert',
 
     'projects.title': 'Projekte',
     'projects.subtitle': 'Dinge, die ich gestaltet, gebaut und ausgeliefert habe.',

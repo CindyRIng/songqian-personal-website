@@ -1,0 +1,45 @@
+---
+# Fuente: https://github.com/CindyRIng/fuma-platform README (2026-11).
+title: 'Fuma Platform'
+tagline: 'Una capa local fina que convierte la consola web de Fuma en una plataforma programable y cacheable.'
+description: 'fuma-platform es un servicio local en Node alrededor de la consola de gestión de clientes de Fuma: pool de sesiones multicuenta, pool de peticiones, almacén de hechos local-first, caché de aduanas y bus de eventos.'
+year: 2026
+role: 'Diseño y desarrollo (en solitario)'
+team: 'En solitario'
+status: live
+tags: ['product', 'tool']
+stack: ['TypeScript', 'Node.js', 'Fastify', 'SQLite', 'MCP']
+cover: 'generated:fuma-platform'
+coverAlt: 'Portada generativa: una F serif enorme sobre un degradado cálido por capas.'
+metrics:
+  - label: 'Capacidades'
+    value: '43'
+  - label: 'Tests'
+    value: '53'
+  - label: 'Entradas'
+    value: '4'
+links:
+  repo: 'https://github.com/CindyRIng/fuma-platform'
+featured: true
+order: 1
+---
+
+Fuma es el CRM con el que mi equipo trabaja a diario. Su consola web está pensada para una persona con una cuenta, una pestaña y sin prisa: escanear un código QR, elegir empresa y hacer clic. Todo lo útil —listas de clientes, el fondo común, comprobación de duplicados, datos de aduanas— vive solo dentro de esa consola.
+
+fuma-platform es una capa local fina alrededor de ella. No reimplementa la lógica de negocio de Fuma ni pretende ser un segundo CRM: convierte la consola en capacidades locales, programables y cacheables que otros sistemas y agentes pueden llamar.
+
+## Primero los hechos locales
+
+Una regla guió todo el diseño: una escritura entra en una transacción SQLite local más un outbox, y luego se sincroniza con el upstream de forma asíncrona. Si el upstream discrepa, un reconciliador registra la diferencia en lugar de sobrescribirla. Quien llama siempre recibe un hecho definido.
+
+## Un registro, cuatro interfaces
+
+El núcleo es un único registro de 43 capacidades. Cada una se define una vez y se genera como comando CLI, ruta REST v1 (Fastify, solo loopback y Bearer), herramienta MCP stdio y documento SKILL. No hay funciones que existan solo en el CLI.
+
+## Las sesiones son lo difícil
+
+La cuenta es de una persona real. El inicio de sesión es SSO de DingTalk con QR; los tokens se cifran con AES-256-GCM, un latido los mantiene vivos y una cola de re-login gestiona la caducidad. El pool serializa por cuenta y limita QPS con jitter.
+
+## Lo que aprendí
+
+El registro es el producto. Si los cuatro accesos nacen de una sola definición, mantenerlos deja de ser cuatro trabajos. Y las limitaciones honestas en el README ahorran más tiempo que cualquier promesa.

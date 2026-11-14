@@ -1,0 +1,51 @@
+---
+# Source of truth: https://github.com/CindyRIng/fuma-platform README (2026-11).
+title: 'Fuma Platform'
+tagline: 'A thin local wrapper that turns Fuma''s web console into a programmable, cacheable platform.'
+description: 'fuma-platform is a local Node service around the Fuma customer-management console: multi-account session pool, request pool, local-first fact store, customs cache and event bus — one capability registry exposed as CLI, REST, MCP and SKILL.'
+year: 2026
+role: 'Design & development, solo'
+team: 'Solo'
+status: live
+tags: ['product', 'tool']
+stack: ['TypeScript', 'Node.js', 'Fastify', 'SQLite', 'MCP']
+cover: 'generated:fuma-platform'
+coverAlt: 'Generated cover plate: an oversized serif F on a warm layered gradient.'
+metrics:
+  - label: 'Capabilities'
+    value: '43'
+  - label: 'Tests passing'
+    value: '53'
+  - label: 'Entry points'
+    value: '4'
+links:
+  repo: 'https://github.com/CindyRIng/fuma-platform'
+featured: true
+order: 1
+---
+
+Fuma is the CRM my team uses every day. Its web console is built for a human with one account, one browser tab and no hurry: scan a QR code, pick an enterprise, then click. Everything useful that follows — customer lists, the open-sea pool, duplicate checks, customs lookups — exists only inside that console.
+
+fuma-platform is a thin local wrapper around it. It does not reimplement Fuma's business logic, and it is not trying to become a second CRM. It turns the console into a set of local, programmable capabilities that other systems and agents can call.
+
+## Local facts first
+
+One rule shaped the whole design: a write lands in a local SQLite transaction plus an outbox, then syncs upstream asynchronously. When upstream disagrees, a reconciler records the difference instead of silently overwriting it. Callers always get a definite answer from local facts — never a half-applied state.
+
+## One registry, four interfaces
+
+The core is a single capability registry. Each of the 43 capabilities is defined once, then generated into a CLI command, a REST v1 route (Fastify, bound to loopback and protected by a bearer token), an MCP stdio tool and a SKILL document. There is no path where the CLI can do something REST cannot. `npm run spec` emits the OpenAPI, CLI and MCP contracts from that same source.
+
+## Sessions are the hard part
+
+A sales account belongs to a real person. Login is DingTalk SSO with a QR code, tokens are encrypted at rest with AES-256-GCM, a heartbeat keeps them alive and a re-login queue handles the 24-hour expiry. The request pool serialises per account, spaces requests with QPS limits and jitter, and routes reads through the cache. Browsers only start for login or refresh.
+
+## A customs cache with rules
+
+Customs queries are slow and expensive upstream, so they are force-cached: TTL, invalidation from the upstream change log, an LRU capacity bound and permission-domain isolation. A cold lookup takes about a second; a cache hit is measured in hundredths of a millisecond.
+
+## What I learned
+
+The registry is the product. When four interfaces are generated from one definition, they stop being four maintenance burdens and become one. I also learned to leave the limits in the README: creating a follow-up still waits on an upstream contract I have not confirmed, and deleting a customer needs permissions the test account did not have. Writing those down cost nothing and saved a support thread.
+
+Working inside this CRM, then writing its automation, changed how I read software: the browser is a contract you did not get to design.

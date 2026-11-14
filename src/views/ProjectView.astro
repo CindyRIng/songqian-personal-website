@@ -40,47 +40,47 @@ const { Content } = await render(project.entry);
 
 const copy: Record<
   Locale,
-  { outcomes: string; process: string; galleryLabels: [string, string, string]; next: string; fallback: string }
+  { outcomes: string; system: string; galleryLabels: [string, string, string]; next: string; fallback: string }
 > = {
   en: {
     outcomes: 'Outcomes',
-    process: 'Process',
-    galleryLabels: ['Sketch', 'Build', 'Ship'],
+    system: 'System',
+    galleryLabels: ['Architecture', 'Interfaces', 'Runtime'],
     next: 'Next project',
     fallback: 'This project is only available in English for now.',
   },
   zh: {
     outcomes: '成果',
-    process: '过程',
-    galleryLabels: ['草图', '构建', '上线'],
+    system: '系统',
+    galleryLabels: ['架构', '接口', '运行'],
     next: '下一个项目',
     fallback: '这个项目目前只有英文版本。',
   },
   ja: {
     outcomes: '成果',
-    process: 'プロセス',
-    galleryLabels: ['スケッチ', '構築', 'リリース'],
+    system: 'システム',
+    galleryLabels: ['構造', '接続', '運用'],
     next: '次のプロジェクト',
     fallback: 'このプロジェクトは現在英語のみです。',
   },
   es: {
     outcomes: 'Resultados',
-    process: 'Proceso',
-    galleryLabels: ['Boceto', 'Construcción', 'Lanzamiento'],
+    system: 'Sistema',
+    galleryLabels: ['Arquitectura', 'Interfaces', 'Operación'],
     next: 'Siguiente proyecto',
     fallback: 'Este proyecto solo está disponible en inglés por ahora.',
   },
   fr: {
     outcomes: 'Résultats',
-    process: 'Processus',
-    galleryLabels: ['Croquis', 'Construction', 'Lancement'],
+    system: 'Système',
+    galleryLabels: ['Architecture', 'Interfaces', 'Exécution'],
     next: 'Projet suivant',
     fallback: 'Ce projet n’est disponible qu’en anglais pour le moment.',
   },
   de: {
     outcomes: 'Ergebnisse',
-    process: 'Prozess',
-    galleryLabels: ['Skizze', 'Bau', 'Start'],
+    system: 'System',
+    galleryLabels: ['Architektur', 'Schnittstellen', 'Betrieb'],
     next: 'Nächstes Projekt',
     fallback: 'Dieses Projekt ist derzeit nur auf Englisch verfügbar.',
   },
@@ -278,7 +278,7 @@ if (project.links?.case) links.push({ label: t('common.caseStudy'), href: projec
   <section class="mt-14 border-t border-line pt-8" aria-labelledby="project-process" data-reveal>
     <div class="mb-6 flex items-baseline gap-3">
       <h2 id="project-process" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
-        {c.process}
+        {c.system}
       </h2>
       <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
       <span class="font-mono text-[0.625rem] tabular text-faint">03</span>

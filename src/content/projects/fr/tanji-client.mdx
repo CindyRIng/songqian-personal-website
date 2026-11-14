@@ -1,0 +1,49 @@
+---
+# Source : https://github.com/CindyRIng/tanji-client README (2026-11).
+title: 'Tanji Client'
+tagline: 'Un client local pour la prospection Tanji : un processus propriétaire, des sessions multicomptes, un cache mesurable.'
+description: 'tanji-client transforme Tanji AI en service local : session cloak persistante, isolation multicomptes, entrées CLI / REST / MCP / SKILL, cache SQLite, limitation priority/bulk et registre de 345 conditions de filtre.'
+year: 2026
+role: 'Design et développement (en solo)'
+team: 'En solo'
+status: shipped
+tags: ['tool']
+stack: ['TypeScript', 'MCP', 'SQLite', 'systemd']
+cover: 'generated:tanji-client'
+coverAlt: 'Visuel génératif : un T sérif monumental sur un dégradé vert en couches.'
+metrics:
+  - label: 'Conditions de filtre'
+    value: '345'
+  - label: 'Tests'
+    value: '59'
+  - label: 'Outils MCP'
+    value: '13'
+links:
+  repo: 'https://github.com/CindyRIng/tanji-client'
+featured: false
+order: 6
+---
+
+Tanji est une plateforme de prospection : chercher des entreprises, les filtrer, lire leur registre, leurs actionnaires et dirigeants et, si l’on dépense du quota, un contact. C’est vraiment puissant dans un navigateur et vraiment pénible depuis un programme : la connexion dépend de cookies SSO, les requêtes fréquentes déclenchent la limitation, les API de page changent, et plusieurs scripts sur un compte se disputent le même profil.
+
+tanji-client ramène tout cela à un processus propriétaire local : un navigateur, un service REST, un cache et un limiteur de débit. CLI, MCP et scripts parlent à l’API REST locale et n’ouvrent jamais de navigateur eux-mêmes.
+
+## Un propriétaire, plusieurs comptes
+
+Chaque compte a son profil, son cache et son port. Un seul service possède le navigateur ; le serveur MCP ne fait par défaut que proxyer vers REST et ne détient jamais le profil, ce qui fait disparaître le verrou « already running ». La connexion est téléphone et mot de passe → SSO → produit de prospection, avec un chemin de récupération explicite pour l’état où le centre de comptes est connecté mais la session produit expirée. Les captchas retombent sur un navigateur visible.
+
+## Les filtres sont des données
+
+La recherche compte 12 catégories et 345 conditions avancées. Plutôt que de coder un formulaire, le client embarque un registre de filtres généré depuis une source et accepte des fichiers de filtre. Le filtrage avancé devient un problème de données, pas d’interface.
+
+## Limiter le débit est du design produit
+
+La prospection est facturée au quota, donc économiser est une fonctionnalité. Le détail d’entreprise se demande en mode léger pour économiser des appels ; le déblocage utilise une seule requête amont par défaut ; et le limiteur a deux canaux — priority pour les déblocages et connexions, bulk pour les lectures — afin qu’un long batch ne bloque jamais un déblocage. Le cache est cache-aside avec TTL, environ un à deux millisecondes sur un hit, et une commande de nettoyage existe pour quand il faut la vérité.
+
+## Interfaces et honnêteté
+
+13 outils MCP, une CLI documentée par opération, REST avec OpenAPI et un SKILL pour agents, avec 59 cas vitest. Le README liste de vraies limites : le cache n’a pas de LRU, certaines clés ignorent le tri, et débloquer consomme du quota — d’où un flag de confirmation explicite. La licence est Unlicense : domaine public.
+
+## Ce que j’ai appris
+
+Les systèmes multicomptes sont des problèmes d’isolation avant d’être des problèmes de fonctionnalités. La limitation de débit devrait être conçue avec l’API, pas ajoutée après le premier compte bloqué. Et quand l’amont est une surface web changeante, la couche d’adaptateurs est l’endroit où l’on budgète son temps de maintenance.

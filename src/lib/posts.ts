@@ -12,6 +12,8 @@
  *   - Every entry keeps a `translations` list so the language switcher / hreflang
  *     can be honest about which languages actually exist for a given slug.
  */
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { getCollection, render as renderContentEntry, type CollectionEntry } from 'astro:content';
 import { defaultLocale, isLocale, locales, type Locale } from '../i18n/config';
 import { readingTime as estimateReadingTime } from '../i18n/utils';
@@ -334,4 +336,26 @@ export interface RenderedPost {
 /** Render a post's MDX body (the Astro `render()` helper). */
 export async function renderPost(post: PostEntry): Promise<RenderedPost> {
   return renderContentEntry(post.entry as never);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cover assets                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * True when a frontmatter `cover` path actually resolves to a file in
+ * `public/` at build time.
+ *
+ * The featured plate and the article banner prefer the real cover image and
+ * gracefully fall back to the generated CSS plate while an asset is still being
+ * produced (or if it is ever removed), so a missing file can never leave a
+ * broken image on the page. A rebuild picks up new images automatically.
+ */
+export function hasCoverAsset(cover?: string): boolean {
+  if (!cover) return false;
+  try {
+    return existsSync(join(process.cwd(), 'public', cover.replace(/^\/+/, '')));
+  } catch {
+    return false;
+  }
 }

@@ -42,7 +42,7 @@ const projectsHref = localizePath('/projects', lang);
         class="mb-4"
       />
 
-      <div class="grid grid-cols-1 gap-y-6 min-[380px]:grid-cols-2 min-[380px]:gap-x-4 sm:gap-x-5">
+      <div class="flex flex-col gap-1.5">
         {projects.map((project, index) => (
           <ProjectCard
             lang={lang}

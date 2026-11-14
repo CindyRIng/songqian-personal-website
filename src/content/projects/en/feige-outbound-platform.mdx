@@ -1,0 +1,45 @@
+---
+# Source of truth: https://github.com/CindyRIng/feige-outbound-platform README (2026-11).
+title: 'Feige Outbound Platform'
+tagline: 'A local outbound-call platform: four entry points, 100% local ASR, and a pipeline that runs unattended.'
+description: 'Feige Outbound Platform (FOP) wraps the Feige outbound-call console into a local service: REST/CLI/MCP/SKILL entry points, multi-account login with JWT keep-alive, local MiniMax ASR with channel-split speaker separation, DeepSeek post-processing and a recoverable call pipeline.'
+year: 2026
+role: 'Design & development, solo'
+team: 'Solo'
+status: shipped
+tags: ['product', 'tool']
+stack: ['TypeScript', 'Fastify', 'SQLite', 'MiniMax ASR', 'DeepSeek', 'MCP']
+cover: 'generated:feige-outbound-platform'
+coverAlt: 'Generated cover plate: an oversized serif F on a cool layered gradient.'
+metrics:
+  - label: 'Tests passing'
+    value: '93/93'
+  - label: 'Acceptance checks'
+    value: '27/27'
+  - label: 'REST operations'
+    value: '35'
+links:
+  repo: 'https://github.com/CindyRIng/feige-outbound-platform'
+featured: true
+order: 2
+---
+
+Outbound calling is where a sales team's words become data — and where most of that data gets lost. The Feige console only works as a web page: recordings appear for a while, transcripts are incomplete or missing, and there is no token, no SDK, no callback. Anything an agent or a script might want to do with a call needs a human with a browser open.
+
+feige-outbound-platform (FOP) is a local platform that closes that last mile. It has two halves. Northbound, four entry points: a REST v1 API on loopback (Fastify, bearer token, OpenAPI 3.1 and Swagger), a CLI, an MCP stdio server and a SKILL document. Southbound, automation: multi-account login through the real web page including the slider captcha, seven-day JWT keep-alive, incremental and full call-log sync, and outbound dialing with a queued state machine.
+
+## 100% local transcription
+
+The decision I am proudest of is that transcripts are ours. Recordings are downloaded, hashed and archived as WAV files, then transcribed with MiniMax's asr-1.0. Because the recordings turn out to be 8 kHz stereo with agent and customer on separate channels, splitting the two channels gives speaker separation for free — far more reliable than diarization guesses. Long calls are cut at silence points, each chunk is cached so a retry resumes instead of restarting, and a term dictionary normalises homophones: the company name alone has nine common mishearings.
+
+## Analysis as a schema, not a vibe
+
+DeepSeek post-processing runs with a fixed prompt and a JSON schema; validation failures escalate through a retry chain. The output is a structured summary, intent, keywords, action items, risk flags and quality notes — not a paragraph a human must re-read.
+
+## Everything through one door
+
+CLI and MCP never touch the database or the browser directly. Every entry point goes through REST v1. Write-capable MCP tools sit behind a flag and require confirmation. The service runs under systemd, with Xvfb for headless login, and a recoverable job queue drives the audio → ASR → analysis pipeline.
+
+## Honest limits
+
+The upstream has no SIP line: real dialing is callback mode, so the agent's phone has to answer first, and v1 does no AI voice calling. ASR concurrency on a default account is one, which makes full backfills slow. I shipped 93 unit tests and 27 acceptance checks, and wrote those limits down next to them.

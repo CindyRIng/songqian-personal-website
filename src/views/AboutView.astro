@@ -2,19 +2,20 @@
 /**
  * AboutView — /about and /[lang]/about.
  *
- * Editorial, single column: greeting → generated portrait plate → bio (drop
- * cap) → experience ledger → elsewhere → colophon + the six-language note.
- * All persona facts come from src/data/profile.ts; only the page-specific
- * sentences below live here.
+ * Fully data-driven: every persona fact comes from src/data/profile.ts and
+ * src/data/timeline.ts, and every UI label from src/i18n/ui.ts. Nothing about
+ * the owner is hardcoded here — edit the data files, not this view.
+ *
+ * Layout: greeting → generated portrait plate → bio (drop cap) → CV ledger →
+ * elsewhere → colophon + the six-language row.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PortraitCard from '../components/about/PortraitCard.astro';
 import Icon from '../components/ui/Icon.astro';
 import { profile, lt } from '../data/profile';
 import { timeline } from '../data/timeline';
-import { localeMeta } from '../i18n/config';
+import { locales, localeMeta, type Locale } from '../i18n/config';
 import { getAlternates, useTranslations } from '../i18n/utils';
-import type { Locale } from '../i18n/config';
 
 interface Props {
   lang: Locale;
@@ -31,122 +32,77 @@ const bio = profile.aboutBio.map((paragraph) => lt(paragraph, lang));
 const present = t('common.present');
 const isCjk = lang === 'zh' || lang === 'ja';
 
-/** Page-specific copy (content, not chrome — kept beside the template). */
-const copy: Record<
-  Locale,
-  {
-    subtitle: string;
-    portraitCaption: string;
-    sections: { experience: string; elsewhere: string; colophon: string };
-    tech: { built: string; type: string; hosting: string; languages: string; languageNote: string };
-    signature: string;
-  }
-> = {
-  en: {
-    subtitle:
-      "I'm Song Qian — a product designer and builder in Shanghai. I make calm, useful software, and the occasional beautiful website.",
-    portraitCaption: 'Shanghai, 2026',
-    sections: { experience: 'Experience', elsewhere: 'Elsewhere', colophon: 'Colophon' },
-    tech: {
-      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
-      type: 'Source Serif 4 · Inter · JetBrains Mono, self-hosted variable fonts',
-      hosting: 'Cloudflare, fully static',
-      languages: 'Languages',
-      languageNote: 'Written, translated and maintained in six languages.',
-    },
-    signature: 'Shanghai, at a standing desk, most mornings.',
-  },
-  zh: {
-    subtitle: '我是宋倩，一名常驻上海的产品设计师与独立开发者。做安静而有用的产品，偶尔也做一点好看的网站。',
-    portraitCaption: '上海，2026',
-    sections: { experience: '经历', elsewhere: '其他阵地', colophon: '关于本站' },
-    tech: {
-      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
-      type: 'Source Serif 4 · Inter · JetBrains Mono，自托管可变字体',
-      hosting: 'Cloudflare，完全静态',
-      languages: '语言',
-      languageNote: '以六种语言撰写、翻译与维护。',
-    },
-    signature: '大多在清晨，上海的站立式书桌前。',
-  },
-  ja: {
-    subtitle: 'Song Qian（宋倩）です。上海を拠点に、静かで役に立つソフトウェアと、たまに美しいウェブサイトをつくっています。',
-    portraitCaption: '上海、2026',
-    sections: { experience: '経歴', elsewhere: 'リンク', colophon: 'このサイトについて' },
-    tech: {
-      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
-      type: 'Source Serif 4 · Inter · JetBrains Mono（セルフホストの可変フォント）',
-      hosting: 'Cloudflare、完全静的',
-      languages: '言語',
-      languageNote: '6言語で書き、翻訳し、維持しています。',
-    },
-    signature: 'たいてい朝、上海のスタンディングデスクで。',
-  },
-  es: {
-    subtitle: 'Soy Song Qian, diseñadora de producto y desarrolladora en Shanghái. Diseño software sereno y útil, y alguna web bonita de vez en cuando.',
-    portraitCaption: 'Shanghái, 2026',
-    sections: { experience: 'Experiencia', elsewhere: 'En otros sitios', colophon: 'Colofón' },
-    tech: {
-      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
-      type: 'Source Serif 4 · Inter · JetBrains Mono, tipografías variables autoalojadas',
-      hosting: 'Cloudflare, totalmente estático',
-      languages: 'Idiomas',
-      languageNote: 'Escrito, traducido y mantenido en seis idiomas.',
-    },
-    signature: 'Shanghái, en un escritorio alto, casi todas las mañanas.',
-  },
-  fr: {
-    subtitle: 'Je suis Song Qian, designer produit et développeuse à Shanghai. Je conçois des logiciels calmes et utiles — et parfois de beaux sites.',
-    portraitCaption: 'Shanghai, 2026',
-    sections: { experience: 'Expérience', elsewhere: 'Ailleurs', colophon: 'Colophon' },
-    tech: {
-      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
-      type: 'Source Serif 4 · Inter · JetBrains Mono, polices variables auto-hébergées',
-      hosting: 'Cloudflare, entièrement statique',
-      languages: 'Langues',
-      languageNote: 'Écrit, traduit et maintenu en six langues.',
-    },
-    signature: 'Shanghai, à un bureau assis-debout, presque tous les matins.',
-  },
-  de: {
-    subtitle: 'Ich bin Song Qian, Produktdesignerin und Entwicklerin in Shanghai. Ich gestalte ruhige, nützliche Software — und gelegentlich schöne Websites.',
-    portraitCaption: 'Shanghai, 2026',
-    sections: { experience: 'Erfahrung', elsewhere: 'Anderswo', colophon: 'Kolophon' },
-    tech: {
-      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
-      type: 'Source Serif 4 · Inter · JetBrains Mono, selbst gehostete variable Schriften',
-      hosting: 'Cloudflare, vollständig statisch',
-      languages: 'Sprachen',
-      languageNote: 'In sechs Sprachen geschrieben, übersetzt und gepflegt.',
-    },
-    signature: 'Shanghai, an einem Stehschreibtisch, meistens morgens.',
-  },
-};
-
-const c = copy[lang];
-const alternates = getAlternates('/about');
+/** Build year of this site — keeps the portrait caption data-driven. */
+const siteYear = profile.siteLaunch.slice(0, 4);
+const portraitCaption = `${location} · ${siteYear}`;
 
 /**
- * Short CV ledger: derived from the canonical, fully localized timeline facts
- * (work + education) so About reads correctly in all six languages. The full
- * stories live on /timeline.
+ * Short CV ledger, derived from the canonical, fully localized timeline data:
+ * one row per organisation (the longest span wins), current roles first, then
+ * past roles, with education at the end. The full stories live on /timeline.
  */
-const experience = timeline
-  .filter((entry) => entry.type === 'work' || entry.type === 'education')
-  .sort((a, b) => b.start.localeCompare(a.start))
-  .map((entry) => {
-    const startYear = entry.start.slice(0, 4);
-    const endYear = entry.end ? entry.end.slice(0, 4) : present;
-    return {
-      id: entry.id,
-      org: lt(entry.org, lang),
-      role: lt(entry.role, lang),
-      years: entry.end && entry.end.slice(0, 4) === startYear ? startYear : `${startYear} — ${endYear}`,
-      kind: entry.type,
-    };
+const yearsOf = (start: string, end: string | null): string => {
+  const startYear = start.slice(0, 4);
+  if (!end) return `${startYear} — ${present}`;
+  const endYear = end.slice(0, 4);
+  return endYear === startYear ? startYear : `${startYear} — ${endYear}`;
+};
+
+const spanLength = (start: string, end: string | null): number => {
+  const startValue = Number(start.slice(0, 4)) * 12 + Number(start.slice(5, 7));
+  const endValue = end ? Number(end.slice(0, 4)) * 12 + Number(end.slice(5, 7)) : 999912;
+  return endValue - startValue;
+};
+
+/**
+ * Prefer explicitly curated CV rows (`cv: true` in timeline.ts). Fall back to
+ * work + education + leadership entries so the page never renders empty.
+ */
+const curatedCv = timeline.filter((entry) => entry.cv === true);
+const cvSource =
+  curatedCv.length > 0
+    ? curatedCv
+    : timeline.filter(
+        (entry) =>
+          entry.type === 'work' ||
+          entry.type === 'education' ||
+          (entry.tags ?? []).includes('Leadership')
+      );
+
+/** One row per organisation — longest span represents that organisation. */
+const cvByOrg = new Map<string, (typeof cvSource)[number]>();
+for (const entry of cvSource) {
+  const key = entry.org.en;
+  const existing = cvByOrg.get(key);
+  if (!existing || spanLength(entry.start, entry.end) > spanLength(existing.start, existing.end)) {
+    cvByOrg.set(key, entry);
+  }
+}
+const cvRows = [...cvByOrg.values()]
+  .map((entry) => ({
+    id: entry.id,
+    kind: entry.type,
+    start: entry.start,
+    end: entry.end,
+    org: lt(entry.org, lang),
+    role: lt(entry.role, lang),
+    years: yearsOf(entry.start, entry.end),
+  }))
+  .sort((a, b) => {
+    // Current roles first (earliest start = primary role), then past roles and
+    // leadership by most recent end, with education last.
+    const aCurrent = a.end === null ? 0 : 1;
+    const bCurrent = b.end === null ? 0 : 1;
+    if (aCurrent !== bCurrent) return aCurrent - bCurrent;
+    if (aCurrent === 0 && bCurrent === 0) return a.start.localeCompare(b.start);
+    const aEducation = a.kind === 'education' ? 1 : 0;
+    const bEducation = b.kind === 'education' ? 1 : 0;
+    if (aEducation !== bEducation) return aEducation - bEducation;
+    return (b.end ?? '').localeCompare(a.end ?? '');
   });
 
 const colophon = profile.colophon.map((paragraph) => lt(paragraph, lang));
+const alternates = getAlternates('/about');
 ---
 
 <BaseLayout lang={lang} title={t('about.title')} description={tagline} path="/about">
@@ -157,8 +113,9 @@ const colophon = profile.colophon.map((paragraph) => lt(paragraph, lang));
       {t('about.title')}
     </h1>
     <p class="max-w-[46ch] text-pretty text-[1.0625rem] leading-[1.65] text-muted">
-      {c.subtitle}
+      {role}
     </p>
+    <p class="max-w-[46ch] text-pretty text-[0.9375rem] leading-[1.6] text-subtle">{tagline}</p>
   </header>
 
   <!-- Portrait ------------------------------------------------------------- -->
@@ -166,12 +123,9 @@ const colophon = profile.colophon.map((paragraph) => lt(paragraph, lang));
     <PortraitCard
       name={name}
       monogram={profile.monogram}
-      caption={c.portraitCaption}
+      caption={portraitCaption}
       class="shadow-md"
     />
-    <p class="mt-3 text-pretty font-sans text-[0.75rem] leading-relaxed text-subtle">
-      {role} · {location}
-    </p>
   </div>
 
   <!-- Bio + drop cap -------------------------------------------------------- -->
@@ -183,19 +137,19 @@ const colophon = profile.colophon.map((paragraph) => lt(paragraph, lang));
     {bio.map((paragraph) => <p>{paragraph}</p>)}
   </div>
 
-  <!-- Experience ledger ----------------------------------------------------- -->
+  <!-- CV ledger ------------------------------------------------------------- -->
   <section class="mt-16 border-t border-line pt-8" aria-labelledby="about-experience" data-reveal>
     <div class="mb-6 flex items-baseline gap-3">
       <span class="font-mono text-[0.6875rem] tabular text-faint">01</span>
       <h2 id="about-experience" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
-        {c.sections.experience}
+        {t('about.experience')}
       </h2>
       <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
     </div>
 
     <ul class="divide-y divide-line">
       {
-        experience.map((row) => (
+        cvRows.map((row) => (
           <li class="group flex items-baseline justify-between gap-6 rounded-md px-2 py-3.5 transition-colors duration-200 hover:bg-hover">
             <div class="min-w-0">
               <p class="font-serif text-[1rem] font-[550] leading-snug tracking-[-0.01em] text-ink-strong">
@@ -217,7 +171,7 @@ const colophon = profile.colophon.map((paragraph) => lt(paragraph, lang));
     <div class="mb-4 flex items-baseline gap-3">
       <span class="font-mono text-[0.6875rem] tabular text-faint">02</span>
       <h2 id="about-elsewhere" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
-        {c.sections.elsewhere}
+        {t('about.elsewhere')}
       </h2>
       <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
     </div>
@@ -252,7 +206,7 @@ const colophon = profile.colophon.map((paragraph) => lt(paragraph, lang));
     <div class="mb-5 flex items-baseline gap-3">
       <span class="font-mono text-[0.6875rem] tabular text-faint">03</span>
       <h2 id="about-colophon" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
-        {c.sections.colophon}
+        {t('about.site')}
       </h2>
       <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
     </div>
@@ -261,49 +215,35 @@ const colophon = profile.colophon.map((paragraph) => lt(paragraph, lang));
       {colophon.map((paragraph) => <p>{paragraph}</p>)}
     </div>
 
-    <dl class="mt-8 divide-y divide-line border-y border-line">
-      <div class="flex flex-col gap-0.5 px-2 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-        <dt class="eyebrow">Built</dt>
-        <dd class="text-[0.875rem] leading-snug text-muted">{c.tech.built}</dd>
-      </div>
-      <div class="flex flex-col gap-0.5 px-2 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-        <dt class="eyebrow">Type</dt>
-        <dd class="text-left text-[0.875rem] leading-snug text-muted sm:max-w-[62%] sm:text-right">{c.tech.type}</dd>
-      </div>
-      <div class="flex flex-col gap-0.5 px-2 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-        <dt class="eyebrow">Hosting</dt>
-        <dd class="text-[0.875rem] leading-snug text-muted">{c.tech.hosting}</dd>
-      </div>
-      <div class="flex flex-col gap-1.5 px-2 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-        <dt class="eyebrow">{c.tech.languages}</dt>
-        <dd class="flex flex-wrap gap-x-2 gap-y-1 text-left text-[0.875rem] leading-snug text-muted sm:justify-end sm:text-right">
-          {
-            alternates.map((alternate, index) => (
-              <span class="inline-flex items-baseline gap-2">
-                {index > 0 && <span class="text-faint">·</span>}
-                <a
-                  href={alternate.href}
-                  class:list={[
-                    'transition-colors duration-150 hover:text-accent',
-                    alternate.lang === lang ? 'text-ink-strong underline decoration-line-strong underline-offset-[3px]' : 'text-muted',
-                  ]}
-                  hreflang={localeMeta[alternate.lang].htmlLang}
-                >
-                  {localeMeta[alternate.lang].nativeLabel}
-                </a>
-              </span>
-            ))
-          }
-        </dd>
-      </div>
-    </dl>
-
-    <p class="mt-3 text-[0.75rem] leading-relaxed text-subtle">{c.tech.languageNote}</p>
+    <!-- Languages: generated from the locale registry, never hardcoded. -->
+    <div class="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-line pt-4">
+      <span class="eyebrow mr-2">{t('lang.switch')}</span>
+      {
+        alternates.map((alternate) => (
+          <span class="inline-flex items-baseline gap-2">
+            {alternate.lang !== locales[0] && <span class="text-faint" aria-hidden="true">·</span>}
+            <a
+              href={alternate.href}
+              class:list={[
+                'font-sans text-[0.8125rem] leading-relaxed transition-colors duration-150 hover:text-accent',
+                alternate.lang === lang
+                  ? 'text-ink-strong underline decoration-line-strong underline-offset-[3px]'
+                  : 'text-muted',
+              ]}
+              hreflang={localeMeta[alternate.lang].htmlLang}
+              aria-current={alternate.lang === lang ? 'page' : undefined}
+            >
+              {localeMeta[alternate.lang].nativeLabel}
+            </a>
+          </span>
+        ))
+      }
+    </div>
   </section>
 
   <!-- Signature -------------------------------------------------------------- -->
   <p class="mt-16 text-pretty font-serif text-[0.9375rem] italic leading-relaxed text-subtle" data-reveal>
-    — {name}, {c.signature}
+    — {name}, {location}
   </p>
 </BaseLayout>
 

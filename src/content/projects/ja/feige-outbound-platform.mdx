@@ -1,0 +1,45 @@
+---
+# 出典: https://github.com/CindyRIng/feige-outbound-platform README (2026-11)。
+title: 'Feige Outbound Platform'
+tagline: 'アウトバウンド通話のためのローカル基盤。4 つの入口、完全ローカル ASR、無人で動くパイプライン。'
+description: 'Feige Outbound Platform（FOP）は Feige のアウトバウンド通話コンソールをローカルサービスに変えます。REST / CLI / MCP / SKILL、多アカウントの自動ログインと JWT 保活、MiniMax によるローカル ASR とチャンネル分割による話者分離、DeepSeek による後処理、復旧可能なパイプライン。'
+year: 2026
+role: 'デザイン・開発（個人）'
+team: '個人開発'
+status: shipped
+tags: ['product', 'tool']
+stack: ['TypeScript', 'Fastify', 'SQLite', 'MiniMax ASR', 'DeepSeek', 'MCP']
+cover: 'generated:feige-outbound-platform'
+coverAlt: '生成カバー：冷たい階調の上に大きなセリフ体の F。'
+metrics:
+  - label: 'テスト'
+    value: '93/93'
+  - label: '受け入れ項目'
+    value: '27/27'
+  - label: 'REST 操作'
+    value: '35'
+links:
+  repo: 'https://github.com/CindyRIng/feige-outbound-platform'
+featured: true
+order: 2
+---
+
+アウトバウンド通話は、営業の会話がデータになる場所であり、同時にその多くが失われる場所でもあります。Feige のコンソールは Web ページとしてしか使えません。録音は一時的にしか残らず、文字起こしは不完全で、トークンも SDK もコールバックもありません。
+
+FOP はその「最後の一マイル」を埋めるローカル基盤です。北側に 4 つの入口（ループバック上の REST v1、CLI、MCP stdio、SKILL）、南側に自動化（実ページ経由の多アカウントログイン、7 日間の JWT 保活、通話ログの増分・全量同期、発信のステートマシン）を持ちます。
+
+## 文字起こしは完全にローカル
+
+録音はダウンロードして sha256 で WAV として保管し、MiniMax asr-1.0 でローカルに文字起こしします。実測では録音が 8kHz ステレオで、担当者と顧客が左右チャンネルに分かれていました。チャンネルを分ければ話者分離は無料で手に入ります。長い通話は無音点で分割し、チャンクをキャッシュして再試行時は途中から再開します。
+
+## 分析はスキーマで
+
+DeepSeek の後処理は固定プロンプトと JSON schema で実行し、検証に失敗したら再試行チェーンを昇格します。出力は要約・意図・キーワード・アクション・リスク・品質メモという構造化データです。
+
+## 入口はひとつ
+
+CLI も MCP も DB やブラウザに直接触れず、すべて REST v1 を通ります。書き込み可能な MCP ツールはフラグ制で確認必須。サービスは systemd、ヘッドレスログインは Xvfb、パイプラインは復旧可能なジョブキューで動きます。
+
+## 正直な制限
+
+上流に SIP 回線はなく、実発信はコールバック方式で担当者の電話が先に出る必要があります。v1 に AI 音声発信はありません。既定アカウントの ASR 同時実行数は 1 です。その制限もテストの隣に書きました。

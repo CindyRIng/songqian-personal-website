@@ -15,6 +15,7 @@ import '../styles/global.css';
 
 import SiteNav from '../components/chrome/SiteNav.astro';
 import SiteFooter from '../components/chrome/SiteFooter.astro';
+import ReadingEnhancements from '../components/writing/ReadingEnhancements.astro';
 import { SITE } from '../i18n/config';
 import { defaultLocale, localeMeta, type Locale } from '../i18n/config';
 import { getAlternates, useTranslations, localizePath, stripLocale } from '../i18n/utils';
@@ -118,6 +119,14 @@ const jsonLdPerson = {
       })();
     </script>
 
+    <script is:inline>
+      // Cross-document view transitions: flag the document before first render
+      // so the enter animation yields to the crossfade (see global.css §7).
+      window.addEventListener('pagereveal', function (event) {
+        if (event.viewTransition) document.documentElement.classList.add('vt-nav');
+      });
+    </script>
+
     <meta
       name="theme-color"
       media="(prefers-color-scheme: light)"
@@ -189,8 +198,9 @@ const jsonLdPerson = {
 
     <main
       id="main"
+      tabindex="-1"
       class:list={[
-        'relative z-10 mx-auto w-full px-6 pb-28 pt-28 sm:px-8 sm:pb-32',
+        'relative z-10 mx-auto w-full px-6 pb-16 pt-24 sm:px-8 sm:pb-24 sm:pt-32',
         wide ? 'max-w-3xl' : 'max-w-[calc(var(--content)+3rem)]',
       ]}
     >
@@ -198,6 +208,8 @@ const jsonLdPerson = {
     </main>
 
     <SiteFooter lang={lang} />
+
+    {type === 'article' && <ReadingEnhancements lang={lang} />}
 
     <script>
       // --- Scroll reveal -----------------------------------------------------
@@ -211,6 +223,7 @@ const jsonLdPerson = {
             for (const entry of entries) {
               if (entry.isIntersecting) {
                 entry.target.classList.add('is-revealed');
+                (entry.target as HTMLElement).style.willChange = 'auto';
                 io.unobserve(entry.target);
               }
             }
@@ -228,10 +241,21 @@ const jsonLdPerson = {
         const root = document.documentElement;
         root.classList.toggle('dark', next === 'dark');
         root.dataset.theme = next;
+        document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+          toggle.setAttribute('aria-pressed', String(next === 'dark'));
+        });
         try {
           localStorage.setItem('theme', next);
         } catch (e) {}
       }
+
+      // Keep the toggle's pressed state honest on first paint.
+      document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+        toggle.setAttribute(
+          'aria-pressed',
+          String(document.documentElement.classList.contains('dark'))
+        );
+      });
 
       document.addEventListener('click', (event) => {
         const trigger = (event.target as Element | null)?.closest('[data-theme-toggle]');
@@ -258,14 +282,14 @@ const jsonLdPerson = {
               clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`],
             },
             {
-              duration: 720,
-              easing: 'cubic-bezier(.23,.88,.26,.92)',
+              duration: 600,
+              easing: 'cubic-bezier(0.22, 0.68, 0.24, 1)',
               pseudoElement: '::view-transition-new(root)',
             }
           );
         });
         transition.ready.finally?.(() => {
-          window.setTimeout(() => document.documentElement.classList.remove('theme-transition'), 800);
+          window.setTimeout(() => document.documentElement.classList.remove('theme-transition'), 680);
         });
       });
 

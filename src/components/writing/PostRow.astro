@@ -6,6 +6,7 @@
  * right-aligned (stacked on ≥sm). A hairline sit above/below comes from the
  * parent's divider; the hover wash extends past the text column.
  */
+import Icon from '../ui/Icon.astro';
 import { formatDate, isoDate, localizePath, useTranslations } from '../../i18n/utils';
 import type { Locale } from '../../i18n/config';
 import type { PostEntry } from '../../lib/posts';
@@ -15,9 +16,11 @@ interface Props {
   lang: Locale;
   /** Mark essays that are showing the English original. */
   markFallback?: boolean;
+  /** Show the quiet "featured" sparkle next to the title. */
+  markFeatured?: boolean;
 }
 
-const { post, lang, markFallback = true } = Astro.props;
+const { post, lang, markFallback = true, markFeatured = false } = Astro.props;
 const t = useTranslations(lang);
 const href = localizePath(post.path, lang);
 ---
@@ -28,7 +31,7 @@ const href = localizePath(post.path, lang);
   <span class="flex min-w-0 flex-col gap-1">
     <span class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
       <span
-        class="font-serif text-[1.0625rem] font-[550] leading-snug tracking-[-0.012em] text-ink-strong"
+        class="font-serif text-[1.0625rem] font-[550] leading-snug tracking-[-0.012em] text-ink-strong transition-[text-decoration-color] duration-300 group-hover:underline group-hover:decoration-line-strong group-hover:underline-offset-[0.18em]"
       >{post.title}</span>
       {
         markFallback && post.isFallback && (
@@ -37,6 +40,17 @@ const href = localizePath(post.path, lang);
             title={t('writing.onlyAvailableIn')}
           >
             {post.lang}
+          </span>
+        )
+      }
+      {
+        markFeatured && post.featured && (
+          <span
+            class="inline-flex items-center text-accent"
+            title={t('writing.featured')}
+            aria-label={t('writing.featured')}
+          >
+            <Icon name="sparkle" size={11} />
           </span>
         )
       }

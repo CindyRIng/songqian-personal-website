@@ -47,7 +47,7 @@ const navLabel = t('nav.menu');
   aria-label={navLabel}
   class="fixed left-5 top-24 z-50 hidden flex-col items-center gap-2.5 2xl:left-8 2xl:top-28 xl:flex"
 >
-  <div class="glass flex flex-col items-center gap-1 rounded-[1.375rem] p-1.5">
+  <div class="glass flex flex-col items-center gap-1 rounded-[1.25rem] p-1.5">
     {
       items.map((item) => {
         const active = isActive(item.href);
@@ -56,8 +56,9 @@ const navLabel = t('nav.menu');
             href={localizePath(item.href, lang)}
             aria-label={t(item.labelKey)}
             aria-current={active ? 'page' : undefined}
+            style={active ? 'view-transition-name: nav-active' : undefined}
             class:list={[
-              'group/nav relative grid size-10 place-items-center rounded-[0.9rem] transition-colors duration-200 ease-out',
+              'group/nav relative grid size-10 place-items-center rounded-[1rem] transition-[color,background-color,box-shadow] duration-[var(--dur-2)] ease-out',
               active
                 ? 'bg-elevated text-accent shadow-sm ring-1 ring-line'
                 : 'text-subtle hover:bg-hover hover:text-ink',
@@ -89,7 +90,7 @@ const navLabel = t('nav.menu');
 {/* Mobile / tablet — sticky horizontal pill */}
 <nav
   aria-label={navLabel}
-  class="fixed left-1/2 top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-50 flex -translate-x-1/2 items-center gap-0.5 rounded-full p-1.5 xl:hidden glass"
+  class="fixed left-1/2 top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-50 flex -translate-x-1/2 items-center rounded-full p-1 min-[360px]:p-1.5 xl:hidden glass"
 >
   {
     items.map((item) => {
@@ -99,19 +100,20 @@ const navLabel = t('nav.menu');
           href={localizePath(item.href, lang)}
           aria-label={t(item.labelKey)}
           aria-current={active ? 'page' : undefined}
+          style={active ? 'view-transition-name: nav-active' : undefined}
           class:list={[
-            'grid size-8 place-items-center rounded-full transition-colors duration-200 ease-out',
+            'grid size-11 place-items-center rounded-full transition-colors duration-200 ease-out',
             active
               ? 'bg-elevated text-accent shadow-sm ring-1 ring-line'
-              : 'text-subtle active:bg-hover-strong hover:bg-hover hover:text-ink',
+              : 'text-subtle hover:bg-hover hover:text-ink active:bg-hover-strong',
           ]}
         >
-          <Icon name={item.icon} size={17} />
+          <Icon name={item.icon} size={18} />
         </a>
       );
     })
   }
-  <span aria-hidden="true" class="mx-1 h-5 w-px bg-line" />
+  <span aria-hidden="true" class="mx-1 hidden h-5 w-px bg-line min-[360px]:block" />
   <ThemeToggle lang={lang} compact />
   <LanguageSwitcher lang={lang} path={currentPath} variant="bar" />
 </nav>

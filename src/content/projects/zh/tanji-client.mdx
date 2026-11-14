@@ -1,0 +1,49 @@
+---
+# 事实来源：https://github.com/CindyRIng/tanji-client README（2026-11）。
+title: '探迹本地客户端'
+tagline: '探迹 AI 拓客的本地客户端：一个常驻 owner、多账号会话、可度量的缓存。'
+description: 'tanji-client 把探迹 AI 拓客封装成本地服务：cloak 浏览器常驻会话、多账号隔离、CLI / REST / MCP / SKILL 四通道、SQLite 缓存、priority/bulk 双通道限频，以及 345 条筛选条件注册表。'
+year: 2026
+role: '设计 & 开发（独立）'
+team: '独立完成'
+status: shipped
+tags: ['tool']
+stack: ['TypeScript', 'MCP', 'SQLite', 'systemd']
+cover: 'generated:tanji-client'
+coverAlt: '生成式封面：巨大的衬线字母 T 叠在分层绿色渐变纸面上。'
+metrics:
+  - label: '筛选条件'
+    value: '345'
+  - label: '测试'
+    value: '59'
+  - label: 'MCP 工具'
+    value: '13'
+links:
+  repo: 'https://github.com/CindyRIng/tanji-client'
+featured: false
+order: 6
+---
+
+探迹是一个拓客平台：搜企业、按条件筛、看工商、股东和主要人员，如果愿意花额度，还能拿到联系方式。它在浏览器里确实强，在程序里确实烦：登录依赖 SSO cookie，频繁请求会触发限频，页面接口会变，多个脚本共用一个账号还会抢同一个浏览器 profile。
+
+tanji-client 把这些问题收敛成一个本地 owner 进程：一个浏览器、一个 REST 服务、一套缓存和限频。其他进程——CLI、MCP、脚本——只和本地 REST 说话，自己不开浏览器。
+
+## 一个 owner，多个账号
+
+每个账号有自己的 profile、缓存和端口。浏览器只由常驻服务持有；MCP 默认只代理到 REST，不持有 profile，「already running」的锁问题就消失了。登录是手机号加密码 → SSO → 拓客产品，并且显式处理了「账号中心还在登录、sales 会话已失效」这个尴尬中间态。验证码兜底走可见浏览器。
+
+## 筛选条件是数据
+
+搜索面有 12 个类别、345 条高级筛选条件。客户端没有硬编码一张表单，而是内置一份由同一来源生成的筛选注册表，并接受筛选文件。高级筛选于是变成数据问题，而不是 UI 问题。
+
+## 限频是产品设计
+
+拓客按额度计量，所以省着用本身就是功能。企业详情支持轻量模式以少打调用；解锁默认只发一次上游请求；限频器分两条通道——解锁和登录走 priority，批量读走 bulk——于是一次很长的批处理不会把解锁堵住。缓存是带 TTL 的 cache-aside，命中约 1–2 毫秒，还提供清理命令，在需要真相时用。
+
+## 接口与诚实
+
+13 个 MCP 工具、带单操作文档的 CLI、OpenAPI 的 REST，以及给 Agent 的 SKILL，背后是 59 个 vitest 用例。README 里写的是真实限制：缓存没有 LRU，部分缓存 key 没纳入排序，解锁会消耗额度——所以它要求显式的确认参数。许可证是 Unlicense，公共领域。
+
+## 学到的东西
+
+多账号系统首先是隔离问题，其次才是功能问题。限频应该和 API 一起设计，而不是等第一个账号被封之后再补。而当上游是一张不断变化的网页时，适配层就是你该预留维护时间的地方。

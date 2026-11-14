@@ -1,0 +1,49 @@
+---
+# 事实来源：https://github.com/CindyRIng/boss-client README（2026-11）。
+title: 'BOSS 直聘本地客户端'
+tagline: 'BOSS 直聘的本地只读客户端：一套浏览器会话、一个 owner 进程、四通道对外。'
+description: 'boss-client 把 BOSS 直聘变成 Agent 可调用的本地只读数据源：cloak 浏览器常驻会话、16 个稳定操作、CLI / REST / OpenAPI 3.1 / MCP / SKILL 四通道、systemd owner 进程与 SQLite 缓存。'
+year: 2026
+role: '设计 & 开发（独立）'
+team: '独立完成'
+status: shipped
+tags: ['tool']
+stack: ['TypeScript', 'MCP', 'OpenAPI', 'SQLite', 'systemd']
+cover: 'generated:boss-client'
+coverAlt: '生成式封面：巨大的衬线字母 B 叠在冷调分层渐变纸面上。'
+metrics:
+  - label: '稳定操作'
+    value: '16'
+  - label: '会话时长'
+    value: '约 10 天'
+  - label: '通道'
+    value: '4'
+links:
+  repo: 'https://github.com/CindyRIng/boss-client'
+featured: false
+order: 4
+---
+
+招聘网站是销售手里最丰富的公开信号之一：正在招人的公司，等于在告诉你它在做什么、做得多快、钱花在哪。问题在于 BOSS 直聘是一个浏览器产品。搜索、翻页、职位详情、带工商信息的公司详情，全部躲在一个页面和一次登录后面。脚本直接怼接口会掉会话；两个脚本共用一个账号，会互相抢同一个浏览器 profile。
+
+boss-client 把这份数据变成本地、只读的数据源。一个 owner 进程持有浏览器会话和 SQLite 缓存，其他所有东西都只是客户端。服务对外暴露 16 个稳定操作，从同一份操作注册表生成四种形态：CLI 命令、带 OpenAPI 3.1 契约和自包含文档的 REST API、MCP stdio 服务，以及给 Agent 用的 SKILL 工作流。
+
+## 只有一个 owner
+
+浏览器 profile 是单实例资源。`boss-client.service` 跑在 systemd 下，是唯一允许持有它的进程，用锁文件强制。CLI 和 MCP 不打开浏览器，而是代理到本地 REST API。这样直接消掉了一整类 bug：两个 Agent 抢同一个 profile，其中一个以「already running」死掉。
+
+## 只读是一种设计约束
+
+不发消息、不投递、不改简历。这不是需要道歉的限制，而是这个工具能一直开着的原因。只读也让契约变简单：不需要幂等键，不会出现写了一半的失败，也没有模糊的用户体验。低频请求加带 TTL 的缓存，把账号挡在限频之外。
+
+## 契约同源
+
+操作由 zod 模型定义，生成器从同一份定义里产出 OpenAPI 文档、MCP 工具列表和 CLI 命令树，所以四通道不会漂移。缓存只存结构化记录——职位、公司、城市、搜索会话——不存 HTML、cookie 或登录验证码。
+
+## 学到的东西
+
+浏览器就是 API。接受这一点之后，真正有意思的工程是会话寿命、单一所有权和缓存，而不是抓取技巧。登录以二维码中继到终端，所以这个工具可以无头运行，profile 也从不离开本机。
+
+## 已知限制
+
+会话大约十天，之后需要重新扫码。上游页面结构可能随时变化——适配层就是为此收账的地方。只读也意味着 BOSS 直聘客户端永远不会替你去投递。

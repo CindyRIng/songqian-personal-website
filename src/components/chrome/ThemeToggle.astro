@@ -10,7 +10,7 @@ import { defaultLocale, type Locale } from '../../i18n/config';
 interface Props {
   /** Locale for the accessible labels. */
   lang?: Locale;
-  /** Compact 32px variant used inside the mobile navigation bar. */
+  /** Compact variant used inside the mobile navigation bar (same 36px rhythm). */
   compact?: boolean;
   class?: string;
 }
@@ -23,9 +23,10 @@ const label = t('theme.toggle');
 <button
   type="button"
   data-theme-toggle
+  aria-pressed="false"
   class:list={[
+    compact ? 'size-11' : 'size-9',
     'group/theme relative grid shrink-0 place-items-center rounded-full text-subtle transition-colors duration-200 hover:bg-hover hover:text-ink',
-    compact ? 'size-8' : 'size-9',
     className,
   ]}
   aria-label={label}

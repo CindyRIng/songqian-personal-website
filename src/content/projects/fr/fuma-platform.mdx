@@ -1,0 +1,45 @@
+---
+# Source : https://github.com/CindyRIng/fuma-platform README (2026-11).
+title: 'Fuma Platform'
+tagline: 'Une fine surcouche locale qui transforme la console web de Fuma en plateforme programmable et cacheable.'
+description: 'fuma-platform est un service local Node autour de la console de gestion clients de Fuma : pool de sessions multi-comptes, pool de requêtes, stockage de faits local-first, cache douanier et bus d’événements.'
+year: 2026
+role: 'Design et développement (en solo)'
+team: 'En solo'
+status: live
+tags: ['product', 'tool']
+stack: ['TypeScript', 'Node.js', 'Fastify', 'SQLite', 'MCP']
+cover: 'generated:fuma-platform'
+coverAlt: 'Visuel génératif : un F sérif monumental sur un dégradé chaud en couches.'
+metrics:
+  - label: 'Capacités'
+    value: '43'
+  - label: 'Tests'
+    value: '53'
+  - label: 'Entrées'
+    value: '4'
+links:
+  repo: 'https://github.com/CindyRIng/fuma-platform'
+featured: true
+order: 1
+---
+
+Fuma est le CRM que mon équipe utilise chaque jour. Sa console web est conçue pour un humain avec un compte, un onglet et aucune urgence : scanner un QR code, choisir une entreprise, puis cliquer. Tout ce qui est utile — listes de clients, fonds commun, détection de doublons, données douanières — n’existe qu’à l’intérieur de cette console.
+
+fuma-platform est une fine surcouche locale par-dessus. Elle ne réécrit pas la logique métier de Fuma et ne cherche pas à devenir un second CRM : elle transforme la console en capacités locales, programmables et cacheables que d’autres systèmes et agents peuvent appeler.
+
+## Les faits locaux d’abord
+
+Une règle a structuré tout le design : une écriture atterrit dans une transaction SQLite locale plus un outbox, puis se synchronise en amont de façon asynchrone. En cas de désaccord, un réconciliateur enregistre la différence au lieu de l’écraser silencieusement. L’appelant obtient toujours un fait défini.
+
+## Un registre, quatre interfaces
+
+Le cœur est un registre unique de 43 capacités. Chacune est définie une fois, puis générée en commande CLI, route REST v1 (Fastify, boucle locale et Bearer), outil MCP stdio et document SKILL. Aucune fonction n’existe uniquement dans le CLI.
+
+## Les sessions sont le vrai sujet
+
+Un compte commercial appartient à une personne réelle. La connexion est un SSO DingTalk par QR code ; les jetons sont chiffrés en AES-256-GCM, un battement de cœur les maintient et une file de reconnexion gère l’expiration à 24 h. Le pool sérialise par compte et limite le QPS avec du jitter.
+
+## Ce que j’ai appris
+
+Le registre est le produit. Quand les quatre accès naissent d’une seule définition, les maintenir cesse d’être quatre métiers. Et les limites honnêtes dans le README font gagner plus de temps que n’importe quelle promesse.

@@ -1,0 +1,45 @@
+---
+# Fuente: https://github.com/CindyRIng/zhilian-client README (2026-11).
+title: 'Zhilian Client'
+tagline: 'Un cliente local de solo lectura para Zhaopin: señales de reclutamiento dentro, leads de empresa estructurados fuera.'
+description: 'zhilian-client convierte Zhaopin Web en un servicio local de solo lectura: sesión residente de navegador, 17 operaciones, entradas CLI / REST / MCP / SKILL, caché SQLite y contratos OpenAPI generados desde una sola fuente.'
+year: 2026
+role: 'Diseño y desarrollo (en solitario)'
+team: 'En solitario'
+status: shipped
+tags: ['tool']
+stack: ['TypeScript', 'MCP', 'OpenAPI', 'SQLite']
+cover: 'generated:zhilian-client'
+coverAlt: 'Portada generativa: una Z serif enorme sobre un degradado frío por capas.'
+metrics:
+  - label: 'Tests unitarios'
+    value: '35'
+  - label: 'Herramientas MCP'
+    value: '17'
+  - label: 'Ciudades'
+    value: '461'
+links:
+  repo: 'https://github.com/CindyRIng/zhilian-client'
+featured: false
+order: 5
+---
+
+Los datos de reclutamiento solo sirven a medias. Una lista de ofertas dice que una empresa contrata, pero no si la empresa es real, qué tamaño tiene o quién la dirige. La cadena útil es: palabra clave y ciudad → ofertas → empresas sin duplicados → datos del registro mercantil → quizá más ofertas de esa empresa. Hacerlo a mano en el navegador es introducir datos; hacerlo con scripts exige una sesión que no se rompa.
+
+zhilian-client es el segundo cliente de una pequeña familia, y lo construí como copia deliberada del primero. Convierte el producto web de Zhaopin en un servicio local de solo lectura con 17 operaciones expuestas de cuatro formas: CLI, REST (loopback y bearer, OpenAPI y documentación autocontenida), MCP stdio con 17 herramientas y un flujo SKILL.
+
+## La cadena es el producto
+
+Las operaciones siguen el bucle de investigación, no el sitio web: buscar por palabra clave y ciudad; paginar una consulta por `queryId`; obtener el detalle de la oferta; listar empresas sin duplicados; obtener el detalle de empresa con registro mercantil; obtener todas las ofertas abiertas de una empresa. Esta última está paginada en el upstream y es fácil truncarla: el cliente las trae todas (21 de 21 en una prueba real).
+
+## Reutilizar como estrategia
+
+Tras boss-client tenía una forma que funcionaba: proceso propietario único, sesión de cloak, capa de adaptadores para fetch interno y extracción DOM, modelos zod, generadores de cuatro contratos, cache-aside SQLite con TTL y unidad systemd. Construir el segundo cliente fue sobre todo sustitución, no invención. Esa era la idea: la arquitectura que no puedes reutilizar es la que no puedes confiar.
+
+## Caché y la realidad anti-bot
+
+La búsqueda y el detalle se cachean de dos horas a siete días con refresco forzado, guardando solo campos estructurados: sin HTML, sin cookies, sin artefactos de captcha. Los tokens se renuevan solos (acceso ≈ 7 días, refresco ≈ 30 días). La verificación humana de EdgeOne se maneja con un relé: el servicio hace clic automáticamente o devuelve una captura con coordenadas para que la resuelva una persona o un agente.
+
+## Lo que aprendí
+
+La segunda implementación es donde se prueba un diseño. Como el primer cliente ya había definido las costuras, pude añadir otro upstream, otra paginación y otra historia anti-bot sin tocar la arquitectura. 35 tests unitarios y contratos generados mantienen honestas las cuatro entradas. Solo lectura y recogida mínima no son notas de cumplimiento: son lo que hace que la herramienta sea lo bastante aburrida para correr sola.

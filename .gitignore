@@ -37,3 +37,6 @@ dist
 .dev.vars
 /screenshots/
 .playwright-mcp/
+
+# local working material (not published)
+.work/

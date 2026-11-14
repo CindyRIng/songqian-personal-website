@@ -1,0 +1,45 @@
+---
+# Quelle: https://github.com/CindyRIng/fuma-platform README (2026-11).
+title: 'Fuma Platform'
+tagline: 'Eine dünne lokale Schicht, die Fumas Web-Konsole in eine programmierbare, cachebare Plattform verwandelt.'
+description: 'fuma-platform ist ein lokaler Node-Dienst um Fumas Kundenmanagement-Konsole: Multi-Account-Sessionpool, Request-Pool, Local-First-Faktenspeicher, Zoll-Cache und Event-Bus.'
+year: 2026
+role: 'Design und Entwicklung (allein)'
+team: 'Allein'
+status: live
+tags: ['product', 'tool']
+stack: ['TypeScript', 'Node.js', 'Fastify', 'SQLite', 'MCP']
+cover: 'generated:fuma-platform'
+coverAlt: 'Generatives Cover: ein überdimensionales Serifen-F auf warmem, geschichtetem Verlauf.'
+metrics:
+  - label: 'Funktionen'
+    value: '43'
+  - label: 'Tests'
+    value: '53'
+  - label: 'Eingänge'
+    value: '4'
+links:
+  repo: 'https://github.com/CindyRIng/fuma-platform'
+featured: true
+order: 1
+---
+
+Fuma ist das CRM, mit dem mein Team jeden Tag arbeitet. Die Web-Konsole ist für einen Menschen mit einem Account, einem Tab und ohne Eile gebaut: QR-Code scannen, Unternehmen wählen, klicken. Alles Nützliche — Kundenlisten, das Open-Sea-Pool, Dublettenprüfung, Zolldaten — existiert nur in dieser Konsole.
+
+fuma-platform ist eine dünne lokale Schicht darum herum. Sie implementiert die Geschäftslogik von Fuma nicht neu und will kein zweites CRM sein. Sie verwandelt die Konsole in lokale, programmierbare, cachebare Fähigkeiten, die andere Systeme und Agenten aufrufen können.
+
+## Zuerst die lokalen Fakten
+
+Eine Regel prägte das ganze Design: Ein Schreibvorgang landet in einer lokalen SQLite-Transaktion plus Outbox und synchronisiert dann asynchron zum Upstream. Bei Konflikten protokolliert ein Reconciler die Abweichung, statt sie still zu überschreiben. Aufrufer bekommen immer einen eindeutigen lokalen Fakt.
+
+## Ein Register, vier Schnittstellen
+
+Der Kern ist ein einziges Fähigkeitsregister mit 43 Einträgen. Jede Fähigkeit wird einmal definiert und dann zu CLI-Befehl, REST-v1-Route (Fastify, nur Loopback und Bearer), MCP-stdio-Tool und SKILL-Dokument generiert. Es gibt keine Funktion, die nur im CLI existiert.
+
+## Sessions sind der schwierige Teil
+
+Ein Vertriebsaccount gehört einer realen Person. Login ist DingTalk-SSO per QR-Code; Tokens liegen AES-256-GCM-verschlüsselt, ein Heartbeat hält sie am Leben, eine Re-Login-Queue behandelt den 24-Stunden-Ablauf. Der Request-Pool serialisiert pro Account und begrenzt QPS mit Jitter.
+
+## Was ich gelernt habe
+
+Das Register ist das Produkt. Wenn vier Zugänge aus einer Definition entstehen, sind sie keine vier Wartungsjobs mehr. Und ehrliche Grenzen im README sparen mehr Zeit als jedes Versprechen.

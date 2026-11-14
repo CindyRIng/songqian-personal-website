@@ -48,7 +48,7 @@ const hasTabs = favorites.length > 0;
   <div class="mb-1.5 flex items-end justify-between gap-4">
     {
       hasTabs ? (
-        <div data-home-tabs class="relative flex items-center gap-6">
+        <div data-home-tabs role="tablist" aria-label={t('home.writing')} class="relative flex items-center gap-6">
           <button
             type="button"
             role="tab"
@@ -57,7 +57,7 @@ const hasTabs = favorites.length > 0;
             aria-controls="home-panel-writing"
             tabindex="0"
             data-home-tab
-            class="pb-1 font-serif text-[1.0625rem] font-[550] leading-none tracking-[-0.012em]"
+            class="pb-1.5 font-sans text-[0.875rem] font-[560] leading-none transition-colors duration-[var(--dur-2)]"
           >
             {t('home.writing')}
           </button>
@@ -69,19 +69,19 @@ const hasTabs = favorites.length > 0;
             aria-controls="home-panel-favorites"
             tabindex="-1"
             data-home-tab
-            class="pb-1 font-serif text-[1.0625rem] leading-none tracking-[-0.012em]"
+            class="pb-1.5 font-sans text-[0.875rem] leading-none transition-colors duration-[var(--dur-2)]"
           >
             {t('home.favorites')}
           </button>
           <span
             aria-hidden="true"
             data-home-tab-underline
-            class="pointer-events-none absolute bottom-0 left-0 h-px w-0 bg-muted/50 transition-[left,width] duration-300 ease-out"
+            class="pointer-events-none absolute bottom-0 left-0 h-[2px] w-0 rounded-full bg-accent transition-[left,width] duration-[var(--dur-3)] ease-out"
           ></span>
         </div>
       ) : (
         <p
-          class="pb-1 font-serif text-[1.0625rem] font-[550] leading-none tracking-[-0.012em] text-ink-strong"
+          class="pb-1.5 font-sans text-[0.875rem] font-[560] uppercase tracking-[0.02em] leading-none text-subtle"
         >
           {t('home.writing')}
         </p>

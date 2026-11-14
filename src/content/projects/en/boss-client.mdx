@@ -1,0 +1,49 @@
+---
+# Source of truth: https://github.com/CindyRIng/boss-client README (2026-11).
+title: 'BOSS Client'
+tagline: 'A read-only local client for BOSS Zhipin: one browser session, one owner process, four ways in.'
+description: 'boss-client turns BOSS Zhipin into a local read-only data source: a resident cloak-browser session, 16 stable operations, CLI / REST / OpenAPI 3.1 / MCP / SKILL entry points, a systemd owner process and a SQLite cache.'
+year: 2026
+role: 'Design & development, solo'
+team: 'Solo'
+status: shipped
+tags: ['tool']
+stack: ['TypeScript', 'MCP', 'OpenAPI', 'SQLite', 'systemd']
+cover: 'generated:boss-client'
+coverAlt: 'Generated cover plate: an oversized serif B on a cool layered gradient.'
+metrics:
+  - label: 'Stable operations'
+    value: '16'
+  - label: 'Session lifetime'
+    value: '~10 days'
+  - label: 'Interfaces'
+    value: '4'
+links:
+  repo: 'https://github.com/CindyRIng/boss-client'
+featured: false
+order: 4
+---
+
+A job board is one of the richest public signals a salesperson has: companies that are hiring tell you what they are building, how fast, and where they are spending. The problem is that BOSS Zhipin is a browser product. Every useful thing — search, pagination, job detail, company detail with business registration — sits behind a page and a login. A script that hammers the endpoints loses the session; two scripts sharing one account fight over the same browser profile.
+
+boss-client makes that data a local, read-only source. One owner process holds the browser session and a SQLite cache; everything else is a client. The service exposes 16 stable operations, generated from a single operation registry into four shapes: CLI commands, a REST API with an OpenAPI 3.1 contract and self-contained docs, an MCP stdio server and a SKILL workflow for agents.
+
+## One owner
+
+The browser profile is a single-instance resource. `boss-client.service` runs under systemd and is the only process allowed to own it; a lock file enforces that. The CLI and MCP do not open browsers — they proxy to the local REST API. That removed a whole class of bug where two agents raced for the same profile and one of them died with "already running".
+
+## Read-only is a design constraint
+
+No messaging, no applications, no résumé edits. That is not a limitation to apologise for; it is what makes the tool safe to leave running. Read-only also simplifies the contract: no idempotency keys, no failed half-writes, no user-facing ambiguity. Low-frequency requests and a TTL cache keep the account away from rate limits.
+
+## Contracts from one source
+
+Operations are defined as zod models. Generators emit the OpenAPI document, the MCP tool list and the CLI command tree from those same definitions, so the four interfaces cannot drift. The cache stores structured records only — jobs, companies, cities, search sessions — never HTML, cookies or login codes.
+
+## What I learned
+
+The browser is the API. Once you accept that, the interesting engineering is session lifetime, single ownership and caching, not scraping cleverness. Login is a QR relay to the terminal, so the tool works headless and the profile never leaves the machine.
+
+## Known limits
+
+Sessions last roughly ten days and eventually need a fresh scan. The upstream page structure can change without notice — the adapter layer is where that bill arrives. And read-only means BOSS Client will never send an application for you.

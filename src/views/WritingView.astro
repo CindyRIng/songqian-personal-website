@@ -16,7 +16,7 @@ import Pagination from '../components/writing/Pagination.astro';
 import { localizePath, useTranslations } from '../i18n/utils';
 import type { Locale } from '../i18n/config';
 import type { TranslationKey } from '../i18n/ui';
-import type { PostEntry } from '../lib/posts';
+import { hasCoverAsset, type PostEntry } from '../lib/posts';
 
 interface Props {
   lang: Locale;
@@ -29,6 +29,7 @@ const t = useTranslations(lang);
 const posts = page.data;
 const isFirstPage = page.currentPage === 1;
 const lead = isFirstPage ? posts.find((post) => post.featured) : undefined;
+const leadCover = lead && hasCoverAsset(lead.cover) ? lead.cover : undefined;
 const rest = lead ? posts.filter((post) => post.slug !== lead.slug) : posts;
 
 const rssHref = localizePath('/rss.xml', lang);
@@ -76,13 +77,25 @@ const title = page.currentPage === 1 ? t('writing.title') : `${t('writing.title'
     {
       lead && (
         <a href={localizePath(lead.path, lang)} class="group flex flex-col gap-5">
-          <PostCover
-            slug={lead.slug}
-            title={lead.title}
-            year={lead.date.getUTCFullYear()}
-            size="hero"
-            class="aspect-[16/9] transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.012] sm:aspect-[16/7]"
-          />
+          {leadCover ? (
+            <div class="aspect-[16/9] overflow-hidden rounded-xl bg-surface ring-1 ring-line sm:aspect-[16/7]">
+              <img
+                src={leadCover}
+                alt={lead.coverAlt ?? ''}
+                class="h-full w-full object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.012]"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
+          ) : (
+            <PostCover
+              slug={lead.slug}
+              title={lead.title}
+              year={lead.date.getUTCFullYear()}
+              size="hero"
+              class="aspect-[16/9] transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.012] sm:aspect-[16/7]"
+            />
+          )}
           <div class="flex flex-col gap-2.5">
             <p class="eyebrow flex flex-wrap items-center gap-x-2 gap-y-1">
               <span class="text-accent">{t(categoryKey(lead.category))}</span>
@@ -115,7 +128,7 @@ const title = page.currentPage === 1 ? t('writing.title') : `${t('writing.title'
       rest.length > 0 && (
         <div class="flex flex-col border-y border-line divide-y divide-line">
           {rest.map((post) => (
-            <PostRow post={post} lang={lang} />
+            <PostRow post={post} lang={lang} markFeatured />
           ))}
         </div>
       )

@@ -1,0 +1,45 @@
+---
+# Quelle: https://github.com/CindyRIng/zhilian-client README (2026-11).
+title: 'Zhilian Client'
+tagline: 'Ein lokaler Read-only-Client für Zhaopin: Recruiting-Signale hinein, strukturierte Unternehmens-Leads hinaus.'
+description: 'zhilian-client macht Zhaopin Web zu einem lokalen Read-only-Dienst: residente Browser-Sitzung, 17 Operationen, CLI / REST / MCP / SKILL, SQLite-Cache und aus einer Quelle generierte OpenAPI-Verträge.'
+year: 2026
+role: 'Design und Entwicklung (allein)'
+team: 'Allein'
+status: shipped
+tags: ['tool']
+stack: ['TypeScript', 'MCP', 'OpenAPI', 'SQLite']
+cover: 'generated:zhilian-client'
+coverAlt: 'Generatives Cover: ein überdimensionales Serifen-Z auf kühlem, geschichtetem Verlauf.'
+metrics:
+  - label: 'Unit-Tests'
+    value: '35'
+  - label: 'MCP-Tools'
+    value: '17'
+  - label: 'Städte'
+    value: '461'
+links:
+  repo: 'https://github.com/CindyRIng/zhilian-client'
+featured: false
+order: 5
+---
+
+Recruiting-Daten sind nur halb nützlich. Eine Liste von Stellen sagt, dass ein Unternehmen einstellt — nicht, ob es real ist, wie groß es ist oder wer es führt. Die nützliche Kette lautet: Stichwort und Stadt → Stellen → deduplizierte Unternehmen → Handelsregisterdaten → vielleicht weitere Stellen desselben Unternehmens. Von Hand im Browser ist das Dateneingabe; mit Skripten braucht es eine Sitzung, die nicht bricht.
+
+zhilian-client ist der zweite Client einer kleinen Familie und bewusst als Kopie des ersten gebaut. Er macht Zhaopins Web-Produkt zu einem lokalen Read-only-Dienst mit 17 Operationen in vier Formen: CLI, REST (Loopback und Bearer, OpenAPI und eigenständige Doku), MCP stdio mit 17 Tools und ein SKILL-Workflow.
+
+## Die Kette ist das Produkt
+
+Die Operationen folgen der Rechercheschleife, nicht der Website: nach Stichwort und Stadt suchen; eine Query per `queryId` seitenweise lesen; Stellendetail holen; deduplizierte Unternehmen listen; Unternehmensdetail inklusive Handelsregister holen; alle offenen Stellen eines Unternehmens holen. Letzteres ist upstream paginiert und leicht abgeschnitten — der Client holt alle (21 von 21 in einem echten Test).
+
+## Wiederverwendung als Strategie
+
+Nach boss-client hatte ich eine Form, die funktionierte: einzelner Owner-Prozess, cloak-Sitzung, Adapter für internen Fetch und DOM-Extraktion, zod-Modelle, Generatoren für vier Verträge, SQLite-Cache-aside mit TTLs, systemd-Unit. Der zweite Client war überwiegend Substitution. Genau das war der Punkt: Architektur, die man nicht wiederverwenden kann, ist Architektur, der man nicht trauen kann.
+
+## Cache und Anti-Bot-Realität
+
+Suche und Unternehmensdetail werden zwei Stunden bis sieben Tage gecacht, mit erzwungenem Refresh, und nur strukturierte Felder gespeichert: kein HTML, keine Cookies, keine Captcha-Artefakte. Tokens erneuern sich selbst (Access ≈ 7 Tage, Refresh ≈ 30 Tage). EdgeOnes menschliche Verifikation läuft über ein Relay: automatischer Klick oder ein Screenshot mit Koordinaten für Mensch oder Agent.
+
+## Was ich gelernt habe
+
+Die zweite Implementierung ist der Test eines Designs. Weil der erste Client die Nahtstellen definiert hatte, konnte ich einen anderen Upstream, eine andere Pagination und eine andere Anti-Bot-Geschichte ergänzen, ohne die Architektur anzufassen. 35 Unit-Tests und generierte Verträge halten die vier Eingänge ehrlich. Read-only und minimale Erhebung sind keine Compliance-Notizen: Sie machen das Werkzeug langweilig genug, um unbeaufsichtigt zu laufen.

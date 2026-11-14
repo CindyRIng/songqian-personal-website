@@ -1,0 +1,49 @@
+---
+# Quelle: https://github.com/CindyRIng/boss-client README (2026-11).
+title: 'BOSS Client'
+tagline: 'Ein lokaler Read-only-Client für BOSS Zhipin: eine Browser-Sitzung, ein Owner-Prozess, vier Zugänge.'
+description: 'boss-client macht BOSS Zhipin zu einer lokalen Read-only-Datenquelle: residente cloak-Browser-Sitzung, 16 stabile Operationen, CLI / REST / OpenAPI 3.1 / MCP / SKILL, systemd-Owner-Prozess und SQLite-Cache.'
+year: 2026
+role: 'Design und Entwicklung (allein)'
+team: 'Allein'
+status: shipped
+tags: ['tool']
+stack: ['TypeScript', 'MCP', 'OpenAPI', 'SQLite', 'systemd']
+cover: 'generated:boss-client'
+coverAlt: 'Generatives Cover: ein überdimensionales Serifen-B auf kühlem, geschichtetem Verlauf.'
+metrics:
+  - label: 'Stabile Operationen'
+    value: '16'
+  - label: 'Sitzungsdauer'
+    value: '~10 Tage'
+  - label: 'Eingänge'
+    value: '4'
+links:
+  repo: 'https://github.com/CindyRIng/boss-client'
+featured: false
+order: 4
+---
+
+Ein Jobportal ist eines der reichsten öffentlichen Signale für einen Vertriebler: Wer einstellt, verrät, was gebaut wird, wie schnell und wo Geld ausgegeben wird. Das Problem: BOSS Zhipin ist ein Browser-Produkt. Alles Nützliche — Suche, Pagination, Stellendetail, Firmendetail mit Handelsregister — liegt hinter einer Seite und einem Login. Ein Skript, das die Endpunkte direkt angreift, verliert die Sitzung; zwei Skripte auf einem Konto streiten um dasselbe Browserprofil.
+
+boss-client macht diese Daten zu einer lokalen Read-only-Quelle. Ein Owner-Prozess hält die Browser-Sitzung und einen SQLite-Cache; alles andere ist Client. Der Dienst bietet 16 stabile Operationen, generiert aus einem einzigen Register in vier Formen: CLI-Befehle, REST-API mit OpenAPI-3.1-Vertrag und eigenständiger Doku, MCP-stdio-Server und SKILL-Workflow.
+
+## Nur ein Owner
+
+Das Browserprofil ist eine Single-Instance-Ressource. `boss-client.service` läuft unter systemd und darf es als einziger Prozess besitzen, erzwungen durch eine Lock-Datei. CLI und MCP öffnen keine Browser, sondern proxyen zur lokalen REST-API. Damit verschwand eine ganze Bug-Klasse, in der zwei Agenten um dasselbe Profil konkurrierten.
+
+## Read-only ist eine Design-Entscheidung
+
+Keine Nachrichten, keine Bewerbungen, keine Lebenslauf-Änderungen. Das ist keine Einschränkung, für die man sich entschuldigt, sondern der Grund, warum man das Werkzeug laufen lassen kann. Read-only vereinfacht auch den Vertrag: keine Idempotenz-Schlüssel, keine halben Schreibvorgänge. Seltene Anfragen und ein TTL-Cache halten das Konto von Limits fern.
+
+## Verträge aus einer Quelle
+
+Operationen sind zod-Modelle. Generatoren erzeugen OpenAPI-Dokument, MCP-Tool-Liste und CLI-Baum aus denselben Definitionen, sodass die vier Schnittstellen nicht auseinanderlaufen können. Der Cache speichert nur strukturierte Datensätze — Jobs, Firmen, Städte, Suchsitzungen — nie HTML, Cookies oder Login-Codes.
+
+## Was ich gelernt habe
+
+Der Browser ist die API. Akzeptiert man das, ist die spannende Ingenieursarbeit die Sitzungsdauer, der einzelne Owner und der Cache — nicht die Cleverness des Scrapings. Login ist ein QR-Relay ins Terminal, also läuft das Werkzeug headless und das Profil verlässt nie die Maschine.
+
+## Bekannte Grenzen
+
+Sitzungen halten etwa zehn Tage und brauchen dann einen neuen Scan. Die Seitenstruktur kann sich ohne Vorwarnung ändern. Und read-only heißt: BOSS Client bewirbt sich nie für dich.

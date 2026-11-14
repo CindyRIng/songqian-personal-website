@@ -1,0 +1,45 @@
+---
+# Fuente: https://github.com/CindyRIng/feige-outbound-platform README (2026-11).
+title: 'Feige Outbound Platform'
+tagline: 'Una plataforma local de llamadas salientes: cuatro entradas, ASR 100% local y una tubería desatendida.'
+description: 'Feige Outbound Platform (FOP) convierte la consola de llamadas salientes de Feige en un servicio local: REST / CLI / MCP / SKILL, login multicuenta con keep-alive JWT, ASR local de MiniMax con separación de hablantes por canal y post-proceso con DeepSeek.'
+year: 2026
+role: 'Diseño y desarrollo (en solitario)'
+team: 'En solitario'
+status: shipped
+tags: ['product', 'tool']
+stack: ['TypeScript', 'Fastify', 'SQLite', 'MiniMax ASR', 'DeepSeek', 'MCP']
+cover: 'generated:feige-outbound-platform'
+coverAlt: 'Portada generativa: una F serif enorme sobre un degradado frío por capas.'
+metrics:
+  - label: 'Tests'
+    value: '93/93'
+  - label: 'Pruebas de aceptación'
+    value: '27/27'
+  - label: 'Operaciones REST'
+    value: '35'
+links:
+  repo: 'https://github.com/CindyRIng/feige-outbound-platform'
+featured: true
+order: 2
+---
+
+Las llamadas salientes son donde las palabras de un equipo comercial se convierten en datos, y donde la mayoría de esos datos se pierde. La consola de Feige solo existe como página web: las grabaciones duran un tiempo, las transcripciones están incompletas y no hay token, SDK ni callback. Cualquier automatización necesita a una persona con el navegador abierto.
+
+FOP es una plataforma local que cierra esa última milla. Tiene dos mitades: cuatro entradas en el norte (REST v1 en loopback, CLI, MCP stdio, SKILL) y automatización en el sur (login multicuenta por la página real con captcha de slider, keep-alive de JWT de siete días, sincronización incremental y completa de llamadas, y marcación con una máquina de estados).
+
+## Transcripción 100% local
+
+La decisión de la que estoy más orgulloso es que las transcripciones son nuestras. Las grabaciones se descargan, se hashean y se archivan como WAV, y se transcriben con asr-1.0 de MiniMax. Como las grabaciones son estéreo de 8 kHz con agente y cliente en canales separados, dividir los canales da separación de hablantes gratis. Las llamadas largas se cortan en silencios, cada fragmento se cachea y un diccionario normaliza homófonos.
+
+## Análisis con esquema, no con intuición
+
+El post-proceso de DeepSeek usa un prompt fijo y un JSON schema, con una cadena de reintentos si la validación falla. La salida es resumen, intención, palabras clave, acciones, riesgos y notas de calidad: datos, no un párrafo que alguien deba releer.
+
+## Todo por una sola puerta
+
+CLI y MCP nunca tocan la base de datos ni el navegador; todo pasa por REST v1. Las herramientas MCP de escritura están detrás de un flag y piden confirmación. El servicio corre en systemd, con Xvfb para el login sin pantalla y una cola de trabajos recuperable.
+
+## Límites honestos
+
+El upstream no tiene línea SIP: el marcado real es modo callback y el teléfono del agente debe contestar primero. No hay voz IA en v1. La concurrencia de ASR es uno. Escribí esos límites junto a los 93 tests y las 27 pruebas de aceptación.

@@ -40,7 +40,7 @@ const placement: Record<NonNullable<Props['variant']>, string> = {
 
 const triggerClass: Record<NonNullable<Props['variant']>, string> = {
   rail: 'size-9',
-  bar: 'size-8',
+  bar: 'size-11',
   footer: 'h-6 gap-1.5 px-0.5',
 };
 ---
@@ -52,7 +52,6 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
       data-lang-trigger
       aria-expanded="false"
       aria-controls={panelId}
-      aria-haspopup="true"
       aria-label={`${t('lang.switch')}: ${currentLabel}`}
       class:list={[
         'inline-flex items-center rounded-full font-sans text-[0.75rem] text-subtle transition-colors duration-200 hover:text-ink',
@@ -61,7 +60,11 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
     >
       <Icon name="globe" size={12} class="text-faint" />
       <span class="max-w-24 truncate">{currentLabel}</span>
-      <Icon name="chevron-down" size={11} class="text-faint" />
+      <Icon
+        name="chevron-down"
+        size={11}
+        class="lang-chevron text-faint transition-transform duration-200 ease-out"
+      />
     </button>
   ) : (
     <button
@@ -69,7 +72,6 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
       data-lang-trigger
       aria-expanded="false"
       aria-controls={panelId}
-      aria-haspopup="true"
       aria-label={`${t('lang.switch')}: ${currentLabel}`}
       title={t('lang.switch')}
       class:list={[
@@ -108,7 +110,7 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
             <span
               class:list={[
                 'font-mono text-[0.625rem] uppercase tracking-[0.08em]',
-                alt.lang === lang ? 'text-accent' : 'text-faint',
+                alt.lang === lang ? 'text-accent' : 'text-subtle',
               ]}
             >
               {alt.lang}
@@ -122,8 +124,19 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
 </div>
 
 <style>
-  [data-lang-panel]:not([hidden]) {
+  /* Enter and exit both animate from the trigger's corner (see placement,
+     each variant sets its own transform-origin). */
+  [data-lang-root][data-open] .lang-chevron {
+    rotate: 180deg;
+  }
+
+  [data-lang-panel]:not([hidden]):not([data-closing]) {
     animation: lang-pop 180ms var(--ease-out);
+  }
+
+  [data-lang-panel][data-closing] {
+    animation: lang-out 140ms var(--ease-out) forwards;
+    pointer-events: none;
   }
 
   @keyframes lang-pop {
@@ -133,8 +146,16 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
     }
   }
 
+  @keyframes lang-out {
+    to {
+      opacity: 0;
+      scale: 0.97;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    [data-lang-panel]:not([hidden]) {
+    [data-lang-panel]:not([hidden]):not([data-closing]),
+    [data-lang-panel][data-closing] {
       animation: none;
     }
   }
@@ -152,18 +173,33 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
     };
   }
 
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const exitDuration = 140;
+
+  function finishClose(panel: HTMLElement) {
+    if (!panel.dataset.closing) return;
+    panel.hidden = true;
+    delete panel.dataset.closing;
+  }
+
   function close(root: LangRoot) {
     const { trigger, panel } = parts(root);
     if (!trigger || !panel || panel.hidden) return;
-    panel.hidden = true;
     trigger.setAttribute('aria-expanded', 'false');
     delete root.dataset.open;
+    if (reduceMotion) {
+      panel.hidden = true;
+      return;
+    }
+    panel.dataset.closing = '';
+    window.setTimeout(() => finishClose(panel), exitDuration);
   }
 
   function open(root: LangRoot, focusFirst = false) {
     roots.forEach((other) => other !== root && close(other));
     const { trigger, panel } = parts(root);
     if (!trigger || !panel) return;
+    delete panel.dataset.closing;
     panel.hidden = false;
     trigger.setAttribute('aria-expanded', 'true');
     root.dataset.open = '';

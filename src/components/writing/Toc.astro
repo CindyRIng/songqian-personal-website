@@ -1,7 +1,15 @@
 ---
 /**
- * Toc — a quiet table of contents built from the rendered MDX headings.
- * Renders nothing when there are fewer than two top-level sections.
+ * Toc — the article's table of contents.
+ *
+ * Two presentations, one source of truth:
+ *   - below `lg`: a quiet inline list in the reading flow (also the no-JS view);
+ *   - `lg` and up: a fixed rail on the right with a moving sage tick that
+ *     tracks the section you are reading (scroll-spy) and fades away once the
+ *     article is finished.
+ *
+ * The rail is fixed, so adding it never shifts layout. Without JavaScript the
+ * inline list still works as plain anchor links.
  */
 import type { MarkdownHeading } from 'astro';
 import { useTranslations } from '../../i18n/utils';
@@ -16,25 +24,186 @@ const { headings, lang } = Astro.props;
 const t = useTranslations(lang);
 const items = headings.filter((heading) => heading.depth === 2);
 ---
+
 {
   items.length >= 2 && (
-    <nav aria-label={t('writing.contents')} class="my-9 border-y border-line py-5">
-      <p class="eyebrow mb-3">{t('writing.contents')}</p>
-      <ol class="flex flex-col gap-1.5">
-        {items.map((heading, index) => (
-          <li class="flex items-baseline gap-3">
-            <span class="w-4 shrink-0 font-sans text-[0.625rem] tabular text-faint">
-              {String(index + 1).padStart(2, '0')}
-            </span>
-            <a
-              href={`#${heading.slug}`}
-              class="font-sans text-[0.8125rem] leading-snug text-muted transition-colors duration-200 hover:text-ink"
-            >
-              {heading.text}
-            </a>
-          </li>
-        ))}
-      </ol>
-    </nav>
+    <Fragment>
+      {/* Reading flow — phones, tablets and no-JS */}
+      <nav
+        data-toc-inline
+        aria-label={t('writing.contents')}
+        class="my-9 border-y border-line py-5 lg:hidden"
+      >
+        <p class="eyebrow mb-3">{t('writing.contents')}</p>
+        <ol class="flex flex-col gap-1.5">
+          {items.map((heading, index) => (
+            <li class="flex items-baseline gap-3">
+              <span class="w-4 shrink-0 font-sans text-[0.625rem] tabular text-faint">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <a
+                href={`#${heading.slug}`}
+                data-toc-link={heading.slug}
+                class="toc-link font-sans text-[0.8125rem] leading-snug text-muted transition-colors duration-200 hover:text-ink"
+              >
+                {heading.text}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      {/* Sticky rail — desktop only */}
+      <nav
+        data-toc-rail
+        aria-label={t('writing.contents')}
+        class="fixed right-5 top-32 z-40 hidden w-44 lg:block xl:right-8 xl:w-48"
+      >
+        <p class="eyebrow mb-3 pl-3">{t('writing.contents')}</p>
+        <div class="relative">
+          <span
+            aria-hidden="true"
+            data-toc-indicator
+            class="absolute left-0 top-0 h-0 w-[2px] rounded-full bg-accent"
+          ></span>
+          <ol class="flex flex-col border-l border-line">
+            {items.map((heading, index) => (
+              <li>
+                <a
+                  href={`#${heading.slug}`}
+                  data-toc-link={heading.slug}
+                  class="toc-link group flex items-baseline gap-2 py-1.5 pl-3 pr-2 font-sans text-[0.75rem] leading-snug text-subtle transition-colors duration-200 hover:text-ink"
+                >
+                  <span class="shrink-0 font-mono text-[0.5625rem] tabular tracking-[0.04em] text-faint transition-colors duration-200 group-hover:text-subtle">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <span class="line-clamp-2">{heading.text}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </nav>
+    </Fragment>
   )
 }
+
+<style>
+  [data-toc-rail] {
+    transition:
+      opacity 320ms var(--ease-out),
+      translate 320ms var(--ease-out);
+  }
+
+  [data-toc-rail][data-hidden] {
+    opacity: 0;
+    translate: 8px 0;
+    pointer-events: none;
+  }
+
+  [data-toc-indicator] {
+    transition:
+      top 320ms var(--ease-out),
+      height 260ms var(--ease-out),
+      opacity 200ms ease-out;
+  }
+
+  :global(.toc-link[aria-current='true']) {
+    color: var(--ink-strong);
+  }
+
+  :global(.toc-link[aria-current='true'] span:first-child) {
+    color: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-toc-rail],
+    [data-toc-indicator] {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // --- TOC scroll-spy --------------------------------------------------------
+  const rail = document.querySelector<HTMLElement>('[data-toc-rail]');
+
+  if (rail) {
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'));
+    const railLinks = Array.from(rail.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'));
+    const indicator = rail.querySelector<HTMLElement>('[data-toc-indicator]');
+    const article = document.querySelector('article');
+
+    const seen = new Set<string>();
+    const targets = links
+      .map((link) => {
+        const id = link.dataset.tocLink ?? '';
+        const element = document.getElementById(id);
+        if (!element || seen.has(id)) return null;
+        seen.add(id);
+        return { id, element };
+      })
+      .filter((target): target is { id: string; element: HTMLElement } => Boolean(target));
+
+    if (targets.length > 0) {
+      let currentId = '';
+      let frame = 0;
+
+      const setActive = (id: string) => {
+        if (id === currentId) return;
+        currentId = id;
+
+        for (const link of links) {
+          const active = (link.dataset.tocLink ?? '') === id;
+          if (active) link.setAttribute('aria-current', 'true');
+          else link.removeAttribute('aria-current');
+        }
+
+        if (!indicator) return;
+        const active = railLinks.find((link) => (link.dataset.tocLink ?? '') === id);
+        if (!active) {
+          indicator.style.height = '0px';
+          indicator.style.opacity = '0';
+          return;
+        }
+        // A short sage tick centred on the active rail entry.
+        const tick = 18;
+        indicator.style.top = `${active.offsetTop + active.offsetHeight / 2 - tick / 2}px`;
+        indicator.style.height = `${tick}px`;
+        indicator.style.opacity = '1';
+      };
+
+      const update = () => {
+        frame = 0;
+        // The section whose heading has most recently crossed the read line.
+        const readLine = scrollY + Math.min(innerHeight * 0.3, 260);
+        let current = targets[0];
+        for (const target of targets) {
+          const top = target.element.getBoundingClientRect().top + scrollY;
+          if (top <= readLine) current = target;
+        }
+        setActive(current?.id ?? '');
+
+        if (article) {
+          // Fade the rail once the end of the essay (neighbours, related) is
+          // on screen — it belongs to the reading flow, not the page footer.
+          const past = article.getBoundingClientRect().bottom < innerHeight - 120;
+          rail.toggleAttribute('data-hidden', past);
+        }
+      };
+
+      const schedule = () => {
+        if (!frame) frame = requestAnimationFrame(update);
+      };
+
+      // A clicked link is active instantly — smooth scrolling catches up.
+      for (const link of links) {
+        link.addEventListener('click', () => setActive(link.dataset.tocLink ?? ''));
+      }
+
+      update();
+      addEventListener('scroll', schedule, { passive: true });
+      addEventListener('resize', schedule, { passive: true });
+    }
+  }
+</script>

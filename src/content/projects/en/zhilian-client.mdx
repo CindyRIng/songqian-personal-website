@@ -1,0 +1,45 @@
+---
+# Source of truth: https://github.com/CindyRIng/zhilian-client README (2026-11).
+title: 'Zhilian Client'
+tagline: 'A read-only local client for Zhaopin: recruiting signals in, structured company leads out.'
+description: 'zhilian-client turns Zhaopin Web into a local read-only service: resident browser session, 17 operations, CLI / REST / MCP / SKILL entry points, SQLite caching and OpenAPI contracts generated from one source.'
+year: 2026
+role: 'Design & development, solo'
+team: 'Solo'
+status: shipped
+tags: ['tool']
+stack: ['TypeScript', 'MCP', 'OpenAPI', 'SQLite']
+cover: 'generated:zhilian-client'
+coverAlt: 'Generated cover plate: an oversized serif Z on a cool layered gradient.'
+metrics:
+  - label: 'Unit tests'
+    value: '35'
+  - label: 'MCP tools'
+    value: '17'
+  - label: 'Cities'
+    value: '461'
+links:
+  repo: 'https://github.com/CindyRIng/zhilian-client'
+featured: false
+order: 5
+---
+
+Recruiting data is only half useful. A list of job postings tells you a company is hiring; it does not tell you whether the company is real, how big it is, or who runs it. The useful chain is: keyword plus city → jobs → deduplicated companies → business-registration details → maybe more jobs from the same company. Doing that by hand in a browser is data entry; doing it with scripts requires a session that does not break.
+
+zhilian-client is the second client in a small family, and I built it as a deliberate copy of the first. It turns Zhaopin's web product into a local read-only service with 17 operations exposed four ways: CLI, REST (loopback plus bearer, OpenAPI and self-contained docs), MCP stdio with 17 tools, and a SKILL workflow.
+
+## The chain is the product
+
+The operations follow the research loop, not the website: search jobs by keyword and city; page through a query by `queryId`; fetch job detail; list deduplicated companies from a query; fetch company detail including business registration; fetch all open jobs for a company. That last one is paginated upstream and easy to truncate — the client fetches all of them (21 of 21 in a real test) instead of quietly returning page one.
+
+## Reuse as a strategy
+
+After boss-client I had a shape that worked: single owner process, cloak browser session, an adapter layer for page-internal fetch and DOM extraction, zod domain models, generators for four contracts, a SQLite cache-aside with TTLs, a systemd unit. Building the second client was mostly substitution, not invention. That was the point: architecture you cannot reuse is architecture you cannot trust.
+
+## Caching and the anti-bot reality
+
+Search and company detail are cached from two hours to seven days with forced refresh, storing structured fields only — no HTML, no cookies, no captcha artifacts. Session tokens renew themselves (access ≈ 7 days, refresh ≈ 30 days). EdgeOne's human verification is handled with a relay: the service either clicks automatically or returns a screenshot with coordinates for a human or an agent to resolve.
+
+## What I learned
+
+The second implementation is where a design gets tested. Because the first client already defined the seams, I could add a different upstream, different pagination and a different anti-bot story without touching the architecture. 35 unit tests and generated contracts keep the four entry points honest. Read-only and minimal data collection are not just compliance notes; they are what make the tool boring enough to run unattended.
