@@ -27,15 +27,13 @@ pnpm-debug.log*
 
 # misc
 *.log
-.playwright-mcp/
-screenshots/
 node_modules
 dist
 .astro
 .wrangler
-.playwright-mcp
-screenshots
 .DS_Store
 *.log
 .env
 .dev.vars
+/screenshots/
+.playwright-mcp/
