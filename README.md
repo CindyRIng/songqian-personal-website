@@ -4,6 +4,12 @@ A hand-built personal site in the spirit of [paulstamatiou.com](https://paulstam
 
 **Live:** https://songqian-personal-website.pages.dev
 
+## Preview
+
+| Home (light) | Timeline | About (dark) |
+| --- | --- | --- |
+| ![Home page, light theme](docs/screenshots/home-light.jpg) | ![Timeline page](docs/screenshots/timeline-light.jpg) | ![About page, dark theme](docs/screenshots/about-dark.jpg) |
+
 ---
 
 ## Stack
