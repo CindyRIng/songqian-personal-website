@@ -1,0 +1,734 @@
+/* ==========================================================================
+   Song Qian — Design System
+   A warm, editorial, paper-like aesthetic. Light: cream paper & ink.
+   Dark: evergreen ink. All colors are semantic tokens so components never
+   hard-code a value.
+   ========================================================================== */
+
+@import '@fontsource-variable/source-serif-4/index.css';
+@import '@fontsource-variable/source-serif-4/wght-italic.css';
+@import '@fontsource-variable/inter/index.css';
+@import '@fontsource-variable/inter/wght-italic.css';
+@import '@fontsource-variable/jetbrains-mono/index.css';
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* --------------------------------------------------------------------------
+   1. Semantic tokens
+   -------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  /* canvas */
+  --canvas: #f7f2ed;
+  --surface: #f2ebe3;
+  --elevated: #fdfaf6;
+  --scrim: rgb(247 242 237 / 0.72);
+
+  /* ink */
+  --ink: #33302b;
+  --ink-strong: #211e1a;
+  --muted: #6d655b;
+  --subtle: #9b9184;
+  --faint: #b8ae9f;
+
+  /* lines */
+  --line: rgb(51 48 43 / 0.1);
+  --line-strong: rgb(51 48 43 / 0.18);
+
+  /* accent — muted sage */
+  --accent: #5c7838;
+  --accent-strong: #455d27;
+  --accent-soft: rgb(92 120 56 / 0.1);
+  --accent-line: rgb(92 120 56 / 0.28);
+
+  /* chrome */
+  --nav-bg: rgb(255 252 247 / 0.62);
+  --nav-line: rgb(51 48 43 / 0.06);
+  --hover: rgb(51 48 43 / 0.045);
+  --hover-strong: rgb(51 48 43 / 0.075);
+
+  /* effects */
+  --shadow-sm: 0 1px 2px rgb(51 48 43 / 0.05);
+  --shadow-md: 0 2px 6px rgb(51 48 43 / 0.05), 0 16px 40px -20px rgb(51 48 43 / 0.22);
+  --shadow-lg: 0 4px 12px rgb(51 48 43 / 0.06), 0 28px 64px -28px rgb(51 48 43 / 0.3);
+  --ring: rgb(92 120 56 / 0.5);
+
+  /* grain (paper texture) */
+  --grain-opacity: 0.022;
+
+  /* type */
+  --font-serif: 'Source Serif 4 Variable', 'Source Han Serif SC', 'Songti SC', 'Noto Serif SC',
+    'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', Georgia, serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Hiragino Sans', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    monospace;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.23, 0.88, 0.26, 0.92);
+  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --dur-1: 150ms;
+  --dur-2: 300ms;
+  --dur-3: 600ms;
+
+  /* geometry */
+  --content: 34rem; /* 544px */
+  --radius-sm: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --canvas: #0e1611;
+  --surface: #121c15;
+  --elevated: #16211a;
+  --scrim: rgb(14 22 17 / 0.72);
+
+  --ink: #e4e8de;
+  --ink-strong: #f3f5ee;
+  --muted: #a0a998;
+  --subtle: #74806c;
+  --faint: #566150;
+
+  --line: rgb(228 232 222 / 0.1);
+  --line-strong: rgb(228 232 222 / 0.18);
+
+  --accent: #a6c684;
+  --accent-strong: #c3dda6;
+  --accent-soft: rgb(166 198 132 / 0.12);
+  --accent-line: rgb(166 198 132 / 0.3);
+
+  --nav-bg: rgb(20 30 23 / 0.6);
+  --nav-line: rgb(255 255 255 / 0.055);
+  --hover: rgb(255 255 255 / 0.055);
+  --hover-strong: rgb(255 255 255 / 0.09);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 2px 6px rgb(0 0 0 / 0.3), 0 18px 44px -20px rgb(0 0 0 / 0.7);
+  --shadow-lg: 0 4px 12px rgb(0 0 0 / 0.35), 0 32px 72px -28px rgb(0 0 0 / 0.8);
+  --ring: rgb(166 198 132 / 0.45);
+
+  --grain-opacity: 0.03;
+}
+
+/* --------------------------------------------------------------------------
+   2. Tailwind theme bridge
+   -------------------------------------------------------------------------- */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-scrim: var(--scrim);
+
+  --color-ink: var(--ink);
+  --color-ink-strong: var(--ink-strong);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-faint: var(--faint);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-nav-bg: var(--nav-bg);
+  --color-nav-line: var(--nav-line);
+  --color-hover: var(--hover);
+  --color-hover-strong: var(--hover-strong);
+
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+}
+
+/* --------------------------------------------------------------------------
+   3. Base
+   -------------------------------------------------------------------------- */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
+    background-color: var(--canvas);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    line-height: 1.6;
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'calt' 1;
+    transition:
+      background-color var(--dur-3) var(--ease-out),
+      color var(--dur-3) var(--ease-out);
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--ink-strong);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-serif);
+    color: var(--ink-strong);
+    font-weight: 550;
+    letter-spacing: -0.015em;
+    line-height: 1.22;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Native cross-document view transitions */
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Components
+   -------------------------------------------------------------------------- */
+@layer components {
+  /* Squircle corners where supported — the subtle signature of the reference */
+  .squircle {
+    border-radius: var(--radius-md);
+    @supports (corner-shape: squircle) {
+      corner-shape: squircle;
+    }
+  }
+
+  /* Glass chrome used by the floating nav, pills and popovers */
+  .glass {
+    background: var(--nav-bg);
+    border: 1px solid var(--nav-line);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    backdrop-filter: blur(20px) saturate(1.5);
+    box-shadow:
+      var(--shadow-md),
+      inset 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+
+  /* Inline prose link: colored rule that thickens on hover */
+  .link {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: var(--accent-line);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+    transition:
+      color var(--dur-1) ease-out,
+      text-decoration-color var(--dur-1) ease-out,
+      text-decoration-thickness var(--dur-1) ease-out;
+  }
+  .link:hover {
+    color: var(--accent-strong);
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+  }
+
+  /* Small caps-ish label used above sections */
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 560;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--subtle);
+    font-feature-settings: 'cv11' 1;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: -0.006em;
+    padding: 0.5625rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+    background: transparent;
+    transition:
+      background-color var(--dur-1) ease-out,
+      border-color var(--dur-1) ease-out,
+      color var(--dur-1) ease-out,
+      transform var(--dur-2) var(--ease-out);
+  }
+  .btn:hover {
+    background: var(--hover);
+    border-color: var(--line-strong);
+  }
+  .btn:active {
+    transform: scale(0.985);
+  }
+  .btn--solid {
+    background: var(--ink-strong);
+    border-color: var(--ink-strong);
+    color: var(--canvas);
+  }
+  .btn--solid:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--canvas);
+  }
+
+  /* Tag / chip */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--muted);
+    background: var(--hover);
+    border: 1px solid transparent;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    transition:
+      color var(--dur-1) ease-out,
+      background-color var(--dur-1) ease-out;
+  }
+  .chip:hover {
+    color: var(--ink);
+    background: var(--hover-strong);
+  }
+
+  /* Hairline divider */
+  .rule {
+    height: 1px;
+    background: var(--line);
+    border: 0;
+  }
+
+  /* Cards used for projects / posts / photos */
+  .card {
+    position: relative;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      box-shadow var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+  .card:hover {
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  /* The paper grain overlay, fixed above the canvas and below content */
+  .grain::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+  }
+
+  /* Reading progress bar */
+  .progress {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    height: 2px;
+    width: 100%;
+    transform-origin: 0 50%;
+    transform: scaleX(var(--progress, 0));
+    background: var(--accent);
+    z-index: 60;
+    pointer-events: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Prose (article body)
+   -------------------------------------------------------------------------- */
+@layer components {
+  .prose {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.78;
+    color: var(--ink);
+    letter-spacing: 0.002em;
+    font-optical-sizing: auto;
+  }
+
+  .prose > :first-child {
+    margin-top: 0;
+  }
+
+  .prose p,
+  .prose ul,
+  .prose ol,
+  .prose dl,
+  .prose table,
+  .prose pre,
+  .prose figure,
+  .prose blockquote {
+    margin-block: 1.4em;
+  }
+
+  .prose a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: var(--accent-line);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+    transition:
+      color var(--dur-1) ease-out,
+      text-decoration-color var(--dur-1) ease-out;
+  }
+  .prose a:hover {
+    color: var(--accent-strong);
+    text-decoration-color: var(--accent);
+  }
+
+  .prose strong {
+    font-weight: 620;
+    color: var(--ink-strong);
+  }
+
+  .prose em {
+    font-style: italic;
+  }
+
+  .prose h2 {
+    font-size: 1.4375rem;
+    font-weight: 560;
+    letter-spacing: -0.02em;
+    margin-top: 2.5em;
+    margin-bottom: 0.75em;
+    line-height: 1.25;
+  }
+
+  .prose h3 {
+    font-size: 1.1875rem;
+    font-weight: 560;
+    letter-spacing: -0.012em;
+    margin-top: 2em;
+    margin-bottom: 0.6em;
+  }
+
+  .prose h4 {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 560;
+    letter-spacing: 0.02em;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+    color: var(--ink-strong);
+  }
+
+  .prose ul,
+  .prose ol {
+    padding-inline-start: 1.25em;
+  }
+
+  .prose li {
+    margin-block: 0.4em;
+    padding-inline-start: 0.2em;
+  }
+
+  .prose ul > li {
+    list-style-type: '–  ';
+    padding-inline-start: 0.35em;
+  }
+  .prose ul > li::marker {
+    color: var(--faint);
+  }
+
+  .prose ol > li {
+    list-style-type: decimal;
+  }
+  .prose ol > li::marker {
+    color: var(--subtle);
+    font-family: var(--font-sans);
+    font-size: 0.85em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .prose blockquote {
+    border-inline-start: 2px solid var(--accent-line);
+    padding-inline-start: 1.1em;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .prose blockquote p {
+    margin: 0;
+  }
+
+  .prose code {
+    font-family: var(--font-mono);
+    font-size: 0.84em;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    padding: 0.12em 0.36em;
+    border-radius: 0.35rem;
+    font-feature-settings: 'liga' 0;
+  }
+
+  .prose pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.25rem;
+    overflow-x: auto;
+    font-size: 0.84rem;
+    line-height: 1.7;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .prose pre code {
+    background: none;
+    color: var(--ink);
+    padding: 0;
+    font-size: inherit;
+    border-radius: 0;
+  }
+
+  .prose hr {
+    border: 0;
+    height: 1px;
+    background: var(--line);
+    margin-block: 2.75em;
+  }
+
+  .prose img {
+    border-radius: var(--radius-md);
+    width: 100%;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .prose figure img {
+    margin: 0;
+  }
+
+  .prose figcaption {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    color: var(--subtle);
+    margin-top: 0.7em;
+    text-align: center;
+    letter-spacing: 0.005em;
+  }
+
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .prose th {
+    text-align: start;
+    font-weight: 560;
+    color: var(--ink-strong);
+    border-bottom: 1px solid var(--line-strong);
+    padding: 0.5em 0.75em;
+  }
+
+  .prose td {
+    border-bottom: 1px solid var(--line);
+    padding: 0.5em 0.75em;
+    color: var(--muted);
+  }
+
+  /* CJK typography refinements per language */
+  :lang(zh) .prose,
+  :lang(ja) .prose {
+    line-height: 1.9;
+    letter-spacing: 0.012em;
+    text-align: justify;
+    text-justify: inter-ideograph;
+  }
+
+  :lang(zh) .prose p,
+  :lang(ja) .prose p {
+    text-wrap: pretty;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. Utilities & effects
+   -------------------------------------------------------------------------- */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  /* Fade + rise on scroll, driven by IntersectionObserver */
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 700ms var(--ease-out),
+      transform 700ms var(--ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  [data-reveal].is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
+  /* Masked image reveal on hover (project covers) */
+  .img-zoom img {
+    transition: transform 900ms var(--ease-out);
+  }
+  .img-zoom:hover img {
+    transform: scale(1.035);
+  }
+
+  /* Underline that draws in from the left on hover */
+  .draw-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size var(--dur-2) var(--ease-out);
+  }
+  .draw-underline:hover {
+    background-size: 100% 1px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7. Theme reveal via View Transitions
+   -------------------------------------------------------------------------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html.theme-transition::view-transition-old(root) {
+  z-index: 1;
+}
+html.theme-transition::view-transition-new(root) {
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Scrollbar — quiet, only on capable pointers */
+@media (pointer: fine) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 999px;
+    border: 3px solid var(--canvas);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--subtle);
+  }
+}
