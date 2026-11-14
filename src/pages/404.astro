@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/ui/Icon.astro';
+import { defaultLocale } from '../i18n/config';
+import { useTranslations, localizePath } from '../i18n/utils';
+
+const lang = defaultLocale;
+const t = useTranslations(lang);
+---
+
+<BaseLayout
+  lang={lang}
+  title="404"
+  description={t('notfound.text')}
+  noindex
+  path="/404"
+>
+  <section class="flex min-h-[58vh] flex-col items-start justify-center py-8">
+    <p class="eyebrow mb-6">{'404'}</p>
+    <h1 class="text-[2rem] leading-[1.15] tracking-[-0.02em] sm:text-[2.4rem]">
+      {t('notfound.title')}
+    </h1>
+    <p class="mt-5 max-w-[30rem] text-[1.0625rem] leading-[1.7] text-muted">
+      {t('notfound.text')}
+    </p>
+
+    <div class="mt-10 flex flex-wrap items-center gap-3">
+      <a href={localizePath('/', lang)} class="btn btn--solid">
+        <Icon name="arrow-left" size={15} />
+        {t('notfound.back')}
+      </a>
+      <a href={localizePath('/writing', lang)} class="btn">
+        {t('nav.writing')}
+      </a>
+      <a href={localizePath('/', 'zh')} class="btn">
+        {t('nav.home')} · 中文
+      </a>
+    </div>
+
+    <div class="mt-16 grid w-full gap-4 border-t border-line pt-8 sm:grid-cols-3">
+      {[
+        { href: localizePath('/about', lang), label: t('nav.about'), icon: 'user' as const },
+        { href: localizePath('/projects', lang), label: t('nav.projects'), icon: 'projects' as const },
+        { href: localizePath('/timeline', lang), label: t('nav.timeline'), icon: 'timeline' as const },
+      ].map((link) => (
+        <a
+          href={link.href}
+          class="group flex items-center gap-2.5 font-sans text-[0.8125rem] text-muted transition-colors hover:text-ink"
+        >
+          <Icon name={link.icon} size={15} class="text-subtle transition-colors group-hover:text-accent" />
+          {link.label}
+          <Icon
+            name="arrow-up-right"
+            size={12}
+            class="ml-auto text-faint opacity-0 transition-all duration-200 group-hover:opacity-100"
+          />
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
