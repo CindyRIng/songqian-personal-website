@@ -10,7 +10,7 @@ import shikiEvergreen from './src/styles/shiki/songqian-evergreen.json';
 export default defineConfig({
   // TODO: switch to the custom domain once registered (e.g. https://songqian.me).
   site: 'https://songqian-personal-website.pages.dev',
-  trailingSlash: 'ignore',
+  trailingSlash: 'always',
   build: {
     format: 'directory',
     inlineStylesheets: 'auto',

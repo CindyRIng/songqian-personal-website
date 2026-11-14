@@ -27,8 +27,16 @@ export function stripLocale(pathname: string): { lang: Locale; path: string } {
 export function localizePath(path: string, lang: Locale): string {
   let clean = path.startsWith('/') ? path : `/${path}`;
   if (clean.length > 1) clean = clean.replace(/\/+$/, '');
-  if (lang === defaultLocale) return clean || '/';
-  return clean === '/' ? `/${lang}` : `/${lang}${clean}`;
+
+  const localized =
+    lang === defaultLocale ? clean || '/' : clean === '/' ? `/${lang}` : `/${lang}${clean}`;
+
+  // The site is built with `build.format: 'directory'` and
+  // `trailingSlash: 'always'`, so page routes end with a slash (matching the
+  // sitemap and avoiding Cloudflare's 308 redirects). Assets never do.
+  const isFile = /\.[a-z0-9]+$/i.test(localized) || localized.includes('?') || localized.includes('#');
+  if (localized === '/' || isFile || localized.endsWith('/')) return localized;
+  return `${localized}/`;
 }
 
 /** All localized variants of the current path, for hreflang + language switcher. */
