@@ -281,10 +281,6 @@
     scroll-padding-top: 7rem;
   }
 
-  /* Native cross-document view transitions */
-  @view-transition {
-    navigation: auto;
-  }
 }
 
 /* --------------------------------------------------------------------------
@@ -772,10 +768,9 @@
    7. Motion — page enter, view transitions, theme wipe
    -------------------------------------------------------------------------- */
 
-/* Page enter: the content column blooms from a still-contentful 55% opacity
-   (so first paint / LCP is never delayed), while the chrome settles down.
-   When a cross-document view transition runs, BaseLayout tags the document
-   with `.vt-nav` and this is skipped in favour of the crossfade below. */
+/* Page enter — initial document load only. Client-side navigations are
+   animated by the view-transition rules below instead. Kept contentful at 55%
+   opacity so first paint / LCP is never delayed. */
 @keyframes page-settle {
   from {
     opacity: 0.55;
@@ -788,50 +783,68 @@
   }
 }
 
-.js body > main {
+.js[data-initial] body > main {
   animation: page-settle var(--dur-enter) var(--ease-out);
 }
 
-.js body > nav,
-.js body > footer {
-  animation: chrome-settle 280ms var(--ease-out);
+.js[data-initial] body > nav,
+.js[data-initial] body > footer {
+  animation: chrome-settle 300ms var(--ease-out);
 }
 
-.js.vt-nav body > main,
-.js.vt-nav body > nav,
-.js.vt-nav body > footer {
-  animation: none;
-}
-
-/* Cross-document navigation: a quick, quiet crossfade between pages. The
-   theme wipe opts out (it animates the new snapshot's clip-path itself). */
+/* Client-side navigation (Astro <ClientRouter />):
+   the chrome (fixed nav + footer) does not animate — only the content region
+   `page-main` crossfades and rises a few pixels, so page changes feel immediate
+   and the navigation rail appears to stay put, like a client-side app. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
+  animation: none;
   mix-blend-mode: normal;
 }
 
-@keyframes vt-fade-out {
+@keyframes vt-page-out {
   to {
     opacity: 0;
   }
 }
-@keyframes vt-fade-in {
+@keyframes vt-page-in {
   from {
     opacity: 0;
+    transform: translateY(6px);
   }
 }
 
-html:not(.theme-transition)::view-transition-old(root) {
-  animation: vt-fade-out 160ms ease-out both;
-}
-html:not(.theme-transition)::view-transition-new(root) {
-  animation: vt-fade-in 240ms var(--ease-out) both;
+::view-transition-group(page-main) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.22, 0.68, 0.24, 1);
 }
 
-/* The active nav pill is a shared element: it glides between pages. */
+/* The active nav pill is a shared element, so it glides between destinations
+   while the content column crossfades underneath it. */
 ::view-transition-group(nav-active) {
-  animation-duration: 300ms;
-  animation-timing-function: var(--ease-spring);
+  animation-duration: 280ms;
+  animation-timing-function: cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+::view-transition-old(nav-active),
+::view-transition-new(nav-active) {
+  animation-duration: 200ms;
+}
+
+/* The old page clears out quickly; the new one starts slightly later so the
+   two texts never visibly overlap — just a clean hand-off. */
+::view-transition-old(page-main) {
+  animation: vt-page-out 90ms ease-in both;
+}
+
+::view-transition-new(page-main) {
+  animation: vt-page-in 240ms cubic-bezier(0.22, 0.68, 0.24, 1) 70ms both;
+}
+
+/* The theme wipe must cover the whole page, so the content region is merged
+   back into the root snapshot while the radial reveal runs. */
+html.theme-transition main {
+  view-transition-name: none;
 }
 
 /* Theme wipe (radial reveal from the toggle) */
@@ -845,9 +858,9 @@ html.theme-transition::view-transition-new(root) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .js body > main,
-  .js body > nav,
-  .js body > footer {
+  .js[data-initial] body > main,
+  .js[data-initial] body > nav,
+  .js[data-initial] body > footer {
     animation: none;
   }
 

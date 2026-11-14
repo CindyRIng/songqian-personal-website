@@ -164,7 +164,9 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
 <script>
   type LangRoot = HTMLElement;
 
-  const roots = Array.from(document.querySelectorAll<LangRoot>('[data-lang-root]'));
+  let roots: LangRoot[] = [];
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const exitDuration = 140;
 
   function parts(root: LangRoot) {
     return {
@@ -172,9 +174,6 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
       panel: root.querySelector<HTMLElement>('[data-lang-panel]'),
     };
   }
-
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const exitDuration = 140;
 
   function finishClose(panel: HTMLElement) {
     if (!panel.dataset.closing) return;
@@ -206,34 +205,39 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
     if (focusFirst) panel.querySelector<HTMLAnchorElement>('a')?.focus();
   }
 
-  roots.forEach((root) => {
-    const { trigger, panel } = parts(root);
-    if (!trigger || !panel) return;
+  /** Bind the popover behaviour to the popovers currently in the DOM. */
+  function bindRoots() {
+    roots = Array.from(document.querySelectorAll<LangRoot>('[data-lang-root]'));
 
-    trigger.addEventListener('click', () => {
-      if (panel.hidden) open(root);
-      else close(root);
-    });
+    roots.forEach((root) => {
+      const { trigger, panel } = parts(root);
+      if (!trigger || !panel) return;
 
-    // Escape closes and returns focus to the trigger.
-    root.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape' || panel.hidden) return;
-      event.preventDefault();
-      close(root);
-      trigger.focus();
-    });
+      trigger.addEventListener('click', () => {
+        if (panel.hidden) open(root);
+        else close(root);
+      });
 
-    // Tabbing out of the popover closes it.
-    root.addEventListener('focusout', (event) => {
-      const next = event.relatedTarget as Node | null;
-      if (!next || !root.contains(next)) close(root);
-    });
+      // Escape closes and returns focus to the trigger.
+      root.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || panel.hidden) return;
+        event.preventDefault();
+        close(root);
+        trigger.focus();
+      });
 
-    // Following a language link resets the popover for bfcache restores.
-    panel.addEventListener('click', (event) => {
-      if ((event.target as Element | null)?.closest('a')) close(root);
+      // Tabbing out of the popover closes it.
+      root.addEventListener('focusout', (event) => {
+        const next = event.relatedTarget as Node | null;
+        if (!next || !root.contains(next)) close(root);
+      });
+
+      // Following a language link resets the popover for bfcache restores.
+      panel.addEventListener('click', (event) => {
+        if ((event.target as Element | null)?.closest('a')) close(root);
+      });
     });
-  });
+  }
 
   document.addEventListener('click', (event) => {
     const target = event.target as Node | null;
@@ -241,4 +245,14 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
       if (!target || !root.contains(target)) close(root);
     });
   });
+
+  /* ClientRouter: rebind to the popovers in the newly swapped page. */
+  let lastBootedPath = '';
+  function bootLangSwitcher() {
+    if (location.pathname === lastBootedPath) return;
+    lastBootedPath = location.pathname;
+    bindRoots();
+  }
+  document.addEventListener('astro:page-load', bootLangSwitcher);
+  window.addEventListener('load', bootLangSwitcher);
 </script>

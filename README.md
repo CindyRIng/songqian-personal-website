@@ -22,7 +22,7 @@ A hand-built, static, six-language site in the spirit of [paulstamatiou.com](htt
 
 | Layer | Choice |
 | --- | --- |
-| Framework | [Astro 7](https://astro.build) — static output, ~4 KB of client JS |
+| Framework | [Astro 7](https://astro.build) — static output, client-side routing via `<ClientRouter />`, ~10 KB of JS total |
 | Styling | [Tailwind CSS 4](https://tailwindcss.com) + hand-written semantic design tokens |
 | Type | Source Serif 4, Inter, JetBrains Mono — self-hosted variable fonts (Fontsource) |
 | i18n | Astro native i18n routing + typed dictionary (`src/i18n`) |
@@ -127,6 +127,8 @@ pnpm deploy                  # build + wrangler pages deploy
 
 - Colors, spacing, radii, shadows and easings are semantic tokens in `src/styles/global.css`; components never hard-code hex values.
 - Light: warm cream paper (`#f7f2ed`) + warm ink (`#33302b`) + muted sage (`#52692f`). Dark: deep evergreen (`#0e1611`) with a desaturated sage accent.
+- Navigation is client-side (`<ClientRouter />`): links are prefetched on hover/focus/touch and the five nav destinations are warmed while the page is idle, so a page change renders in ~50 ms instead of a full document load. HTML is cached for 30 s with `stale-while-revalidate` to make prefetched navigations instant.
+- Only the content column animates between pages (90 ms out / 240 ms in, 6 px rise); the floating nav rail and footer persist visually, and the active nav pill glides as a shared view-transition element.
 - The theme toggle reveals the new theme as a circle expanding from the click point (View Transitions API; disabled under `prefers-reduced-motion`).
 - Reading experience: sticky TOC with scroll-spy, code copy buttons, native `<dialog>` image lightbox, heading anchors, reading progress.
 - Project and portrait artwork is generated deterministically from a seed (CSS/SVG only) — no stock photography, no licensing issues.

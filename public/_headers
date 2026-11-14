@@ -2,12 +2,15 @@
 # Docs: https://developers.cloudflare.com/pages/configuration/headers/
 
 /*
+  # HTML stays fresh (30s) but a hover-prefetched navigation is served from
+  # cache instantly; stale-while-revalidate smooths out deploys.
+  Cache-Control: public, max-age=30, stale-while-revalidate=60
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' data:; connect-src 'self'; object-src 'none'
 
 # Immutable hashed assets
 /_astro/*

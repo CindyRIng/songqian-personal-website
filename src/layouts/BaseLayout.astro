@@ -20,6 +20,7 @@ import { SITE } from '../i18n/config';
 import { defaultLocale, localeMeta, type Locale } from '../i18n/config';
 import { getAlternates, useTranslations, localizePath, stripLocale } from '../i18n/utils';
 import { profile, lt } from '../data/profile';
+import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   lang: Locale;
@@ -97,6 +98,8 @@ const jsonLdPerson = {
   dir={meta.dir}
   class="bg-canvas text-ink"
   data-lang={lang}
+  data-initial
+  transition:animate="none"
 >
   <head>
     <meta charset="utf-8" />
@@ -105,6 +108,9 @@ const jsonLdPerson = {
     <meta name="description" content={desc} />
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={canonical} />
+
+    <!-- Client-side routing + view transitions (SPA-grade navigation) -->
+    <ClientRouter />
 
     <!-- Theme bootstrap: runs before paint to avoid a flash of the wrong theme. -->
     <script is:inline>
@@ -120,10 +126,15 @@ const jsonLdPerson = {
     </script>
 
     <script is:inline>
-      // Cross-document view transitions: flag the document before first render
-      // so the enter animation yields to the crossfade (see global.css §7).
-      window.addEventListener('pagereveal', function (event) {
-        if (event.viewTransition) document.documentElement.classList.add('vt-nav');
+      // ClientRouter: re-apply the persisted theme before the swapped page
+      // paints, so client-side navigation never flashes the wrong theme.
+      document.addEventListener('astro:after-swap', function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        } catch (e) {}
       });
     </script>
 
@@ -199,6 +210,7 @@ const jsonLdPerson = {
     <main
       id="main"
       tabindex="-1"
+      transition:name="page-main"
       class:list={[
         'relative z-10 mx-auto w-full px-6 pb-16 pt-24 sm:px-8 sm:pb-24 sm:pt-32',
         wide ? 'max-w-3xl' : 'max-w-[calc(var(--content)+3rem)]',
@@ -212,31 +224,58 @@ const jsonLdPerson = {
     {type === 'article' && <ReadingEnhancements lang={lang} />}
 
     <script>
-      // --- Scroll reveal -----------------------------------------------------
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const revealAll = () =>
-        document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-revealed'));
+      /* ------------------------------------------------------------------
+       * All client behaviour is page-aware: with <ClientRouter />, bundled
+       * module scripts execute only once, so every per-page effect is
+       * (re)initialised on `astro:page-load`. A one-time `load` fallback keeps
+       * the site working even if the router itself fails to boot.
+       * ------------------------------------------------------------------ */
 
-      if (!reduced && 'IntersectionObserver' in window) {
-        const io = new IntersectionObserver(
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      /* --- Scroll reveal --------------------------------------------------- */
+      let revealObserver: IntersectionObserver | null = null;
+
+      function initReveal() {
+        revealObserver?.disconnect();
+        const targets = document.querySelectorAll<HTMLElement>('[data-reveal]');
+        if (reducedMotion || !('IntersectionObserver' in window)) {
+          targets.forEach((el) => el.classList.add('is-revealed'));
+          return;
+        }
+        revealObserver = new IntersectionObserver(
           (entries) => {
             for (const entry of entries) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('is-revealed');
-                (entry.target as HTMLElement).style.willChange = 'auto';
-                io.unobserve(entry.target);
-              }
+              if (!entry.isIntersecting) continue;
+              entry.target.classList.add('is-revealed');
+              (entry.target as HTMLElement).style.willChange = 'auto';
+              revealObserver?.unobserve(entry.target);
             }
           },
           { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
         );
-        document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
-      } else {
-        // No JS-driven motion: content must never be hidden.
-        revealAll();
+        targets.forEach((el) => revealObserver!.observe(el));
       }
 
-      // --- Theme toggle with radial reveal from the click point ---------------
+      /* --- Reading progress ------------------------------------------------ */
+      let progressEl: HTMLElement | null = null;
+
+      function updateProgress() {
+        if (!progressEl) return;
+        const scrollable = document.documentElement.scrollHeight - innerHeight;
+        const ratio = scrollable > 0 ? Math.min(1, Math.max(0, scrollY / scrollable)) : 0;
+        progressEl.style.setProperty('--progress', String(ratio));
+      }
+
+      function initProgress() {
+        progressEl = document.getElementById('reading-progress');
+        updateProgress();
+      }
+
+      addEventListener('scroll', updateProgress, { passive: true });
+      addEventListener('resize', updateProgress, { passive: true });
+
+      /* --- Theme toggle with radial reveal from the click point -------------- */
       function applyTheme(next: 'light' | 'dark') {
         const root = document.documentElement;
         root.classList.toggle('dark', next === 'dark');
@@ -249,13 +288,12 @@ const jsonLdPerson = {
         } catch (e) {}
       }
 
-      // Keep the toggle's pressed state honest on first paint.
-      document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
-        toggle.setAttribute(
-          'aria-pressed',
-          String(document.documentElement.classList.contains('dark'))
-        );
-      });
+      function syncThemeToggles() {
+        const isDark = document.documentElement.classList.contains('dark');
+        document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+          toggle.setAttribute('aria-pressed', String(isDark));
+        });
+      }
 
       document.addEventListener('click', (event) => {
         const trigger = (event.target as Element | null)?.closest('[data-theme-toggle]');
@@ -293,18 +331,103 @@ const jsonLdPerson = {
         });
       });
 
-      // --- Reading progress (only pages that opt in with #reading-progress) ---
-      const progress = document.getElementById('reading-progress');
-      if (progress) {
-        const update = () => {
-          const scrollable = document.documentElement.scrollHeight - innerHeight;
-          const ratio = scrollable > 0 ? Math.min(1, Math.max(0, scrollY / scrollable)) : 0;
-          progress.style.setProperty('--progress', String(ratio));
-        };
-        update();
-        addEventListener('scroll', update, { passive: true });
-        addEventListener('resize', update, { passive: true });
+      /* --- Intent prefetch -------------------------------------------------
+       * The router fetches the next document when a link is clicked; warming the
+       * cache on hover / focus / touch means that fetch is usually already done
+       * by the time the view transition starts, which is what makes client-side
+       * navigation feel instant rather than merely animated.
+       * -------------------------------------------------------------------- */
+      const prefetched = new Set<string>();
+
+      function prefetchLink(anchor: HTMLAnchorElement) {
+        if (anchor.hasAttribute('data-astro-reload') || anchor.hasAttribute('download')) return;
+        if (anchor.target && anchor.target !== '_self') return;
+
+        let url: URL;
+        try {
+          url = new URL(anchor.href, location.href);
+        } catch {
+          return;
+        }
+        if (url.origin !== location.origin) return;
+        if (url.pathname === location.pathname && url.search === location.search) return;
+        // Never prefetch files (feeds, images, downloads) — only page documents.
+        if (/\.[a-z0-9]+$/i.test(url.pathname)) return;
+
+        const key = url.pathname + url.search;
+        if (prefetched.has(key)) return;
+        prefetched.add(key);
+
+        try {
+          void fetch(url.href, {
+            credentials: 'same-origin',
+            priority: 'low' as RequestPriority,
+            headers: { 'X-Prefetch': '1' },
+          }).catch(() => {});
+        } catch {
+          /* prefetch is an optimisation — never let it break navigation */
+        }
       }
+
+      const anchorFromEvent = (event: Event): HTMLAnchorElement | null => {
+        const target = event.target as Element | null;
+        const anchor = target?.closest?.('a[href]');
+        return anchor instanceof HTMLAnchorElement ? anchor : null;
+      };
+
+      document.addEventListener('pointerover', (event) => {
+        const anchor = anchorFromEvent(event);
+        if (anchor) prefetchLink(anchor);
+      }, { passive: true });
+
+      document.addEventListener('focusin', (event) => {
+        const anchor = anchorFromEvent(event);
+        if (anchor) prefetchLink(anchor);
+      }, { passive: true });
+
+      document.addEventListener('touchstart', (event) => {
+        const anchor = anchorFromEvent(event);
+        if (anchor) prefetchLink(anchor);
+      }, { passive: true });
+
+      /* --- Boot / re-boot on every client-side navigation ------------------- */
+      let lastBootedPath = '';
+
+      function bootPage() {
+        if (location.pathname === lastBootedPath) return;
+        lastBootedPath = location.pathname;
+
+        initReveal();
+        initProgress();
+        syncThemeToggles();
+        document.documentElement.classList.add('js');
+
+        // Warm the nav destinations while the reader is still reading.
+        const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+        if (!connection?.saveData) {
+          const idle = window.requestIdleCallback ?? ((cb: IdleRequestCallback) => window.setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 } as IdleDeadline), 1200));
+          idle(() => {
+            document
+              .querySelectorAll<HTMLAnchorElement>('nav a[href]:not([hreflang])')
+              .forEach((anchor) => prefetchLink(anchor));
+          });
+        }
+
+        const root = document.documentElement;
+        if (root.hasAttribute('data-initial')) {
+          // The initial-load entrance is a one-shot: remove the flag once the
+          // chrome has settled so navigations use the view transition only.
+          window.setTimeout(() => root.removeAttribute('data-initial'), 520);
+        }
+      }
+
+      document.addEventListener('astro:page-load', bootPage);
+      // Fallback: if the router never boots, the first load still works.
+      window.addEventListener('load', () => {
+        window.setTimeout(() => {
+          if (!document.documentElement.classList.contains('js')) bootPage();
+        }, 0);
+      });
     </script>
 
     <slot name="scripts" />

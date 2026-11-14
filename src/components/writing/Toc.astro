@@ -126,9 +126,15 @@ const items = headings.filter((heading) => heading.depth === 2);
 
 <script>
   // --- TOC scroll-spy --------------------------------------------------------
-  const rail = document.querySelector<HTMLElement>('[data-toc-rail]');
+  let cleanupToc: (() => void) | null = null;
 
-  if (rail) {
+  function initToc() {
+    cleanupToc?.();
+    cleanupToc = null;
+
+    const rail = document.querySelector<HTMLElement>('[data-toc-rail]');
+    if (!rail) return;
+
     const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'));
     const railLinks = Array.from(rail.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'));
     const indicator = rail.querySelector<HTMLElement>('[data-toc-indicator]');
@@ -204,6 +210,21 @@ const items = headings.filter((heading) => heading.depth === 2);
       update();
       addEventListener('scroll', schedule, { passive: true });
       addEventListener('resize', schedule, { passive: true });
+      cleanupToc = () => {
+        removeEventListener('scroll', schedule);
+        removeEventListener('resize', schedule);
+        if (frame) cancelAnimationFrame(frame);
+      };
     }
   }
+
+  /* ClientRouter: re-bind the rail on every client-side navigation. */
+  let lastBootedPath = '';
+  function bootToc() {
+    if (location.pathname === lastBootedPath) return;
+    lastBootedPath = location.pathname;
+    initToc();
+  }
+  document.addEventListener('astro:page-load', bootToc);
+  window.addEventListener('load', bootToc);
 </script>
