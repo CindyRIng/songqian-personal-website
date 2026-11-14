@@ -1,0 +1,121 @@
+---
+/**
+ * Icon — one consistent stroke icon set for the whole site.
+ * Lucide-style geometry, 24px viewBox, 1.6px stroke, round caps.
+ *
+ * Usage: <Icon name="arrow-right" size={18} class="text-accent" />
+ * Brand marks (github, linkedin, x) are filled paths.
+ */
+interface Props {
+  name:
+    | 'home'
+    | 'user'
+    | 'writing'
+    | 'projects'
+    | 'timeline'
+    | 'sun'
+    | 'moon'
+    | 'globe'
+    | 'chevron-down'
+    | 'chevron-right'
+    | 'arrow-left'
+    | 'arrow-right'
+    | 'arrow-up'
+    | 'arrow-up-right'
+    | 'rss'
+    | 'mail'
+    | 'github'
+    | 'linkedin'
+    | 'x'
+    | 'check'
+    | 'copy'
+    | 'external'
+    | 'calendar'
+    | 'map-pin'
+    | 'sparkle'
+    | 'menu'
+    | 'close'
+    | 'clock'
+    | 'code'
+    | 'layers'
+    | 'book'
+    | 'camera'
+    | 'quote';
+  size?: number;
+  class?: string;
+  strokeWidth?: number;
+  label?: string;
+}
+
+const { name, size = 18, class: className = '', strokeWidth = 1.6, label } = Astro.props;
+
+const strokePaths: Record<string, string> = {
+  home: '<path d="M3 10.2a2 2 0 0 1 .7-1.53l7-6a2 2 0 0 1 2.6 0l7 6A2 2 0 0 1 21 10.2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M15 21v-7a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v7"/>',
+  user: '<circle cx="12" cy="8" r="3.6"/><path d="M19.5 21v-1.6a4.6 4.6 0 0 0-4.6-4.6H9.1a4.6 4.6 0 0 0-4.6 4.6V21"/>',
+  writing:
+    '<path d="M13.5 20H21"/><path d="M16.8 3.7a2.1 2.1 0 0 1 3 3L7.4 19.1 3 20.3l1.2-4.4Z"/><path d="m14.4 6.1 3 3"/>',
+  projects:
+    '<rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/>',
+  timeline:
+    '<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.3 17.7-1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>',
+  globe:
+    '<circle cx="12" cy="12" r="9"/><path d="M3.2 9.5h17.6"/><path d="M3.2 14.5h17.6"/><path d="M12 3a14.5 14.5 0 0 1 0 18 14.5 14.5 0 0 1 0-18Z"/>',
+  'chevron-down': '<path d="m6 9.5 6 6 6-6"/>',
+  'chevron-right': '<path d="m9.5 6 6 6-6 6"/>',
+  'arrow-left': '<path d="M19 12H5"/><path d="m11.5 18.5-6.5-6.5 6.5-6.5"/>',
+  'arrow-right': '<path d="M5 12h14"/><path d="m12.5 5.5 6.5 6.5-6.5 6.5"/>',
+  'arrow-up': '<path d="M12 19V5"/><path d="m5.5 11.5 6.5-6.5 6.5 6.5"/>',
+  'arrow-up-right': '<path d="M7 17 17 7"/><path d="M8 7h9v9"/>',
+  rss: '<path d="M4.5 11a8.5 8.5 0 0 1 8.5 8.5"/><path d="M4.5 4.5A15.5 15.5 0 0 1 20 20"/><circle cx="5.2" cy="18.8" r="1.4" fill="currentColor" stroke="none"/>',
+  mail: '<rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="m3.5 7 7.4 5.1a2 2 0 0 0 2.2 0L20.5 7"/>',
+  check: '<path d="m20 6.5-11 11-5-5"/>',
+  copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/>',
+  external: '<path d="M14 4h6v6"/><path d="M10.5 13.5 20 4"/><path d="M18 13.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5.5"/>',
+  calendar:
+    '<rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/><path d="M3 10h18"/>',
+  'map-pin': '<path d="M20 10.5c0 5.5-8 11-8 11s-8-5.5-8-11a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10.5" r="2.8"/>',
+  sparkle:
+    '<path d="M12 2.5 14 9l6.5 2-6.5 2-2 6.5-2-6.5L3.5 11 10 9Z"/><path d="M19 2.5v3"/><path d="M17.5 4h3"/>',
+  menu: '<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>',
+  close: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+  code: '<path d="m16 18 5-6-5-6"/><path d="m8 6-5 6 5 6"/>',
+  layers: '<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12.5 9 5 9-5"/><path d="m3 17 9 5 9-5"/>',
+  book: '<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17.5H6.5A2.5 2.5 0 0 0 4 22Z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>',
+  camera:
+    '<path d="M14.5 4.5 13 7H8L6.5 4.5"/><rect x="2.5" y="7" width="19" height="13.5" rx="3"/><circle cx="12" cy="13.7" r="3.6"/>',
+  quote:
+    '<path d="M9.5 6.5c-3 1.4-4.5 3.9-4.5 7.5v3.5h5V12H6.5c0-1.8.8-3 2.4-3.8Z"/><path d="M19 6.5c-3 1.4-4.5 3.9-4.5 7.5v3.5h5V12h-3.5c0-1.8.8-3 2.4-3.8Z"/>',
+};
+
+const fillPaths: Record<string, string> = {
+  github:
+    '<path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.4-3.9-1.4-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.1 1.7 1.1 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.5-5.3 5.8.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5Z"/>',
+  linkedin:
+    '<path d="M20.4 3H3.6A.6.6 0 0 0 3 3.6v16.8a.6.6 0 0 0 .6.6h16.8a.6.6 0 0 0 .6-.6V3.6a.6.6 0 0 0-.6-.6ZM8.3 18.4H5.7V9.8h2.6v8.6ZM7 8.6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm11.4 9.8h-2.6v-4.2c0-1-.4-1.7-1.3-1.7-.7 0-1.1.5-1.3 1-.1.2-.1.4-.1.7v4.2H10.5V9.8h2.6v1.2a2.9 2.9 0 0 1 2.5-1.3c1.8 0 3.1 1.2 3.1 3.8v4.9Z"/>',
+  x: '<path d="M17.8 3h3.4l-7.4 8.5L22.4 21h-6.6l-5.2-6.6L4.6 21H1.2l8-9.1L1.6 3h6.8l4.7 6.1L17.8 3Zm-1.2 16.1h1.9L7.3 4.8H5.3l11.3 14.3Z"/>',
+};
+
+const isFilled = name in fillPaths;
+const html = isFilled ? fillPaths[name] : (strokePaths[name] ?? '');
+const a11y = label
+  ? { role: 'img', 'aria-label': label }
+  : { 'aria-hidden': 'true' as const, focusable: 'false' as const };
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill={isFilled ? 'currentColor' : 'none'}
+  stroke={isFilled ? 'none' : 'currentColor'}
+  stroke-width={strokeWidth}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class={className}
+  {...a11y}
+  set:html={html}
+/>

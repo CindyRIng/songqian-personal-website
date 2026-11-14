@@ -1,0 +1,68 @@
+---
+title: 'Notizen zum Bau meiner eigenen Website'
+description: 'Eine persönliche Website ist das einzige Projekt, bei dem man selbst der Kunde ist. Über die 544-Pixel-Spalte, zwei Schriften, ein Performance-Budget und warum sechs Sprachen.'
+date: 2025-06-14
+tags: ['Web', 'Astro', 'Typografie']
+category: notes
+---
+
+Eine persönliche Website ist das einzige Projekt, bei dem man selbst der Kunde ist und die Deadline „wenn du aufhörst, es zu genießen“ lautet. Das ist das Vergnügen und die Falle zugleich. Kein Product Manager sagt dir, die Serifenschrift sei in Ordnung. Es gibt nur dieses nagende Gefühl um ein Uhr nachts, dass der Abstand um den Gedankenstrich noch nicht ganz stimmt.
+
+Ich habe meine drei Mal neu gebaut, bevor diese Version entstand. Diese ist die erste, die ich ohne Entschuldigung zeigen würde.
+
+## Zuerst: Einschränkungen
+
+Jedes gute Projekt, an dem ich gearbeitet habe, begann mit einer Einschränkung, die jemand zu respektieren beschloss. Für diese Website:
+
+- Eine einzige Spalte von 34rem — etwa 544 Pixel oder 62 bis 68 Zeichen pro Zeile.
+- Zwei Schriftenfamilien und eine Monospace. Keine Ausnahmen.
+- Kein Template, kein Theme, kein Baukasten. Jedes Rechteck ist bewusst.
+- Statisches HTML, ein Performance-Budget von ungefähr 100 KB JavaScript, keine Bilder über dem Falz.
+- Eine Akzentfarbe, sparsam genug eingesetzt, dass sie noch etwas bedeutet.
+
+Eine Einschränkung ist keine Begrenzung; sie ist eine Art, zehntausend Entscheidungen im Voraus zu treffen, damit man die Aufmerksamkeit für die eine ausgeben kann, die zählt.
+
+## Typografie macht den größten Teil der Arbeit
+
+Auf einer Schreibseite ist die Oberfläche der Text. Fast alles andere ist Messung.
+
+Der Fließtext steht in einer Serifenschrift bei 1,0625rem, mit einer Zeilenhöhe von 1,78. Die Satzbreite beträgt 34rem, weil eine Zeile dort aufhört, sich lang anzufühlen, ohne dass die Spalte auf einem Laptop schmal wirkt. Überschriften ziehen die Laufweite leicht zusammen; Metadaten lockern sie und wechseln zur Sans, weil Daten und Lesezeiten Etiketten sind, keine Sätze.
+
+```css
+.prose {
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  line-height: 1.78;
+  hanging-punctuation: first last;
+}
+```
+
+Die letzte Zeile tut mehr, als sie aussieht. Hängende Interpunktion bedeutet, dass ein Anführungszeichen am Zeilenanfang oder ein Komma am Zeilenende außerhalb der Satzbreite hängt, statt den Text nach innen zu schieben — so liest sich die linke Kante eines Absatzes als saubere Senkrechte. Nur manche Browser unterstützen das heute. Die anderen rendern einfach normal, was eine ganz gute Definition von Progressive Enhancement ist.
+
+Ich habe außerdem unvernünftig viel Zeit in die Trennlinie gesteckt. Eine Haarlinie bei zehn Prozent Tinte, nicht achtzehn, weil sie bei achtzehn mit dem Text konkurriert, den sie trennen soll.
+
+## Ein Performance-Budget ist eine Designentscheidung
+
+Geschwindigkeit ist kein Ingenieursanliegen, das nach dem fertigen Design kommt. Sie ist Teil des Gefühls der Sache und das Erste, was ein Besucher erlebt.
+
+Meine Regeln: kein Client-Framework, keine Fremdschriften, kein Analytics-Skript, das den ersten Paint blockiert, kein Bild größer als der Text, den es illustriert. Die ganze Website kompiliert zu HTML und etwas CSS, mit ein paar Zeilen JavaScript für Theme-Umschalter und Lesefortschrittsbalken.
+
+Der Lesefortschrittsbalken sind zwei Pixel Akzentfarbe oben auf der Seite, skaliert mit der Scrollposition. Er kostet ein Element, eine Eigenschaft und ein Dutzend Zeilen. Er ist auch die einzige nicht optionale Bewegung auf der Seite und das einzige Stück Chrome, für das ich kämpfen würde.
+
+Dark Mode ist keine Umkehrung des Light Mode. Das helle Theme ist warmes Papier und Tinte; das dunkle ist immergrün und ein weicheres Off-White, weil reines Weiß auf dunklem Grund vibriert. Die Akzentfarbe muss in jedem Theme neu gewählt, nicht nur umgefärbt werden. Tokens machen das möglich, ohne in den Komponenten nach einem verirrten Wert zu suchen.
+
+## Warum sechs Sprachen
+
+Die Website gibt es auf Englisch, Chinesisch, Japanisch, Spanisch, Französisch und Deutsch. Das ist keine Wachstumsstrategie. Es geht darum, für wen die Website lesbar sein soll: meine Familie in Shanghai, Freunde in Tokio, die Kunden und Kollaborateure, die sich über Zeitzonen hinweg angesammelt haben.
+
+In einer anderen Sprache zu schreiben ist keine Übersetzung. Es ist ein zweiter Versuch derselben Idee, von einer schlechteren Autorin, mit anderen Instinkten. Ich schreibe zuerst das Englische, dann schreibe ich den Text auf Chinesisch neu, als wäre er neu, dann dasselbe auf Japanisch. Manche Sätze werden besser. Manche gehen verloren. Die Website hält eine leise Notiz bereit, wenn ein Text es noch nicht in eine Sprache geschafft hat, denn so zu tun als ob ist schlimmer, als ehrlich zu sein.
+
+## Wofür die Website da ist
+
+Nicht für Leadgenerierung. Nicht für eine Personal Brand. Sie ist ein Garten, den ich besuche, wenn ich über etwas sorgfältig nachdenken will, und die Ausrede, die ich brauche, um weiter Dinge von Hand zu machen.
+
+Das Beste an einer Website, die man besitzt, ist, dass sie in der Öffentlichkeit unvollkommen sein darf. Man kann an einem Dienstag die Spaltenbreite ändern, weil es sich besser anfühlt. Man kann einen leicht falschen Satz stehen lassen, weil man ihn noch glaubt. Niemand schickt ihn ins Review.
+
+Die Website wird sich wieder ändern. Genau darum geht es, wenn man sie selbst baut.
+
+[^1]: Die 34rem sind ein Ausgangspunkt, kein Gesetz. Bei etwa 62 Zeichen pro Zeile ist das Auge zufrieden; unter 50 wirkt es abgehackt, und über 80 wird die Rückkehr zur nächsten Zeile zu einer kleinen Entscheidung. Wenn du heute nur eine Zahl festlegst, dann diese.

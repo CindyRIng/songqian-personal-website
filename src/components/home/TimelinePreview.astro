@@ -1,0 +1,72 @@
+---
+/**
+ * TimelinePreview — the last three timeline entries as a horizontal strip:
+ * a hairline rail with a station dot per entry, date over role over org.
+ * On narrow screens the strip becomes a snap-scrolling row.
+ */
+import SectionHeader from '../ui/SectionHeader.astro';
+import { useTranslations, localizePath } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+
+export interface TimelineItem {
+  id: string;
+  period: string;
+  role: string;
+  org: string;
+}
+
+interface Props {
+  lang: Locale;
+  entries: TimelineItem[];
+}
+
+const { lang, entries } = Astro.props;
+const t = useTranslations(lang);
+
+const timelineHref = localizePath('/timeline', lang);
+---
+
+{
+  entries.length > 0 && (
+    <section aria-labelledby="home-timeline-title" class="flex flex-col" data-reveal style="--reveal-delay: 120ms">
+      <SectionHeader
+        title={t('home.journey')}
+        href={timelineHref}
+        linkLabel={t('home.viewTimeline')}
+        as="h2"
+        class="mb-4"
+      />
+
+      <div class="relative">
+        <span
+          aria-hidden="true"
+          class="absolute inset-x-0 top-[3px] hidden h-px bg-line sm:block"
+        >
+        </span>
+
+        <ol
+          class="flex snap-x gap-5 overflow-x-auto pb-1 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible"
+        >
+          {entries.map((entry) => (
+            <li class="relative min-w-[9.5rem] shrink-0 snap-start sm:min-w-0">
+              <span
+                aria-hidden="true"
+                class="absolute left-0 top-0 block size-[7px] rounded-full bg-accent ring-4 ring-canvas"
+              >
+              </span>
+              <div class="flex flex-col gap-1 pt-5">
+                <p class="font-mono text-[0.625rem] uppercase tracking-[0.1em] text-subtle">
+                  {entry.period}
+                </p>
+                <p class="font-serif text-[0.9375rem] font-[550] leading-snug tracking-[-0.01em] text-ink-strong">
+                  {entry.role}
+                </p>
+                <p class="font-sans text-[0.6875rem] leading-snug text-subtle">{entry.org}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}

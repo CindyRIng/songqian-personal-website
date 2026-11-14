@@ -1,0 +1,61 @@
+---
+title: 'Ein Designsystem ist ein Gesellschaftsvertrag'
+description: 'Die Komponentenbibliothek ist nicht das Produkt. Was entsteht, ist eine Einigung darüber, welche Entscheidungen Politik sind, welche lokal bleiben — und wie man gut anderer Meinung ist.'
+date: 2025-11-06
+tags: ['Designsystem', 'Zusammenarbeit', 'Prozess']
+category: engineering
+---
+
+In meiner ersten Woche bei Meridian öffnete ich die Dokumentation des Designsystems und fand vierhundert Komponenten. In der zweiten Woche erfuhr ich, dass etwa ein Drittel der neuen Bildschirme sie benutzte. In der dritten Woche hörte ich auf, überrascht zu sein.
+
+Die Bibliothek war nicht das Problem. Die Komponenten waren gut, die Dokumentation gründlich, und jemand hatte sich offensichtlich die Mühe gemacht, die Empty-State-Richtlinien zu schreiben. Das Problem war, dass niemand sich darauf geeinigt hatte, wofür die Bibliothek da war. Jedes Team hatte eine andere Antwort, und alle waren mit Ausliefern beschäftigt.
+
+## Die Bibliothek ist das Artefakt, der Vertrag ist das Produkt
+
+Ein Designsystem ist kein Haufen Komponenten. Es ist eine dauerhafte Übereinkunft zwischen Designern und Ingenieuren darüber, welche Entscheidungen Politik sind, welche geteilte Defaults sind und welche lokal bleiben. Die Komponenten sind nur der Ort, an dem die Übereinkunft sichtbar wird.
+
+Der Unterschied klingt akademisch, bis man ein Team über einen Button streiten sieht. Die eine Seite sagt, der Button gehöre dem System. Die andere sagt, er gehöre dem System, bis ein Flow etwas braucht, das der Button nicht kann — und das sind die meisten Flows. Unter dem Streit liegt eine Vertragsfrage: Wer hat die Autorität zu entscheiden, und was tun wir, wenn die Antwort „du nicht, jetzt nicht“ lautet?
+
+Reife Systeme beantworten diese Frage explizit. Unreife Systeme beantworten sie immer wieder, in jedem Sprint, mit leicht unterschiedlichen Ergebnissen.
+
+## Was im Vertrag steht
+
+Ein nützlicher Vertrag hat mehr Klauseln als eine Komponentenbibliothek, und fast alle sind Prosa.
+
+**Benennung.** Wir nennen es Chip. Nicht Pill, nicht Tag, nicht Badge. Das ist keine Pedanterie; geteilte Sprache ist die billigste Interoperabilität, die wir je kaufen werden. Wenn der Name umstritten ist, ist es die Komponente auch, und die Debatte kehrt in jedem Review wieder.
+
+**Verantwortung.** Wer einen Token ändern darf, wer eine Komponentenänderung prüft und was als Breaking Change gilt, steht geschrieben. Ein System, in dem das Plattformteam still eine Prop umbenennen kann, ist kein System, sondern eine Abhängigkeit mit einer freundlichen Website.
+
+**Versionierung.** Nummern sind Versprechen. Patch repariert, Minor ergänzt, Major bricht. Die meisten Teams tun das für die API und vergessen es für das Verhalten — und das Verhalten ist, was Designer wirklich spüren.
+
+**Das Recht abzuweichen.** Es muss einen dokumentierten Weg geben, damit ein Team etwas tun kann, das das System nicht unterstützt. Eine schriftliche, geprüfte Ausnahme ist ein System, das gesund atmet. Ein stiller Fork ist dasselbe Team, das im Dunkeln ein zweites System baut. Der Unterschied zwischen beidem ist vollständig sozial.
+
+**Wartung, nicht Launch.** Der Moment nach dem Ausliefern eines Designsystems ist der Moment, in dem der schwierige Teil beginnt. Deprecations brauchen Ankündigungen, Migrationen brauchen Termine, und die Doku braucht eine Verantwortliche mit Zeit im Kalender.
+
+> Ein Designsystem ist nicht dann erfolgreich, wenn seine Komponenten benutzt werden, sondern wenn eine neue Ingenieurin einen guten Bildschirm bauen kann, ohne jemanden zu fragen.
+
+## Woran sie wirklich sterben
+
+Designsysteme scheitern selten, weil die Komponenten falsch sind. Sie scheitern an sozialer Schuld.
+
+Die erste Form ist das Komitee-Review: acht Personen, vier Meinungen zum Radius, sechs Wochen pro PR. Das System wird langsamer als eine lokale Kopie, und die lokale Kopie wird rational.
+
+Die zweite ist das Fehlen von Sprechstunden. Wenn die einzige Art zu fragen ein Pull Request ist, hören die Leute auf zu fragen und fangen an zu forken.
+
+Die dritte, die ich am häufigsten sehe, ist „nur dieses eine Mal“. Jedes System, das ich habe verrotten sehen, verrottete eine Ausnahme nach der anderen, jede für sich vernünftig, keine dokumentiert. Das System starb nicht an einer schlechten Entscheidung; es starb an tausend unbesprochenen.
+
+Das Rezept ist unglamourös: eine halbe Stunde pro Woche, in der jeder ein Problem mitbringen kann, ein Ausnahmenprotokoll, das in diesen Treffen aufgeschlagen wird, und eine Regel, dass die Person, die eine Abweichung ausliefert, den erklärenden Eintrag schreibt.
+
+## Was man messen sollte
+
+Die wichtigen Kennzahlen sind soziale. Wie lange braucht ein neues Team, bis es einen konsistenten Bildschirm ausliefert? Welcher Anteil der Interface-Arbeit nutzt Systemkomponenten, und ist dieser Anteil ehrlich? Wie viele Ausnahmen genehmigen wir pro Monat, und konvergieren sie auf dasselbe fehlende Teil?
+
+Wenn Ausnahmen sich um dasselbe fehlende Ding sammeln, setzt das System keinen Standard durch — es reicht in deinem Namen einen Feature-Wunsch ein. Das ist Information, kein Versagen.
+
+## Verträge werden neu verhandelt
+
+Das Wort Vertrag lässt Systeme starr klingen. Das Gegenteil ist wahr. Ein Vertrag ist einfach ein Gespräch, das aufgeschrieben wurde, damit es wieder geöffnet werden kann, statt in jedem Sprint von null zu beginnen.
+
+Schreib das Warum in die Doku. Zieh veraltete Komponenten laut zurück, mit Terminen und Migrationsleitfaden. Setz die Diskussion in den Kalender, statt zu warten, bis sie sich selbst einlädt. Und behandle die Bibliothek als das, was sie ist: der Beweis der Übereinkunft, nicht die Übereinkunft selbst.
+
+Das beste Designsystem, mit dem ich gearbeitet habe, hatte weniger Komponenten als das schlechteste. Es hatte auch ein monatliches Treffen, ein sehr langweiliges Changelog und ein geteiltes Verständnis davon, dass es nie um die Buttons ging.

@@ -1,0 +1,73 @@
+---
+/**
+ * ProjectCard — one "selected work" card on the home page.
+ *
+ * CSS cover art with an 18px radius, gentle zoom on hover, a year/status meta
+ * row and the title/tagline in the editorial voice of the rest of the site.
+ */
+import Icon from '../ui/Icon.astro';
+import Badge from '../ui/Badge.astro';
+import ProjectCover from './ProjectCover.astro';
+import { useTranslations } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+
+export type ProjectStatus = 'live' | 'shipped' | 'in-progress' | 'archived' | 'concept';
+
+interface Props {
+  lang: Locale;
+  slug: string;
+  title: string;
+  tagline: string;
+  year: number | string;
+  status: ProjectStatus;
+  href: string;
+  index: number;
+}
+
+const { lang, slug, title, tagline, year, status, href, index } = Astro.props;
+const t = useTranslations(lang);
+
+const statusKey = {
+  live: 'status.live',
+  shipped: 'status.shipped',
+  'in-progress': 'status.inProgress',
+  archived: 'status.archived',
+  concept: 'status.concept',
+} as const;
+
+const tone = status === 'archived' || status === 'concept' ? 'faint' : 'accent';
+---
+
+<a
+  href={href}
+  class="group/card flex flex-col gap-3 rounded-[18px] focus-visible:outline-offset-4"
+>
+  <div class="relative">
+    <ProjectCover
+      title={title}
+      slug={slug}
+      year={year}
+      index={index}
+      class="aspect-[4/3] w-full motion-safe:transition-[box-shadow,border-color] motion-safe:duration-500 group-hover/card:border-line-strong group-hover/card:shadow-md"
+    />
+    <span
+      aria-hidden="true"
+      class="absolute bottom-2.5 right-2.5 grid size-7 translate-y-1 place-items-center rounded-full border border-line bg-elevated/95 text-ink opacity-0 shadow-sm backdrop-blur transition-[opacity,translate] duration-300 ease-out group-hover/card:translate-y-0 group-hover/card:opacity-100 motion-safe:transition-[opacity,translate]"
+    >
+      <Icon name="arrow-up-right" size={13} />
+    </span>
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <div class="flex items-center justify-between gap-2">
+      <span class="font-mono text-[0.625rem] uppercase tracking-[0.14em] text-subtle">{year}</span>
+      <Badge label={t(statusKey[status])} tone={tone} dot />
+    </div>
+    <h3
+      class="font-serif text-[0.9375rem] font-[550] leading-snug tracking-[-0.01em] text-ink-strong sm:text-[1rem]"
+    >
+      {title}
+    </h3>
+    <p class="line-clamp-2 font-serif text-[0.8125rem] leading-[1.45] text-muted">{tagline}</p>
+  </div>
+</a>

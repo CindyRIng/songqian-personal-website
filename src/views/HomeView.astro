@@ -1,0 +1,67 @@
+---
+/**
+ * HomeView — the shared home template for all six locales.
+ *
+ * Order: intro → writing (latest 8 | subscribe) → selected work → timeline.
+ * Copy comes from the i18n dictionary + src/data/profile.ts; content comes
+ * from the sibling-owned data modules:
+ *   - src/lib/posts.ts      (lumen)  — latest posts
+ *   - src/lib/projects.ts    (atelier) — featured projects
+ *   - src/data/timeline.ts   (atelier) — latest timeline entries
+ */
+import Hero from '../components/home/Hero.astro';
+import WritingSection from '../components/home/WritingSection.astro';
+import WorkSection from '../components/home/WorkSection.astro';
+import type { WorkItem } from '../components/home/WorkSection.astro';
+import TimelinePreview from '../components/home/TimelinePreview.astro';
+import type { TimelineItem } from '../components/home/TimelinePreview.astro';
+import { useTranslations, localizePath } from '../i18n/utils';
+import type { Locale } from '../i18n/config';
+import { getAllPosts } from '../lib/posts';
+import { getFeaturedProjects } from '../lib/projects';
+import { getTimeline } from '../data/timeline';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+/* Writing — latest eight posts, plus the total for the pagination line. */
+const allPosts = await getAllPosts(lang);
+const recentPosts = allPosts.slice(0, 8).map((post) => ({
+  title: post.title,
+  description: post.description,
+  href: localizePath(post.path, lang),
+}));
+
+/* Selected work — up to two featured projects. */
+const projects: WorkItem[] = (await getFeaturedProjects(lang, 2)).map((project) => ({
+  slug: project.slug,
+  title: project.title,
+  tagline: project.tagline,
+  year: project.year,
+  status: project.status,
+}));
+
+/* Timeline — the three most recent entries. */
+const timelineEntries: TimelineItem[] = getTimeline(lang)
+  .slice(0, 3)
+  .map((entry) => ({
+    id: entry.id,
+    period: entry.period,
+    role: entry.role,
+    org: entry.org,
+  }));
+---
+
+<div class="flex flex-col gap-16 sm:gap-20">
+  <Hero lang={lang} />
+
+  <WritingSection lang={lang} posts={recentPosts} total={allPosts.length} />
+
+  <WorkSection lang={lang} projects={projects} />
+
+  <TimelinePreview lang={lang} entries={timelineEntries} />
+</div>

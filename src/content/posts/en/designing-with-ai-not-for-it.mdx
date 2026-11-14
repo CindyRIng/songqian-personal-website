@@ -1,0 +1,53 @@
+---
+title: 'Designing with AI, not for it'
+description: 'AI is a material, not a feature. How to shape the seam where the model meets the person — suggestions, reversibility and honest uncertainty.'
+date: 2026-04-22
+tags: ['ai', 'product', 'craft']
+category: design
+---
+
+A founder once showed me a tool his team had spent a year building. It was, functionally, a very good document editor. The AI feature was a chat box in the right-hand rail with a placeholder that said “Ask anything.”
+
+“We added AI,” he said.
+
+They had not. They had added a second application and put it next to the first one, then asked the user to carry information between them by hand. That sentence — we added AI — is the most expensive sentence in product design right now.
+
+## The chat box is a confession
+
+Chat is the lowest-effort interface in the world. If you do not yet know what a feature does, a text field lets you defer the question. The user types; the model figures out the intent. It is also a way to outsource your design decisions to the person using your product, and to charge them in effort for the privilege.
+
+The best AI features I have used barely look like AI. In a writing tool, a suggestion appears inline, already phrased, already in my voice. In a code editor, the next line is greyed out ahead of my cursor. In a photo app, the background gets cut out when I drag the subject — no panel, no mode, no negotiation. Someone made the judgment call about what I am likely trying to do. That judgment is the design work.
+
+## Three shapes worth stealing
+
+**Suggestions over commands.** An interface that proposes is easier to trust than one that waits. Put the model's best guess directly where the action happens, and make accepting it cheaper than describing it. A prompt field is a blank page; a suggestion is a draft you can say no to.
+
+**Reversibility as a first-class feature.** When output becomes cheap, judgment becomes expensive — and judgment needs room to move. Show diffs instead of replacements. Keep a draft state. Let every action be undone at the granularity of the action, not the session. The feeling of safety is not a nicety here; it is what makes people willing to ask the model for bigger things.
+
+**Calibrated uncertainty.** A model that says “I think” where it is guessing is more useful than one that sounds equally confident everywhere. Design the hedge, don't bury it. If the tool is unsure which project you mean, show three candidates and let a single letter pick one. If the answer depends on a document it has not read, say so in the place the answer appears, not in a help article.
+
+> The model is not the product. The seam between the model and the person is the product.
+
+## Designing the seam
+
+I think of AI interfaces as a seam between two systems with very different properties: a person who is fast, contextual and easily bored, and a model that is broad, tireless and occasionally confidently wrong. Every seam has a texture, and most of the design work happens there.
+
+Latency is the raw material of that texture. A response that arrives in 200 milliseconds feels like a tool; one that arrives in four seconds feels like a department. Streaming tokens are not just progress, they are pacing — they tell the person how much work is happening and roughly how much more is coming. A tool that types at a human speed earns the trust we give to colleagues: we keep reading because we believe the next sentence will be worth it.
+
+The seam is also where the mistakes live, so it is where forgiveness has to live too. Undo, regenerate, narrow, cite, ask for more context. The interface does not need to hide the model's uncertainty; it needs to give the person a dignified way to correct it.
+
+## What we removed
+
+At Lumen Labs the most valuable AI work we did was subtraction. We removed a prompt library, because people were writing the same six prompts and the library was a museum of our own imagination. We replaced it with contextual suggestions attached to the blocks where the writing was stuck. We removed a settings panel full of model names and temperatures, and gave it two choices: fast or careful. We removed the chat box entirely from the first screen.
+
+None of these were model improvements. They were interface judgments about where a person's attention should go, made by people who had watched a lot of five-minute sessions.
+
+## A test for the next AI feature
+
+Before adding anything, I now ask three questions.
+
+Does it reduce the number of decisions the person has to make, or just move them somewhere else? Does it fail in a way that leaves the person with something usable? Would a thoughtful colleague in the room behave roughly this way?
+
+If the answer to the third question is no, the problem is probably not the model. It is the design of the person's moment — and that part, we can fix.
+
+Designing with AI, rather than for it, means using the tools to sharpen our own taste: drafting ten versions of a headline, exploring a state I had not considered, reading the code I was afraid to touch. The machine is a better assistant than an author. Our job is still to decide what deserves to exist, and then to make it feel effortless.

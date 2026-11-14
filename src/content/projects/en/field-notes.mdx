@@ -1,0 +1,45 @@
+---
+# TODO(content-owner): placeholder case study. Replace with the real project data.
+title: 'Field Notes'
+tagline: 'A camera roll with a memory.'
+description: 'Field Notes is a quiet iOS photo journal for film photographers — every frame gets a place, a light reading and a sentence about why it mattered.'
+year: 2024
+role: 'Designer and developer (side project)'
+team: 'Solo'
+status: in-progress
+tags: ['product', 'experiment']
+stack: ['SwiftUI', 'Core Location', 'CloudKit', 'StoreKit']
+cover: 'generated:field-notes'
+coverAlt: 'Generated cover art: an oversized serif F on a warm amber layered gradient.'
+metrics:
+  - label: Beta testers
+    value: '1,800'
+  - label: Avg. note length
+    value: '14 words'
+  - label: Frames logged
+    value: '26k'
+featured: false
+order: 4
+---
+
+Film gives you twelve or thirty-six decisions per roll and no metadata to explain them. A year after the scan, the photograph is still beautiful, but the reason you stopped walking is gone. Field Notes is my attempt to keep the reason.
+
+## One sentence, no more
+
+The first version had fields: location, camera, lens, film stock, aperture. Beta testers told me it felt like homework, and they were right. So the app now asks for exactly one thing: **a sentence about why you took this one.** Everything else is captured passively — place, time, light — and everything else is optional.
+
+That single constraint changed the feeling of the product. Adding a frame became a ten-second ritual instead of a form. The average note is fourteen words, which is roughly the length of a thought you can still trust an hour later.
+
+## The contact sheet
+
+The home screen is a contact sheet, not a feed. Four frames across, generous margins, a tiny sans-serif caption under each. Numbers are tabular and quiet; there are no likes, no counts, no red. Rolling the sheet feels like laying prints on a table, and a long press turns the whole sheet into a shareable image that looks like it came from a darkroom.
+
+## What shipping alone taught me
+
+Working without a team forces clarity about scope. I cut dark mode, then brought it back, then cut it again, and only shipped it when it cost me nothing to maintain. I kept the local database as the source of truth so the app works on a train and syncs when it can.
+
+The most useful beta feedback was not about features. It was about the tone of the empty state — “No frames yet” read as a reprimand, so it became “Nothing yet. Go for a walk.”
+
+## Next
+
+Roll-level metadata from the camera app, a printable zine export, and an Android version if the next hundred testers still keep their notes. The app is small on purpose. It is the only way a side project survives a full-time job.

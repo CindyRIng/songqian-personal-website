@@ -1,0 +1,43 @@
+---
+# TODO(content-owner): vorläufige Fallstudie. Durch echte Projektdaten ersetzen.
+title: 'Meridian'
+tagline: 'Ein Designsystem, das sich wie eine Sprache verhält, nicht wie eine Bibliothek.'
+description: 'Meridian ist das Designsystem hinter einer Fintech-Plattform, die über vierzig Produktteams nutzen: Grundlagen, Tokens, Komponenten und die Dokumentation, die alle denselben Dialekt sprechen lässt.'
+year: 2023
+role: 'Senior Produktdesignerin, Designsysteme'
+team: 'Drei Designer, sechs Engineers'
+status: shipped
+tags: ['design-system', 'tool']
+stack: ['Figma', 'Style Dictionary', 'React', 'MDX']
+cover: 'generated:meridian'
+coverAlt: 'Generatives Cover: ein überdimensionales Serifen-M auf kühlem Verlauf.'
+metrics:
+  - label: Produktteams
+    value: '40+'
+  - label: Spezifikationszeit
+    value: '−50 %'
+  - label: Gepflegte Tokens
+    value: '312'
+featured: true
+order: 2
+---
+
+Als ich zu Meridian kam, hatte die Plattform elf Grautöne, vier Buttonhöhen und eine Dokumentation, die seit achtzehn Monaten nicht mehr stimmte. Niemand war nachlässig: Das gemeinsame Vokabular war zu grob, um den tatsächlichen Bedarf zu beschreiben, also wurde dasselbe Problem immer wieder einzeln gelöst.
+
+## Benennen ist die Arbeit
+
+Wir bauten das System um eine kleine Grammatik statt um eine große Bibliothek. Jedes Token beantwortet drei Fragen: **welche Rolle**, **welcher Kontext**, **welcher Zustand**. Ein Surface-Token ist nicht „Grau 200“, sondern die leiseste Fläche eines Panels, und sie ändert sich mit dem Theme.
+
+Die Grammatik rechnete sich sofort. Designende konnten über Tokens nachdenken, die sie nie gesehen hatten, Engineers konnten einen Namen vorhersagen, und Reviews hatten endlich einen gemeinsamen Satz zum Streiten.
+
+## Eine einzige Quelle der Wahrheit
+
+Tokens lagen in einer JSON-Datei, übersetzt per Style Dictionary in CSS-Custom-Properties, Swift-Konstanten und Figma-Variablen. Die Dokumentation wurde aus derselben Quelle generiert: Eine veraltete Seite wurde zum Build-Fehler statt zur Entdeckung. Das Tooling war absichtlich langweilig.
+
+## Ein System ist ein Gesellschaftsvertrag
+
+Governance war wichtiger als Komponenten. Wir führten ein leichtes RFC mit zwei Wochen Kommentarzeit ein, wöchentliche Sprechstunden ohne Pflicht und eine Deprecation-Politik, die immer einen Ersatz nannte.
+
+## Was ich mitnehme
+
+Designsysteme scheitern als Produkt, nicht als Bibliothek. Die Adoptionskurve ist eine Vertrauenskurve: Sie bewegt sich, wenn korrekte Nutzung leichter ist als das Umgehen. Die eine Hälfte der Arbeit ist Dokumentation, die wirklich gelesen wird; die andere ist, die Kollegin zu sein, der man eine rohe Idee schickt.

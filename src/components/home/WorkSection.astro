@@ -1,0 +1,59 @@
+---
+/**
+ * WorkSection — "Selected work": a two-up grid of featured projects.
+ * Rendered only when projects are available (the content lands with the
+ * projects owner); the page reflows gracefully otherwise.
+ */
+import SectionHeader from '../ui/SectionHeader.astro';
+import ProjectCard from './ProjectCard.astro';
+import type { ProjectStatus } from './ProjectCard.astro';
+import { useTranslations, localizePath } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+
+export interface WorkItem {
+  slug: string;
+  title: string;
+  tagline: string;
+  year: number | string;
+  status: ProjectStatus;
+}
+
+interface Props {
+  lang: Locale;
+  projects: WorkItem[];
+}
+
+const { lang, projects } = Astro.props;
+const t = useTranslations(lang);
+
+const projectsHref = localizePath('/projects', lang);
+---
+
+{
+  projects.length > 0 && (
+    <section aria-labelledby="home-work-title" class="flex flex-col" data-reveal style="--reveal-delay: 60ms">
+      <SectionHeader
+        title={t('home.work')}
+        href={projectsHref}
+        linkLabel={t('home.viewAllProjects')}
+        as="h2"
+        class="mb-4"
+      />
+
+      <div class="grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-x-5">
+        {projects.map((project, index) => (
+          <ProjectCard
+            lang={lang}
+            slug={project.slug}
+            title={project.title}
+            tagline={project.tagline}
+            year={project.year}
+            status={project.status}
+            href={localizePath(`/projects/${project.slug}`, lang)}
+            index={index + 1}
+          />
+        ))}
+      </div>
+    </section>
+  )
+}

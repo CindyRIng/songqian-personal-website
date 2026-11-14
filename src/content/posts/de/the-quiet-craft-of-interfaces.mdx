@@ -1,0 +1,52 @@
+---
+title: 'Das stille Handwerk der Interfaces'
+description: 'Die beste Interface-Arbeit ist unsichtbar. Notizen über die Momente, die niemand dokumentiert — Timing, Gewicht und die kleinen Höflichkeiten der Software.'
+date: 2026-09-18
+tags: ['Handwerk', 'Interfaces', 'Detail']
+category: design
+featured: true
+---
+
+Eine Freundin ist letzten Frühling nach Shanghai gezogen und hat sich in den ersten drei Monaten über fast alles beschwert: die Feuchtigkeit, die Schlangen, die Menschen, die zu dritt nebeneinander gehen. Den Fahrkartenautomaten der U-Bahn hat sie kein einziges Mal erwähnt. Er funktioniert — und das ist das größte Lob, das ein Interface bekommen kann.
+
+Einen Großteil meiner Karriere habe ich an Software gearbeitet, die auffallen soll: Launches, Markenmomente, Onboarding-Flows mit etwas zu viel Persönlichkeit. Am stolzesten bin ich auf die Arbeit, von der niemand spricht. Ein Übergang, der sich setzt, statt zu federn. Eine Liste, die ihre Scrollposition behält, wenn man zurückkommt. Ein Button, der sich nicht bewegt, während der Daumen schon unterwegs ist.
+
+## Das Update, das niemand bemerkt
+
+Bei Meridian haben wir einmal neun Wochen an einem einzigen Sheet gearbeitet — dem Panel, das hochfährt, wenn man in der App auf eine Zeile tippt. Es war kein Redesign. Wir änderten die Kurve, änderten, was mit dem Inhalt darunter passiert, änderten, wie das Overlay abdunkelt und wie die Ziehgeste an das Scrollen übergibt. Wir haben es leise ausgeliefert, mit zwei Zeilen im Changelog, eine davon mit einem Tippfehler.
+
+Nichts passierte. Niemand schrieb. Die Support-Tickets blieben gleich. Eine Product Managerin fragte, ob wir überhaupt ausgeliefert hätten. In einem Unternehmen, das seine Arbeit an Feedback misst, liest sich neun Wochen Stille wie neun Wochen Versagen.
+
+Und doch war es das Beste, was wir in diesem Quartal gemacht haben. Die Leute konnten nicht benennen, was sich geändert hatte, weil die Änderung keine Funktion war: Es war das Entfernen einer kleinen, wiederkehrenden Irritation. Das ist der Lohn stillen Handwerks — die Abwesenheit von Komplikationen, die man längst aufgehört hatte, bewusst wahrzunehmen.
+
+## Das Gewicht kleiner Entscheidungen
+
+Eine Designentscheidung, zu der niemand dich gezwungen hat, ist die Einheit des Handwerks. Eine Haarlinie bei zehn Prozent Tinte statt achtzehn. Ein Hover, der in 120 Millisekunden auflöst statt in 300. Vier Pixel Abstand statt fünf, weil das Label bei vier optisch zentriert sitzt und bei fünf mathematisch, und das Auge bevorzugt Ersteres.
+
+> Handwerk ist die Summe der Entscheidungen, um die niemand gebeten hat, getroffen in Richtung weniger Reibung.
+
+Nichts davon steht auf einer Roadmap. Es steht in der kleinen Datei, in der Designer sammeln, was sie reparieren wollen, sobald sie endlich eine Stunde haben: der doppelte Rahmen im Empty State, der Fokusring, der an der Kartenecke abgeschnitten wird, der Tab-Indikator, der ein Frame hinter dem Text herläuft. Ich habe noch nie mit einer guten Interface-Designerin gearbeitet, die keine solche Liste hatte. Die Liste ist die Disziplin.
+
+## Den Moment danach gestalten
+
+Menschen erinnern sich an Interfaces nicht als Abfolge von Bildschirmen, sondern als Gefühle an Übergängen: die Sekunde nach einem Tipp, der Moment, in dem eine Zahlung durchgeht, die Pause, bevor eine E-Mail rausgeht. Dort wohnt die Angst, und Angst ist ein Designmaterial wie jedes andere — man kann sie komponieren.
+
+Ein paar Höflichkeiten, zu denen ich immer wieder zurückkehre:
+
+- Bewege kein Bedienelement, während sich ein Daumen nähert. Der verlorene Tipp wird nie als Fehlschlag verstanden, sondern als kaputtes Produkt.
+- Lieber rückgängig machen als bestätigen. Ein Dialog unterbricht alle, um die wenigen zu bremsen, die gerade unachtsam werden wollten.
+- Stelle die Scrollposition beim Zurückgehen wieder her. Das ist in den meisten Frameworks eine Zeile Code und wertvoller als die meisten Features.
+- Wenn etwas dauert, sag es dort, wo es passiert. Eine Fortschrittsanzeige, die ehrlich spät anfängt, ist besser als eine, die eifrig anfängt und lügt.
+- Lass eine Seite zur Ruhe kommen. Wenn drei Dinge gleichzeitig animieren, kann das Auge nicht wählen, und das Interface wirkt unruhig, selbst wenn es schnell ist.
+
+Nichts davon ist glamourös, und genau darum geht es. Das Interface sollte nicht für Aufmerksamkeit vorsprechen; es sollte aus dem Weg gehen, damit die Person tun kann, wofür sie gekommen ist.
+
+## Die Übung
+
+Stilles Handwerk überlebt nicht ohne Budget. Bei Meridian haben wir irgendwann ein kleines, ung lamouröses Ritual eingeführt: eine Stunde jeden Freitag, in der jeder an einem Punkt der Liste arbeiten konnte — kein Ticket, keine Schätzung, keine Demo. Es war die am besten verteidigte Stunde im Kalender, weil jeder, der das Produkt anfasste, seine eigene Liste kleiner Demütigungen hatte, die verschwinden sollte.
+
+Die andere Hälfte der Übung ist, den Grund aufzuschreiben. Wenn die Trennlinie zehn Prozent statt achtzehn hat, hinterlass einen Kommentar, der erklärt, warum. Dein zukünftiges Ich wird sich nicht erinnern, und dein zukünftiges Ich ist die Person, die es am wahrscheinlichsten zurücksetzt.
+
+Die Arbeit ist still, weil das Ziel nicht ist, gesehen zu werden. Es ist, die nächsten zehn Sekunden im Tag von jemandem etwas leichter zu machen — und dann vollständig zu verschwinden.
+
+[^1]: Das Beispiel mit der Trennlinie ist wörtlich gemeint. Auf warmem Papierhintergrund wirkt eine 1px-Linie bei zehn Prozent Tinte etwa so schwer wie eine 1,5px-Linie bei sechs Prozent, aber nur die erste übersteht eine Umkehrung in den Dark Mode, ohne zu leuchten. Optisch gleich ist nicht mathematisch gleich, und das Auge ist der Schiedsrichter.

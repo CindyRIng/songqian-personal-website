@@ -1,0 +1,43 @@
+---
+# TODO(content-owner): étude de cas provisoire. À remplacer par les vraies données.
+title: 'Meridian'
+tagline: 'Un design system qui se comporte comme une langue, pas comme une bibliothèque.'
+description: 'Meridian est le design system d’une plateforme fintech utilisée par plus de quarante équipes produit : fondations, tokens, composants et la documentation qui fait parler tout le monde le même dialecte.'
+year: 2023
+role: 'Designer produit senior, design systems'
+team: 'Trois designers, six ingénieurs'
+status: shipped
+tags: ['design-system', 'tool']
+stack: ['Figma', 'Style Dictionary', 'React', 'MDX']
+cover: 'generated:meridian'
+coverAlt: 'Visuel génératif : un M sérif monumental sur un dégradé froid.'
+metrics:
+  - label: Équipes produit
+    value: '40+'
+  - label: Temps de spécification
+    value: '−50 %'
+  - label: Tokens gouvernés
+    value: '312'
+featured: true
+order: 2
+---
+
+Quand j’ai repris Meridian, la plateforme comptait onze gris, quatre hauteurs de bouton et une documentation qui n’avait plus été exacte depuis dix-huit mois. Personne n’était négligent : le vocabulaire partagé était trop grossier pour décrire le besoin réel, alors le même problème était résolu séparément, encore et encore.
+
+## Nommer, c’est le travail
+
+Nous avons reconstruit le système autour d’une petite grammaire plutôt que d’une grande bibliothèque. Chaque token répond à trois questions : **quel rôle**, **quel contexte**, **quel état**. Un token de surface n’est pas « gris 200 » : c’est le plan le plus silencieux d’un panneau, et il change avec le thème.
+
+Cette grammaire s’est remboursée immédiatement. Les designers pouvaient raisonner sur des tokens jamais vus, les ingénieurs prédire un nom, et les revues avaient enfin une phrase commune pour débattre.
+
+## Une seule source de vérité
+
+Les tokens vivaient dans un JSON, transformé par Style Dictionary en propriétés CSS, constantes Swift et variables Figma. La documentation était générée depuis la même source : une page périmée devenait un échec de build. L’outillage était volontairement ennuyeux — rien à maintenir, aucun tableau de bord à oublier.
+
+## Un système est un contrat social
+
+La gouvernance comptait plus que les composants. Nous avons introduit un RFC léger avec deux semaines de commentaires, des permanences hebdomadaires sans obligation, et une politique de dépréciation qui nommait toujours un remplaçant.
+
+## Ce que je retiens
+
+Les design systems échouent comme produit, pas comme bibliothèque. La courbe d’adoption est une courbe de confiance : elle bouge quand bien utiliser le système coûte moins cher que le contourner. La moitié du travail consiste à écrire une documentation réellement lue ; l’autre, à être le collègue à qui l’on ose envoyer une idée encore floue.

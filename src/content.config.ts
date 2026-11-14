@@ -12,8 +12,19 @@ import { locales } from './i18n/config';
  */
 const localeEnum = z.enum(locales);
 
+/**
+ * Collection ids are always the path-based `<locale>/<slug>`. We pass an
+ * explicit `generateId` because the glob loader otherwise prefers a frontmatter
+ * `slug` field, which would collapse same-slug translations into one id.
+ */
+const stableId = ({ entry }: { entry: string }) => entry.replace(/\.(md|mdx)$/, '');
+
 const posts = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/posts' }),
+  loader: glob({
+    pattern: '**/*.{md,mdx}',
+    base: './src/content/posts',
+    generateId: stableId,
+  }),
   schema: z.object({
     title: z.string(),
     description: z.string(),

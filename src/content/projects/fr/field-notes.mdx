@@ -1,0 +1,41 @@
+---
+# TODO(content-owner): étude de cas provisoire. À remplacer par les vraies données.
+title: 'Field Notes'
+tagline: 'Une pellicule qui se souvient du pourquoi.'
+description: 'Field Notes est un journal photo discret pour iOS : chaque image garde un lieu, une lecture de la lumière et une phrase sur ce qui a compté.'
+year: 2024
+role: 'Design et développement (projet personnel)'
+team: 'En solo'
+status: in-progress
+tags: ['product', 'experiment']
+stack: ['SwiftUI', 'Core Location', 'CloudKit', 'StoreKit']
+cover: 'generated:field-notes'
+coverAlt: 'Visuel génératif : un F sérif monumental sur un dégradé ambré.'
+metrics:
+  - label: Testeurs bêta
+    value: '1 800'
+  - label: Longueur moyenne de note
+    value: '14 mots'
+  - label: Images consignées
+    value: '26 k'
+featured: false
+order: 4
+---
+
+La pellicule vous offre douze ou trente-six décisions par rouleau et aucun métadonnée pour les expliquer. Un an après le scan, la photo reste belle, mais la raison de votre arrêt a disparu. Field Notes est ma tentative de garder cette raison.
+
+## Une phrase, pas plus
+
+La première version avait des champs : lieu, appareil, objectif, pellicule, diaphragme. Les testeurs ont dit que ça ressemblait à des devoirs, et ils avaient raison. Aujourd’hui l’app ne demande qu’une chose : **une phrase sur pourquoi vous avez pris celle-ci.** Le reste est capturé passivement et tout le reste est optionnel.
+
+Cette contrainte a changé la sensation du produit. Ajouter une image est devenu un rituel de dix secondes. La note moyenne fait quatorze mots, à peu près la longueur d’une pensée à laquelle on croit encore une heure plus tard.
+
+## La planche contact
+
+L’accueil est une planche contact, pas un fil. Quatre images par ligne, des marges généreuses, une légende minuscule en sans. Pas de likes, pas de compteurs, pas de rouge. Faire défiler donne l’impression de poser des tirages sur une table.
+
+## Ce qu’apprend de livrer seul
+
+Sans équipe, le périmètre devient clair par la force des choses. J’ai coupé le mode sombre, je l’ai remis, je l’ai recoupé, et je ne l’ai livré que lorsqu’il ne coûtait rien à maintenir. La base locale est la source de vérité : l’app fonctionne dans un train et se synchronise quand elle peut.
+
+Le retour bêta le plus utile ne portait pas sur des fonctions, mais sur le ton de l’état vide : « Pas encore d’images » sonnait comme un reproche. C’est devenu « Rien encore. Allez marcher. »

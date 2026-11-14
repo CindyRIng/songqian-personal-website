@@ -1,0 +1,104 @@
+---
+/**
+ * WritingSection — the home page's post list.
+ *
+ * A tab-like header (Writing active with a hairline underline, Favorites as the
+ * quiet second tab), the latest eight posts, a pagination-style footer that
+ * links into /writing, and the subscribe band underneath.
+ */
+import Icon from '../ui/Icon.astro';
+import PostRow from '../ui/PostRow.astro';
+import SubscribeBand from './SubscribeBand.astro';
+import { useTranslations, localizePath } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+
+export interface WritingItem {
+  title: string;
+  description: string;
+  href: string;
+}
+
+interface Props {
+  lang: Locale;
+  posts: WritingItem[];
+  /** Total number of posts in this locale (for "Page 1 of N"). */
+  total: number;
+  pageSize?: number;
+}
+
+const { lang, posts, total, pageSize = 8 } = Astro.props;
+const t = useTranslations(lang);
+
+const writingHref = localizePath('/writing', lang);
+const favoritesHref = `${writingHref}#favorites`;
+const pages = Math.max(1, Math.ceil(total / pageSize));
+---
+
+<section aria-labelledby="home-writing-title" class="flex flex-col" data-reveal>
+  <h2 id="home-writing-title" class="sr-only">{t('home.writing')}</h2>
+
+  <div class="mb-1.5 flex items-center gap-6 px-0.5">
+    <a
+      href={writingHref}
+      class="relative pb-1 font-serif text-[1.0625rem] font-[550] leading-none tracking-[-0.012em] text-ink-strong"
+      aria-current="page"
+    >
+      {t('home.writing')}
+      <span
+        aria-hidden="true"
+        class="absolute inset-x-0 bottom-0 h-px bg-muted/50"
+      ></span>
+    </a>
+    <a
+      href={favoritesHref}
+      class="pb-1 font-serif text-[1.0625rem] leading-none tracking-[-0.012em] text-subtle transition-colors duration-200 hover:text-muted"
+    >
+      {t('home.favorites')}
+    </a>
+  </div>
+
+  {
+    posts.length > 0 ? (
+      <>
+        <div class="flex flex-col">
+          {posts.map((post) => (
+            <PostRow title={post.title} description={post.description} href={post.href} />
+          ))}
+        </div>
+
+        <div class="mt-2 flex items-center gap-1.5 font-sans text-[0.75rem] text-subtle">
+          <span
+            aria-hidden="true"
+            class="grid size-7 place-items-center rounded-full text-faint ring-1 ring-line"
+          >
+            <Icon name="chevron-right" size={14} class="rotate-180" />
+          </span>
+          <a
+            href={writingHref}
+            aria-label={t('common.next')}
+            class="grid size-7 place-items-center rounded-full text-muted ring-1 ring-line transition-colors duration-200 hover:bg-hover hover:text-ink"
+          >
+            <Icon name="chevron-right" size={14} />
+          </a>
+          <span class="ml-1.5 tabular">
+            {t('common.page', { n: 1, total: pages })}
+          </span>
+        </div>
+      </>
+    ) : (
+      /* Clearly-marked fallback: content may still be landing in this locale. */
+      <div class="flex flex-col gap-2 py-4">
+        <p class="font-serif text-[0.9375rem] text-muted">{t('common.noResults')}</p>
+        <a
+          href={writingHref}
+          class="inline-flex w-fit items-center gap-1 font-sans text-[0.75rem] text-accent transition-colors hover:text-accent-strong"
+        >
+          {t('home.viewAllPosts')}
+          <Icon name="arrow-right" size={13} />
+        </a>
+      </div>
+    )
+  }
+
+  <SubscribeBand lang={lang} class="mt-9" />
+</section>

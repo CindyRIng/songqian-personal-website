@@ -1,0 +1,45 @@
+---
+/**
+ * ArrowLink — the small "View all →" affordance used next to section headers.
+ * Quiet by default; the arrow nudges right on hover.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  href: string;
+  label?: string;
+  icon?: 'arrow-right' | 'arrow-up-right' | 'chevron-right';
+  tone?: 'muted' | 'accent';
+  external?: boolean;
+  class?: string;
+}
+
+const {
+  href,
+  label,
+  icon = 'arrow-right',
+  tone = 'muted',
+  external = false,
+  class: className = '',
+} = Astro.props;
+
+const isExternal = external || /^(https?:|mailto:)/.test(href);
+---
+
+<a
+  href={href}
+  class:list={[
+    'group/arrow inline-flex items-center gap-1 whitespace-nowrap font-sans text-[0.75rem] leading-none transition-colors duration-200',
+    tone === 'accent' ? 'text-accent hover:text-accent-strong' : 'text-subtle hover:text-ink',
+    className,
+  ]}
+  target={isExternal && !href.startsWith('mailto:') ? '_blank' : undefined}
+  rel={isExternal && !href.startsWith('mailto:') ? 'noreferrer noopener' : undefined}
+>
+  <span><slot />{label}</span>
+  <Icon
+    name={icon}
+    size={13}
+    class="transition-transform duration-300 ease-out motion-safe:group-hover/arrow:translate-x-0.5"
+  />
+</a>

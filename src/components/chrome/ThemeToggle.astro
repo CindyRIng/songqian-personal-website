@@ -1,0 +1,46 @@
+---
+/**
+ * ThemeToggle — markup only. Behaviour lives in BaseLayout (delegated listener
+ * on [data-theme-toggle]) so it works for any number of instances.
+ */
+import Icon from '../ui/Icon.astro';
+import { useTranslations } from '../../i18n/utils';
+import { defaultLocale, type Locale } from '../../i18n/config';
+
+interface Props {
+  /** Locale for the accessible labels. */
+  lang?: Locale;
+  /** Compact 32px variant used inside the mobile navigation bar. */
+  compact?: boolean;
+  class?: string;
+}
+
+const { lang = defaultLocale, compact = false, class: className = '' } = Astro.props;
+const t = useTranslations(lang);
+const label = t('theme.toggle');
+---
+
+<button
+  type="button"
+  data-theme-toggle
+  class:list={[
+    'group/theme relative grid shrink-0 place-items-center rounded-full text-subtle transition-colors duration-200 hover:bg-hover hover:text-ink',
+    compact ? 'size-8' : 'size-9',
+    className,
+  ]}
+  aria-label={label}
+  title={label}
+>
+  <span class="relative block size-[18px]">
+    <Icon
+      name="sun"
+      size={18}
+      class="absolute inset-0 transition-all duration-500 ease-out group-hover/theme:rotate-45 dark:pointer-events-none dark:scale-50 dark:opacity-0"
+    />
+    <Icon
+      name="moon"
+      size={18}
+      class="pointer-events-none absolute inset-0 scale-50 opacity-0 transition-all duration-500 ease-out dark:pointer-events-auto dark:scale-100 dark:opacity-100"
+    />
+  </span>
+</button>

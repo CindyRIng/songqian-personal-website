@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Song Qian">
+  <style>
+    .bg { fill: #f7f2ed; }
+    .ink { fill: #33302b; }
+    .dot { fill: #5c7838; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0e1611; }
+      .ink { fill: #e4e8de; }
+      .dot { fill: #a6c684; }
+    }
+  </style>
+  <rect class="bg" width="64" height="64" rx="15" />
+  <rect x="0.5" y="0.5" width="63" height="63" rx="14.5" fill="none" stroke="#33302b" stroke-opacity="0.12" />
+  <text
+    class="ink"
+    x="31"
+    y="41"
+    text-anchor="middle"
+    font-family="'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif"
+    font-size="27"
+    font-weight="600"
+    letter-spacing="-1.2"
+  >SQ</text>
+  <circle class="dot" cx="45" cy="41" r="2.4" />
+</svg>

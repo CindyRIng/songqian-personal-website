@@ -1,0 +1,42 @@
+---
+/**
+ * PostRow — a list row for the home page's Writing section.
+ *
+ * Title in serif 550, description quiet beneath it, generous vertical padding,
+ * a hover wash that extends slightly beyond the text column, a gentle nudge to
+ * the right and an accent arrow that fades in.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  href: string;
+  class?: string;
+}
+
+const { title, description, href, class: className = '' } = Astro.props;
+---
+
+<a
+  href={href}
+  class:list={[
+    'group/row relative -mx-3 flex flex-col gap-1 rounded-[0.7rem] px-3 py-3.5 transition-[background-color,translate] duration-200 ease-out hover:bg-hover motion-safe:hover:translate-x-1',
+    className,
+  ]}
+>
+  <span
+    class="font-serif text-[1.0625rem] font-[550] leading-snug tracking-[-0.012em] text-ink-strong"
+  >{title}</span>
+  {description && (
+    <span class="line-clamp-2 max-w-[30rem] font-serif text-[0.9375rem] leading-[1.5] text-muted">
+      {description}
+    </span>
+  )}
+  <span
+    aria-hidden="true"
+    class="pointer-events-none absolute right-3 top-1/2 grid -translate-y-1/2 translate-x-1 place-items-center opacity-0 transition-[opacity,translate] duration-200 ease-out group-hover/row:translate-x-0 group-hover/row:opacity-100 group-focus-visible/row:translate-x-0 group-focus-visible/row:opacity-100"
+  >
+    <Icon name="arrow-right" size={16} class="text-accent" />
+  </span>
+</a>

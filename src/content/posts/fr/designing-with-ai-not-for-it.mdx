@@ -1,0 +1,53 @@
+---
+title: 'Concevoir avec l’IA, pas pour elle'
+description: 'L’IA est un matériau, pas une fonctionnalité. Comment façonner la couture où le modèle rencontre la personne : suggestions, réversibilité et incertitude honnête.'
+date: 2026-04-22
+tags: ['IA', 'produit', 'métier']
+category: design
+---
+
+Un fondateur m’a un jour montré un outil sur lequel son équipe avait travaillé un an. Fonctionnellement, c’était un très bon éditeur de documents. La fonctionnalité d’IA était une zone de chat dans le rail de droite, avec un texte d’aide : « Demandez n’importe quoi. »
+
+« On a ajouté l’IA », m’a-t-il dit.
+
+Ils ne l’avaient pas fait. Ils avaient ajouté une seconde application, l’avaient posée à côté de la première, et demandaient à l’utilisateur de transporter les informations de l’une à l’autre à la main. Cette phrase — on a ajouté l’IA — est la phrase la plus chère du design de produit en ce moment.
+
+## La zone de chat est un aveu
+
+Le chat est l’interface la moins coûteuse du monde. Si vous ne savez pas encore ce que fait une fonctionnalité, un champ de texte vous permet de reporter la question. L’utilisateur tape, le modèle devine l’intention. C’est aussi une façon d’externaliser vos décisions de design sur la personne qui utilise votre produit, et de lui faire payer le privilège en effort.
+
+Les meilleures fonctionnalités d’IA que j’ai utilisées ressemblent à peine à de l’IA. Dans un outil d’écriture, une suggestion apparaît en ligne, déjà formulée, déjà dans ma voix. Dans un éditeur de code, la ligne suivante est grisée devant le curseur. Dans une application photo, le fond se détoure quand je fais glisser le sujet : sans panneau, sans mode, sans négociation. Quelqu’un a tranché sur ce que je cherche probablement à faire. Ce jugement, c’est le travail de design.
+
+## Trois formes à voler
+
+**Des suggestions plutôt que des commandes.** Une interface qui propose est plus facile à croire qu’une interface qui attend. Placez la meilleure supposition du modèle là où l’action se produit, et rendez son acceptation moins coûteuse que sa description. Un champ de prompt est une page blanche ; une suggestion est un brouillon auquel on peut dire non.
+
+**La réversibilité comme fonctionnalité de premier ordre.** Quand la production devient bon marché, le jugement devient cher, et le jugement a besoin d’espace pour bouger. Montrez des différences plutôt que des remplacements. Gardez un état de brouillon. Permettez d’annuler chaque action à la granularité de l’action, pas de la session. Le sentiment de sécurité n’est pas un luxe : c’est ce qui donne envie de demander au modèle des choses plus grandes.
+
+**Une incertitude calibrée.** Un modèle qui dit « je crois » là où il devine est plus utile qu’un modèle qui sonne aussi sûr partout. Concevez le doute, ne l’enterrez pas. Si l’outil hésite sur le projet dont vous parlez, montrez trois candidats et laissez une lettre choisir. Si la réponse dépend d’un document qu’il n’a pas lu, dites-le là où la réponse apparaît, pas dans un article d’aide.
+
+> Le modèle n’est pas le produit. La couture entre le modèle et la personne est le produit.
+
+## Concevoir la couture
+
+Je pense aux interfaces d’IA comme à une couture entre deux systèmes aux propriétés très différentes : une personne rapide, contextuelle, vite ennuyée ; un modèle large, infatigable, parfois confiant et faux. Toute couture a une texture, et l’essentiel du travail de design se joue là.
+
+La latence est la matière première de cette texture. Une réponse qui arrive en 200 millisecondes ressemble à un outil ; celle qui arrive en quatre secondes ressemble à un service. Les tokens en flux ne sont pas seulement une progression : ils donnent le tempo. Ils disent combien de travail est fait et combien il en reste. Un outil qui tape à vitesse humaine gagne la confiance qu’on accorde à un collègue : on continue de lire parce qu’on croit que la phrase suivante en vaut la peine.
+
+La couture est aussi là où vivent les erreurs, donc là où le pardon doit vivre. Annuler, régénérer, restreindre, citer, demander plus de contexte. L’interface n’a pas besoin de cacher l’incertitude du modèle ; elle doit offrir à la personne une manière digne de la corriger.
+
+## Ce que nous avons retiré
+
+Chez Lumen Labs, le travail d’IA le plus précieux a été de la soustraction. Nous avons supprimé une bibliothèque de prompts, parce que tout le monde écrivait les six mêmes et que la bibliothèque était un musée de notre propre imagination. Nous l’avons remplacée par des suggestions contextuelles accrochées aux blocs où l’écriture se bloquait. Nous avons supprimé un panneau de réglages plein de noms de modèles et de températures, réduit à deux choix : rapide ou prudent. Nous avons retiré la zone de chat du premier écran.
+
+Aucune de ces décisions n’était une amélioration du modèle. C’étaient des jugements d’interface sur l’endroit où doit aller l’attention d’une personne, pris par des gens qui avaient regardé beaucoup de sessions de cinq minutes.
+
+## Un test pour la prochaine fonctionnalité d’IA
+
+Avant d’ajouter quoi que ce soit, je pose maintenant trois questions.
+
+Est-ce que cela réduit le nombre de décisions que la personne doit prendre, ou est-ce que cela les déplace simplement ailleurs ? Est-ce que cela échoue d’une manière qui laisse à la personne quelque chose d’utilisable ? Un collègue attentionné dans la pièce se comporterait-il à peu près ainsi ?
+
+Si la réponse à la troisième est non, le problème n’est probablement pas le modèle. C’est la conception de ce moment pour cette personne, et cette partie-là, nous pouvons la réparer.
+
+Concevoir avec l’IA, et non pour elle, cela veut dire se servir de ces outils pour affûter notre propre goût : rédiger dix versions d’un titre, explorer un état qu’on n’avait pas envisagé, lire le code qu’on n’osait pas toucher. La machine est une meilleure assistante qu’une autrice. Notre travail reste de décider ce qui mérite d’exister, puis de le rendre sans effort.

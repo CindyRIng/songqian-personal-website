@@ -1,0 +1,64 @@
+---
+/**
+ * Hero — the home page's opening statement.
+ *
+ * Name as the only H1 on the page, quiet role line, then the profile's bio
+ * paragraphs with a "Read more" link into /about. All copy comes from
+ * src/data/profile.ts so the owner can rewrite it without touching markup.
+ */
+import Icon from '../ui/Icon.astro';
+import { profile, lt } from '../../data/profile';
+import { useTranslations, localizePath } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const name = lt(profile.name, lang) || profile.latinName;
+const role = lt(profile.role, lang);
+const paragraphs = profile.homeBio.map((paragraph) => lt(paragraph, lang)).filter(Boolean);
+const aboutHref = localizePath('/about', lang);
+---
+
+<header class="flex flex-col gap-7" data-reveal>
+  <div class="flex flex-col gap-2">
+    <h1
+      class="text-[clamp(1.75rem,4.2vw,2.125rem)] font-[550] leading-[1.1] tracking-[-0.025em] text-ink-strong"
+    >
+      {name}
+    </h1>
+    {role && (
+      <p class="font-sans text-[0.8125rem] font-medium leading-none tracking-[0.005em] text-muted">
+        {role}
+      </p>
+    )}
+  </div>
+
+  {
+    paragraphs.length > 0 && (
+      <div class="flex max-w-[33rem] flex-col gap-4 font-serif text-[1.0625rem] leading-[1.72] text-muted">
+        {paragraphs.map((paragraph, index) => (
+          <p>
+            {paragraph}
+            {index === paragraphs.length - 1 && (
+              <>
+                {' '}
+                <a
+                  href={aboutHref}
+                  class="link inline-flex items-baseline gap-1 whitespace-nowrap"
+                >
+                  <span>{t('common.readMore')}</span>
+                  <Icon name="arrow-right" size={13} class="translate-y-px" />
+                </a>
+              </>
+            )}
+          </p>
+        ))}
+      </div>
+    )
+  }
+</header>

@@ -1,0 +1,12 @@
+---
+/**
+ * English home page (root URL).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HomeView from '../views/HomeView.astro';
+import { defaultLocale } from '../i18n/config';
+---
+
+<BaseLayout lang={defaultLocale} path="/">
+  <HomeView lang={defaultLocale} />
+</BaseLayout>

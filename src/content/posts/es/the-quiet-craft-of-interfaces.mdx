@@ -1,0 +1,52 @@
+---
+title: 'El oficio silencioso de las interfaces'
+description: 'El mejor trabajo de interfaz es invisible. Apuntes sobre los momentos que nadie documenta: el tiempo, el peso y las pequeñas cortesías del software.'
+date: 2026-09-18
+tags: ['oficio', 'interfaces', 'detalle']
+category: design
+featured: true
+---
+
+Una amiga se mudó a Shanghái la primavera pasada y, durante los primeros tres meses, se quejó de casi todo: la humedad, las colas, la gente que camina en filas de tres. Nunca mencionó la máquina expendedora de billetes del metro. Funciona, y ese es el mayor elogio que puede recibir una interfaz.
+
+Durante buena parte de mi carrera he trabajado en software que se supone que debe notarse: lanzamientos, momentos de marca, flujos de bienvenida con demasiada personalidad. El trabajo del que estoy más orgullosa es del que nadie habla. Una transición que se asienta en lugar de rebotar. Una lista que conserva su posición de desplazamiento cuando vuelves. Un botón que no se mueve mientras tu pulgar ya va de camino.
+
+## La mejora que nadie nota
+
+En Meridian pasamos una vez nueve semanas en una sola hoja inferior: el panel que sube cuando tocas una fila en la app. No era un rediseño. Cambiamos la curva, cambiamos qué le pasaba al contenido de debajo, cambiamos cómo oscurecía el velo y cómo el gesto de arrastre le cedía el paso al desplazamiento. Lo publicamos en silencio, con dos líneas en el registro de cambios, una de ellas con una errata.
+
+No pasó nada. Nadie escribió. Los tickets de soporte no cambiaron. Una product manager preguntó si habíamos publicado algo. En una empresa que mide su trabajo en comentarios, nueve semanas de silencio equivalen a nueve semanas de fracaso.
+
+Y sin embargo fue lo mejor que hicimos ese trimestre. La gente no podía nombrar qué había cambiado porque el cambio no era una función: era la eliminación de una pequeña molestia recurrente. Eso es lo que compra el oficio silencioso: la ausencia de complicaciones que ya habíamos dejado de notar.
+
+## El peso de las decisiones pequeñas
+
+Una decisión de diseño que nadie te obligó a tomar es la unidad del oficio. Una línea divisoria al diez por ciento de tinta en lugar del dieciocho. Un hover que se resuelve en 120 milisegundos en lugar de 300. Cuatro píxeles de espacio en lugar de cinco, porque con cuatro la etiqueta queda ópticamente centrada y con cinco queda matemáticamente centrada, y el ojo prefiere lo primero.
+
+> El oficio es la acumulación de decisiones que nadie te pidió, tomadas en la dirección de menos fricción.
+
+Nada de esto aparece en una hoja de ruta. Aparece en el archivito donde los diseñadores guardan lo que quieren arreglar cuando por fin tengan una hora: el borde doble del estado vacío, el anillo de foco que se recorta en el borde de la tarjeta, el indicador de pestaña que va un fotograma por detrás del texto. Nunca he conocido a un buen diseñador de interfaces que no llevara una lista así. La lista es la disciplina.
+
+## Diseñar el momento siguiente
+
+La gente no recuerda las interfaces como secuencias de pantallas, sino como sensaciones en los límites: el segundo después de un toque, el instante en que se acredita un pago, la pausa antes de enviar un correo. Ahí vive la ansiedad, y la ansiedad es un material de diseño como cualquier otro: se puede componer.
+
+Algunas cortesías a las que vuelvo siempre:
+
+- No muevas un control mientras un pulgar se acerca. El toque perdido nunca se entiende como un fallo de puntería; se entiende como un producto roto.
+- Prefiere deshacer a confirmar. Un diálogo interrumpe a todo el mundo para frenar a las pocas personas que estaban a punto de ser descuidadas.
+- Restaura la posición de desplazamiento al volver atrás. Suele ser una línea de código y vale más que la mayoría de las funciones.
+- Si algo va a tardar, dilo donde ocurre. Una barra de progreso que empieza tarde y con honestidad es mejor que una que empieza con entusiasmo y miente.
+- Deja que la página se asiente. Si tres cosas se animan a la vez, el ojo no puede elegir y la interfaz parece ajetreada aunque sea rápida.
+
+Nada de esto es glamuroso, y ahí está la cuestión. La interfaz no debería hacer una audición para captar la atención; debería apartarse de lo que la persona vino a hacer.
+
+## La práctica
+
+El oficio silencioso no sobrevive sin presupuesto. En Meridian acabamos introduciendo una ceremonia pequeña y poco lucida: una hora cada viernes en la que cualquiera podía trabajar en un punto de la lista, sin ticket, sin estimación, sin demo. Fue la hora mejor defendida del calendario, porque todos los que tocaban el producto tenían su propia lista de pequeñas humillaciones que querían ver desaparecer.
+
+La otra mitad de la práctica es escribir el motivo. Cuando la línea divisoria es del diez y no del dieciocho, deja un comentario que explique por qué. Tu yo futuro no lo recordará, y tu yo futuro es la persona con más probabilidades de cambiarlo de vuelta.
+
+El trabajo es silencioso porque el objetivo no es ser visto. Es hacer que los siguientes diez segundos del día de alguien pesen un poco menos, y luego desaparecer por completo.
+
+[^1]: El ejemplo de la línea divisoria es literal. Sobre un fondo de papel cálido, una línea de 1px al diez por ciento de tinta se lee con un peso parecido al de una de 1,5px al seis por ciento, pero solo la primera sobrevive a una inversión a modo oscuro sin brillar. Ópticamente igual no es matemáticamente igual, y el ojo es el árbitro.

@@ -1,0 +1,262 @@
+---
+/**
+ * BaseLayout — the single page shell.
+ *
+ * CONTRACT (do not change without telling the team):
+ *   <BaseLayout lang={lang} title? description? image? type? noindex? path? wide? head?>
+ *     ...page sections...
+ *     <Fragment slot="scripts">...</Fragment>   (optional page scripts)
+ *   </BaseLayout>
+ *
+ * It owns: <html>/<head> metadata, theme bootstrapping, skip link, floating
+ * navigation, main landmark + content column, footer, scroll-reveal observer.
+ */
+import '../styles/global.css';
+
+import SiteNav from '../components/chrome/SiteNav.astro';
+import SiteFooter from '../components/chrome/SiteFooter.astro';
+import { SITE } from '../i18n/config';
+import { defaultLocale, localeMeta, type Locale } from '../i18n/config';
+import { getAlternates, useTranslations, localizePath } from '../i18n/utils';
+import { profile, lt } from '../data/profile';
+
+interface Props {
+  lang: Locale;
+  /** Page title without the site suffix. Home can omit it to use the full SEO title. */
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
+  /** Locale-free pathname, e.g. "/about". Defaults to current URL. */
+  path?: string;
+  /** Wide column for special pages (project grids, galleries). */
+  wide?: boolean;
+}
+
+const {
+  lang = defaultLocale,
+  title,
+  description,
+  image = '/og/default.png',
+  type = 'website',
+  noindex = false,
+  wide = false,
+} = Astro.props;
+
+const t = useTranslations(lang);
+const meta = localeMeta[lang];
+
+const currentPath = Astro.props.path ?? (Astro.url.pathname.replace(/\/$/, '') || '/');
+const alternates = getAlternates(currentPath);
+
+const siteUrl = Astro.site ?? new URL(SITE.url);
+const canonical = new URL(localizePath(currentPath, lang), siteUrl).href;
+
+const siteName = lt(profile.name, lang) || profile.latinName;
+const fullTitle = title ? `${title} — ${profile.latinName}` : profile.seo.title;
+const desc = description ?? lt(profile.seo.description as unknown as { en: string }, lang) ?? profile.seo.description;
+const ogImage = new URL(image, siteUrl).href;
+
+const jsonLdPerson = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: siteName,
+  alternateName: profile.latinName,
+  url: siteUrl.href,
+  jobTitle: lt(profile.role, lang),
+  email: `mailto:${profile.email}`,
+  address: { '@type': 'PostalAddress', addressLocality: lt(profile.location, lang) },
+  sameAs: profile.socials.filter((s) => s.href.startsWith('http')).map((s) => s.href),
+};
+---
+
+<!doctype html>
+<html
+  lang={meta.htmlLang}
+  dir={meta.dir}
+  class="bg-canvas text-ink"
+  data-lang={lang}
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={desc} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Theme bootstrap: runs before paint to avoid a flash of the wrong theme. -->
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        } catch (e) {}
+      })();
+    </script>
+
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#f7f2ed"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#0e1611"
+    />
+    <meta name="color-scheme" content="light dark" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content={profile.latinName} />
+
+    <!-- Feeds -->
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={lang === 'en' ? 'Song Qian — RSS' : `${siteName} — RSS`}
+      href={localizePath('/rss.xml', lang)}
+    />
+
+    <!-- Language alternates -->
+    {alternates.map((alt) => (
+      <link rel="alternate" hreflang={localeMeta[alt.lang].htmlLang} href={new URL(alt.href, siteUrl).href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={new URL(alternates[0].href, siteUrl).href} />
+
+    <!-- Social -->
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={profile.latinName} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={meta.ogLocale} />
+    {alternates
+      .filter((alt) => alt.lang !== lang)
+      .map((alt) => <meta property="og:locale:alternate" content={localeMeta[alt.lang].ogLocale} />)}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={desc} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <slot name="head" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLdPerson)} />
+  </head>
+
+  <body class="grain relative min-h-dvh overflow-x-clip">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-100 focus:rounded-full focus:bg-ink-strong focus:px-4 focus:py-2 focus:font-sans focus:text-sm focus:text-canvas"
+    >
+      {t('a11y.skip')}
+    </a>
+
+    <SiteNav lang={lang} />
+
+    <main
+      id="main"
+      class:list={[
+        'relative z-10 mx-auto w-full px-6 pb-28 pt-28 sm:px-8 sm:pb-32',
+        wide ? 'max-w-3xl' : 'max-w-[calc(var(--content)+3rem)]',
+      ]}
+    >
+      <slot />
+    </main>
+
+    <SiteFooter lang={lang} />
+
+    <script>
+      // --- Scroll reveal -----------------------------------------------------
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduced) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-revealed');
+                io.unobserve(entry.target);
+              }
+            }
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
+        );
+        document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+      } else {
+        document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-revealed'));
+      }
+
+      // --- Theme toggle with radial reveal from the click point ---------------
+      function applyTheme(next: 'light' | 'dark') {
+        const root = document.documentElement;
+        root.classList.toggle('dark', next === 'dark');
+        root.dataset.theme = next;
+        try {
+          localStorage.setItem('theme', next);
+        } catch (e) {}
+      }
+
+      document.addEventListener('click', (event) => {
+        const trigger = (event.target as Element | null)?.closest('[data-theme-toggle]');
+        if (!trigger) return;
+        const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const doc = document as Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void> } };
+
+        if (!doc.startViewTransition || prefersReduced) {
+          applyTheme(next);
+          return;
+        }
+
+        const rect = trigger.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+
+        document.documentElement.classList.add('theme-transition');
+        const transition = doc.startViewTransition(() => applyTheme(next));
+        transition.ready.then(() => {
+          document.documentElement.animate(
+            {
+              clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`],
+            },
+            {
+              duration: 720,
+              easing: 'cubic-bezier(.23,.88,.26,.92)',
+              pseudoElement: '::view-transition-new(root)',
+            }
+          );
+        });
+        transition.ready.finally?.(() => {
+          window.setTimeout(() => document.documentElement.classList.remove('theme-transition'), 800);
+        });
+      });
+
+      // --- Reading progress (only pages that opt in with #reading-progress) ---
+      const progress = document.getElementById('reading-progress');
+      if (progress) {
+        const update = () => {
+          const scrollable = document.documentElement.scrollHeight - innerHeight;
+          const ratio = scrollable > 0 ? Math.min(1, Math.max(0, scrollY / scrollable)) : 0;
+          progress.style.setProperty('--progress', String(ratio));
+        };
+        update();
+        addEventListener('scroll', update, { passive: true });
+        addEventListener('resize', update, { passive: true });
+      }
+    </script>
+
+    <slot name="scripts" />
+  </body>
+</html>

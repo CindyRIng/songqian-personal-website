@@ -1,0 +1,99 @@
+---
+/**
+ * SiteFooter — very quiet, handcrafted.
+ *
+ * A hairline, one line of small-print (handcrafted + dynamic age + contact),
+ * a right cluster with RSS, the language switcher and back-to-top (a plain
+ * anchor — the browser's smooth scrolling needs no JS), then copyright.
+ */
+import Icon from '../ui/Icon.astro';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+import { useTranslations, localizePath, stripLocale } from '../../i18n/utils';
+import { SITE, type Locale } from '../../i18n/config';
+import { profile, lt } from '../../data/profile';
+import type { TranslationKey } from '../../i18n/ui';
+import { formatNumber, siteAge } from '../../lib/format';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const currentPath = stripLocale(Astro.url.pathname).path;
+const rssHref = localizePath('/rss.xml', lang);
+const name = lt(profile.name, lang) || profile.latinName;
+
+/* "Handcrafted by Song Qian for 10 months" — the age is computed at build time.
+ * The two copy keys are optional: when the dictionary has not caught up yet we
+ * quietly fall back to a © line so the footer never shows a raw key. */
+const age = siteAge(SITE.siteLaunch);
+const ageKey = (`footer.${age.unit}`) as TranslationKey;
+const ageTemplate = t(ageKey);
+const hasAgeCopy = ageTemplate !== ageKey;
+const ageLabel = hasAgeCopy
+  ? t(ageKey, { n: formatNumber(age.value, lang, age.unit === 'years' ? 2 : 0) })
+  : '';
+
+const year = new Date().getFullYear();
+const panelPath = currentPath;
+---
+
+<footer
+  class="relative z-10 mx-auto w-full max-w-[calc(var(--content)+3rem)] px-6 pb-[max(2rem,env(safe-area-inset-bottom,0px))] sm:px-8"
+>
+  <div class="border-t border-line pt-6">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
+      <p class="font-sans text-[0.75rem] leading-relaxed text-subtle">
+        <span>{t('footer.handcrafted')}</span>
+        {ageLabel && <span>{' '}{ageLabel}</span>}
+        <span aria-hidden="true" class="px-1.5 text-faint">·</span>
+        <a
+          href={`mailto:${profile.email}`}
+          class="transition-colors duration-200 hover:text-ink"
+        >{t('footer.contact')}</a>
+      </p>
+
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 font-sans text-[0.75rem] text-subtle">
+        <a
+          href={rssHref}
+          class="group/rss inline-flex items-center gap-1.5 transition-colors duration-200 hover:text-ink"
+        >
+          <Icon
+            name="rss"
+            size={12}
+            class="text-faint transition-colors duration-200 group-hover/rss:text-accent"
+          />
+          <span>{t('home.rss')}</span>
+        </a>
+
+        <LanguageSwitcher lang={lang} path={panelPath} variant="footer" />
+
+        <a
+          href="#"
+          class="group/top inline-flex items-center gap-1.5 rounded-full py-1 transition-colors duration-200 hover:text-ink"
+          aria-label={t('footer.top')}
+          title={t('footer.top')}
+        >
+          <span>{t('footer.top')}</span>
+          <Icon
+            name="arrow-up"
+            size={12}
+            class="text-faint transition-transform duration-200 ease-out motion-safe:group-hover/top:-translate-y-0.5"
+          />
+        </a>
+      </div>
+    </div>
+
+    <p
+      class="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-[0.6875rem] leading-relaxed text-faint"
+    >
+      <span>© {year} {name}</span>
+      <span aria-hidden="true">·</span>
+      <span>{t('footer.rights')}</span>
+      <span aria-hidden="true">·</span>
+      <span>{t('footer.built')}</span>
+    </p>
+  </div>
+</footer>

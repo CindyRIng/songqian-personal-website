@@ -1,0 +1,61 @@
+---
+title: 'Un design system est un contrat social'
+description: 'La bibliothèque de composants n’est pas le produit. Ce qui se construit, c’est un accord sur ce qui relève de la politique, de la liberté locale, et de la bonne manière de ne pas être d’accord.'
+date: 2025-11-06
+tags: ['design systems', 'collaboration', 'processus']
+category: engineering
+---
+
+Ma première semaine chez Meridian, j’ai ouvert la documentation du design system et j’y ai trouvé quatre cents composants. Ma deuxième semaine, j’ai appris qu’environ un tiers des nouveaux écrans les utilisaient. Ma troisième semaine, j’ai arrêté d’être surprise.
+
+La bibliothèque n’était pas le problème. Les composants étaient bons, la documentation complète, et quelqu’un avait manifestement pris soin d’écrire les règles des états vides. Le problème, c’est que personne n’avait acté à quoi servait la bibliothèque. Chaque équipe avait sa réponse, et toutes étaient occupées à livrer.
+
+## La bibliothèque est l’artefact, le contrat est le produit
+
+Un design system n’est pas un tas de composants. C’est un accord permanent entre designers et ingénieurs sur ce qui relève de la politique, des valeurs par défaut partagées, et de ce qui reste local. Les composants ne sont que l’endroit où l’accord devient visible.
+
+La distinction paraît académique jusqu’au jour où vous voyez une équipe se disputer sur un bouton. Un camp dit que le bouton appartient au système. L’autre dit qu’il appartient au système jusqu’à ce qu’un parcours ait besoin de quelque chose que le bouton ne sait pas faire — et c’est le cas de la plupart des parcours. Sous la dispute se cache une question de contrat : qui a l’autorité de décider, et que fait-on quand la réponse est « pas toi, pas maintenant ».
+
+Les systèmes matures répondent explicitement à cette question. Les systèmes immatures y répondent sans cesse, à chaque sprint, avec des résultats légèrement différents.
+
+## Ce que contient le contrat
+
+Un contrat utile a plus de clauses qu’une bibliothèque de composants, et presque toutes sont de la prose.
+
+**Le nommage.** On l’appelle chip. Pas pill, pas tag, pas badge. Ce n’est pas de la pédanterie : le langage partagé est l’interopérabilité la moins chère que nous achèterons jamais. Quand le nom est contesté, le composant l’est aussi, et le débat reviendra à chaque revue.
+
+**La propriété.** Qui peut modifier un token, qui relit un changement de composant, et ce qui compte comme rupture. Un système où l’équipe plateforme peut renommer une prop en silence n’est pas un système : c’est une dépendance avec un joli site.
+
+**Le versionnement.** Les numéros sont des promesses. Un patch corrige, un mineur ajoute, un majeur casse. La plupart des équipes le font pour l’API et oublient de le faire pour le comportement — et c’est le comportement que les designers ressentent vraiment.
+
+**Le droit de dévier.** Il doit exister un chemin documenté pour qu’une équipe fasse ce que le système ne prend pas en charge. Une exception écrite et relue, c’est un système qui respire sainement. Un fork silencieux, c’est la même équipe qui construit un second système dans le noir. La différence entre les deux est entièrement sociale.
+
+**La maintenance, pas le lancement.** Le moment qui suit la livraison d’un design system est celui où commence la partie difficile. Les dépréciations ont besoin de préavis, les migrations de dates, et la documentation d’une personne responsable avec du temps au calendrier.
+
+> Un design system réussit non pas quand ses composants sont utilisés, mais quand une nouvelle ingénieure peut faire un bon écran sans demander à personne.
+
+## De quoi ils meurent vraiment
+
+Les design systems échouent rarement parce que les composants sont mauvais. Ils meurent de dette sociale.
+
+La première est la revue en comité : huit personnes, quatre avis sur le rayon, six semaines par PR. Le système devient plus lent que fabriquer une copie locale, et la copie locale devient rationnelle.
+
+La deuxième est l’absence d’heures de permanence. Si la seule façon de poser une question est une pull request, les gens arrêtent de demander et commencent à forker.
+
+La troisième, celle que je vois le plus, c’est « juste cette fois ». Chaque système que j’ai vu pourrir a pourri une exception à la fois, chacune raisonnable prise isolément, aucune documentée. Le système n’est pas mort d’une mauvaise décision : il est mort de mille décisions non discutées.
+
+Le remède n’a rien de glamour : une demi-heure par semaine où n’importe qui peut apporter un problème, un registre d’exceptions ouvert pendant ces réunions, et une règle selon laquelle celui qui livre une déviation est responsable de la note qui l’explique.
+
+## Que mesurer
+
+Les métriques qui comptent sont sociales. Combien de temps une nouvelle équipe met-elle à livrer un écran cohérent ? Quelle part du travail d’interface utilise les composants du système, et ce chiffre est-il honnête ? Combien d’exceptions accordons-nous par mois, et convergent-elles vers le même composant manquant ?
+
+Si les exceptions s’agglutinent autour de la même pièce absente, le système ne fait pas respecter un standard : il dépose une demande de fonctionnalité en votre nom. C’est une information, pas un échec.
+
+## Les contrats se renégocient
+
+Le mot contrat fait paraître les systèmes rigides. C’est l’inverse. Un contrat est simplement une conversation écrite pour pouvoir être rouverte, plutôt que répétée de zéro à chaque sprint.
+
+Écrivez le pourquoi dans la documentation. Retirez les composants dépréciés à voix haute, avec des dates et un guide de migration. Mettez le débat au calendrier au lieu d’attendre qu’il se planifie lui-même. Et traitez la bibliothèque pour ce qu’elle est : la preuve de l’accord, pas l’accord lui-même.
+
+Le meilleur design system avec lequel j’ai travaillé avait moins de composants que le pire. Il avait aussi une réunion mensuelle, un changelog très ennuyeux, et une compréhension partagée que le but n’avait jamais été les boutons.

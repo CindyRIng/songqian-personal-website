@@ -1,0 +1,61 @@
+---
+title: 'Un sistema de diseño es un contrato social'
+description: 'La biblioteca de componentes no es el producto. Lo que se construye es un acuerdo sobre qué decisiones son política, qué es libertad local y cómo discrepar bien.'
+date: 2025-11-06
+tags: ['sistemas de diseño', 'colaboración', 'proceso']
+category: engineering
+---
+
+Mi primera semana en Meridian abrí la documentación del sistema de diseño y encontré cuatrocientos componentes. La segunda semana supe que aproximadamente un tercio de las pantallas nuevas los usaba. La tercera dejé de sorprenderme.
+
+La biblioteca no era el problema. Los componentes eran buenos, la documentación era completa y alguien se había tomado la molestia de escribir las guías de estado vacío. El problema era que nadie había acordado para qué servía la biblioteca. Cada equipo tenía una respuesta distinta, y todos estaban ocupados publicando.
+
+## La biblioteca es el artefacto; el contrato es el producto
+
+Un sistema de diseño no es un montón de componentes. Es un acuerdo permanente entre diseñadores e ingenieros sobre qué decisiones son política, qué son valores por defecto compartidos y qué es local. Los componentes son solo el lugar donde el acuerdo se hace visible.
+
+La distinción suena académica hasta que ves a un equipo discutir por un botón. Un lado dice que el sistema es dueño del botón. El otro dice que el sistema es dueño del botón hasta que un flujo necesita algo que el botón no puede hacer, que resulta ser la mayoría de los flujos. Debajo de la discusión hay una pregunta de contrato: quién tiene autoridad para decidir y qué hacemos cuando la respuesta es «tú no, ahora no».
+
+Los sistemas maduros responden esa pregunta de forma explícita. Los inmaduros la responden una y otra vez, en cada sprint, con resultados ligeramente distintos.
+
+## Qué contiene el contrato
+
+Un contrato útil tiene más cláusulas que una biblioteca de componentes, y casi todas son prosa.
+
+**Nombres.** Acordamos llamarlo chip. No pill, no tag, no badge: chip. No es pedantería; el lenguaje compartido es la interoperabilidad más barata que compraremos nunca. Cuando el nombre está en disputa, el componente también, y la discusión reaparecerá en cada revisión.
+
+**Propiedad.** Quién puede cambiar un token, quién revisa un cambio de componente y qué cuenta como ruptura. Un sistema donde el equipo de plataforma puede renombrar una prop en silencio no es un sistema: es una dependencia con una web simpática.
+
+**Versionado.** Los números son promesas. Un parche arregla, un menor añade, un mayor rompe. La mayoría de los equipos lo hace con la API y se olvida de hacerlo con el comportamiento, y el comportamiento es lo que los diseñadores sienten de verdad.
+
+**El derecho a desviarse.** Debe existir un camino documentado para que un equipo haga algo que el sistema no soporta. Una excepción escrita y revisada es un sistema respirando sano. Un fork silencioso es el mismo equipo construyendo un segundo sistema a oscuras. La diferencia entre ambos es enteramente social.
+
+**Mantenimiento, no lanzamiento.** El momento después de publicar un sistema de diseño es el momento en que empieza lo difícil. Las deprecaciones necesitan avisos, las migraciones necesitan fechas y la documentación necesita un dueño con tiempo en el calendario.
+
+> Un sistema de diseño tiene éxito no cuando se usan sus componentes, sino cuando una ingeniera nueva puede hacer una buena pantalla sin preguntarle a nadie.
+
+## De qué mueren en realidad
+
+Los sistemas de diseño rara vez fallan porque los componentes estén mal. Fallan por deuda social.
+
+El primero es la revisión por comité: ocho personas, cuatro opiniones sobre el radio, seis semanas por PR. El sistema se vuelve más lento que construir una copia local, y la copia local se vuelve racional.
+
+El segundo es la ausencia de horas de consulta. Si la única manera de preguntar es un pull request, la gente deja de preguntar y empieza a hacer forks.
+
+El tercero, y el que más veo, es «solo esta vez». Cada sistema que he visto pudrirse se pudrió una excepción a la vez, cada una razonable por separado, ninguna documentada. El sistema no murió de una mala decisión: murió de mil decisiones no discutidas.
+
+La solución no tiene glamour: media hora semanal donde cualquiera puede traer un problema, un registro de excepciones que se abre en esas reuniones y una regla de que quien publica una desviación es dueño de la nota que la explica.
+
+## Qué medir
+
+Las métricas que importan son sociales. ¿Cuánto tarda un equipo nuevo en publicar una pantalla coherente? ¿Qué fracción del trabajo de interfaz usa componentes del sistema, y es honesta esa fracción? ¿Cuántas excepciones concedemos al mes y convergen hacia el mismo componente ausente?
+
+Si las excepciones se agrupan alrededor de la misma pieza que falta, el sistema no está haciendo cumplir un estándar: está presentando una petición de función en tu nombre. Eso es información, no fracaso.
+
+## Los contratos se renegocian
+
+La palabra contrato hace que los sistemas suenen rígidos. Es al revés. Un contrato es simplemente una conversación que se escribió para poder reabrirse, en lugar de repetirse desde cero cada sprint.
+
+Escribe el porqué en la documentación. Retira los componentes obsoletos en voz alta, con fechas y una guía de migración. Agenda la discusión en lugar de esperar a que se agende sola. Y trata la biblioteca como lo que es: evidencia del acuerdo, no el acuerdo.
+
+El mejor sistema de diseño con el que he trabajado tenía menos componentes que el peor. También tenía una reunión mensual, un changelog muy aburrido y una comprensión compartida de que el objetivo nunca fueron los botones.
