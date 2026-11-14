@@ -1,0 +1,60 @@
+---
+/**
+ * Pagination — quiet circular arrows with a "Page N of M" caption.
+ * Disabled states are plain spans, so the control keeps its shape at the ends.
+ */
+import Icon from '../ui/Icon.astro';
+import { localizePath, useTranslations } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+import { writingPagePath } from '../../lib/posts';
+
+interface Props {
+  lang: Locale;
+  page: number;
+  totalPages: number;
+  class?: string;
+}
+
+const { lang, page, totalPages, class: className = '' } = Astro.props;
+const t = useTranslations(lang);
+
+const hasPrev = page > 1;
+const hasNext = page < totalPages;
+const prevHref = localizePath(writingPagePath(page - 1), lang);
+const nextHref = localizePath(writingPagePath(page + 1), lang);
+const buttonClass =
+  'grid size-9 place-items-center rounded-full ring-1 ring-line text-muted transition-colors duration-200 ease-out hover:bg-hover hover:text-ink';
+const disabledClass = 'grid size-9 place-items-center rounded-full text-faint/70';
+---
+<nav
+  aria-label={t('common.page', { n: page, total: totalPages })}
+  class:list={['flex items-center justify-between gap-6', className]}
+>
+  {
+    hasPrev ? (
+      <a href={prevHref} aria-label={t('writing.prevPage')} class={buttonClass} rel="prev">
+        <Icon name="chevron-right" size={15} class="rotate-180" />
+      </a>
+    ) : (
+      <span class={disabledClass} aria-hidden="true">
+        <Icon name="chevron-right" size={15} class="rotate-180 opacity-40" />
+      </span>
+    )
+  }
+
+  <span class="font-sans text-[0.75rem] tabular text-subtle">
+    {t('common.page', { n: page, total: totalPages })}
+  </span>
+
+  {
+    hasNext ? (
+      <a href={nextHref} aria-label={t('writing.nextPage')} class={buttonClass} rel="next">
+        <Icon name="chevron-right" size={15} />
+      </a>
+    ) : (
+      <span class={disabledClass} aria-hidden="true">
+        <Icon name="chevron-right" size={15} class="opacity-40" />
+      </span>
+    )
+  }
+</nav>

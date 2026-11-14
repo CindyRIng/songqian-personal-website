@@ -90,6 +90,23 @@ Page size for the writing index is `POSTS_PAGE_SIZE` in `src/lib/posts.ts`.
 `src/content/projects/<locale>/<slug>.mdx` with frontmatter validated by `src/content.config.ts`.
 The list page is generated automatically; `featured: true` and `order` control the home page grid.
 
+## Replacing the placeholder content
+
+The site currently ships with a realistic placeholder persona so that every page can be reviewed end-to-end. Replace it in this order:
+
+| What | Where | Notes |
+| --- | --- | --- |
+| Name, role, bio, location, email, social links | `src/data/profile.ts` | All six languages, one object |
+| Home + About copy | `src/data/profile.ts` (`homeBio`, `aboutBio`, `now`, `colophon`) | `L` maps: `{ en, zh, ja, es, fr, de }` |
+| CV rows on About | derived from `src/data/timeline.ts` | Keep the two in sync |
+| Career/life timeline | `src/data/timeline.ts` | `TODO(content-owner)` markers |
+| Projects (4 × 6 locales) | `src/content/projects/<locale>/*.mdx` | Add real links in `links:` when available |
+| Essays (4 × 6 locales) | `src/content/posts/<locale>/*.mdx` | Same slug across locales links translations |
+| Portrait / photos | `src/components/projects/CoverArt.astro` accepts an `image` prop; or set a real image on the About portrait | Until then, generated art plates are used |
+| Social handles in footer/SEO | `src/data/profile.ts`, `src/i18n/config.ts` (`SITE`) | |
+| OG image | `public/og/default.png` (1200×630) | Regenerate with `sharp` if the name/role changes |
+| Domain | `astro.config.mjs` → `site`, `src/i18n/config.ts` → `SITE.url`, `public/robots.txt` | One-line change each; then add the custom domain in Cloudflare Pages |
+
 ## Commands
 
 > Node **24** is required by Astro 7. On this machine the default `node` is older, so use the helper:
@@ -106,6 +123,7 @@ pnpm deploy                  # build + wrangler pages deploy
 ## Deployment
 
 - **Cloudflare Pages** project: `songqian-personal-website` → https://songqian-personal-website.pages.dev
+- **Custom domain**: buy it (e.g. `songqian.dev`, `songqian.me`), add it in the Pages project, then update the three URLs listed in “Replacing the placeholder content” and redeploy.
 - Every push to `main` triggers `.github/workflows/deploy.yml`, which builds and deploys via `wrangler-action`.
 - Required repository secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
 

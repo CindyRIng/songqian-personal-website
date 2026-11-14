@@ -1,0 +1,43 @@
+---
+/**
+ * English essay page — /writing/<slug>.
+ */
+import type { GetStaticPaths } from 'astro';
+import PostView from '../../views/PostView.astro';
+import {
+  getAllPosts,
+  getAdjacentPosts,
+  getPostBySlug,
+  getRelatedPosts,
+  renderPost,
+} from '../../lib/posts';
+import { defaultLocale } from '../../i18n/config';
+
+export const getStaticPaths = (async () => {
+  const posts = await getAllPosts(defaultLocale);
+  return posts.map((post) => ({ params: { slug: post.slug } }));
+}) satisfies GetStaticPaths;
+
+const slug = Astro.params.slug;
+if (!slug) throw new Error('Missing slug');
+
+const post = await getPostBySlug(defaultLocale, slug);
+if (!post) throw new Error(`Missing post: ${slug}`);
+
+const [related, adjacent, rendered] = await Promise.all([
+  getRelatedPosts(defaultLocale, post),
+  getAdjacentPosts(defaultLocale, post.slug),
+  renderPost(post),
+]);
+
+const { Content, headings } = rendered;
+---
+<PostView
+  lang={defaultLocale}
+  post={post}
+  Content={Content}
+  headings={headings}
+  related={related}
+  older={adjacent.older}
+  newer={adjacent.newer}
+/>

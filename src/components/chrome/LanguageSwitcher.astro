@@ -32,8 +32,10 @@ const placement: Record<NonNullable<Props['variant']>, string> = {
   rail: 'left-full top-1/2 ml-3 w-56 -translate-y-1/2 origin-left',
   // Opens below the mobile top bar, right-aligned to the trigger.
   bar: 'right-0 top-full mt-2 w-60 origin-top-right',
-  // Opens above the footer trigger.
-  footer: 'bottom-full right-0 mb-2 w-60 origin-bottom-right',
+  // Opens above the footer trigger; left-aligned on narrow screens so the
+  // panel can never run off the viewport when the footer wraps.
+  footer:
+    'bottom-full left-0 mb-2 w-60 origin-bottom-left sm:left-auto sm:right-0 sm:origin-bottom-right',
 };
 
 const triggerClass: Record<NonNullable<Props['variant']>, string> = {
@@ -79,7 +81,15 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
     </button>
   )}
 
-  <div id={panelId} data-lang-panel hidden class:list={['glass absolute z-60 rounded-[1.125rem] p-1.5', placement[variant]]}>
+  <div
+    id={panelId}
+    data-lang-panel
+    hidden
+    class:list={[
+      'absolute z-60 rounded-[1.125rem] border border-line bg-elevated p-1.5 shadow-lg backdrop-blur-xl',
+      placement[variant],
+    ]}
+  >
     <p class="eyebrow px-2 pb-1.5 pt-1">{t('lang.choose')}</p>
     <ul class="flex flex-col">
       {alternates.map((alt) => (

@@ -2,12 +2,17 @@
 /**
  * WritingSection — the home page's post list.
  *
- * A tab-like header (Writing active with a hairline underline, Favorites as the
- * quiet second tab), the latest eight posts, a pagination-style footer that
- * links into /writing, and the subscribe band underneath.
+ * A real two-tab header (Writing | Favorites) with an animated underline and a
+ * proper tablist/tab/tabpanel relationship; the tabs are enhanced by a tiny
+ * hoisted script, and the Writing panel is the no-JS default. Featured posts
+ * power the Favorites tab — the tab is omitted when a locale has none.
+ *
+ * Below the list: a quiet count line (or pagination when there is more than
+ * one page) and the subscribe band.
  */
 import Icon from '../ui/Icon.astro';
 import PostRow from '../ui/PostRow.astro';
+import ArrowLink from '../ui/ArrowLink.astro';
 import SubscribeBand from './SubscribeBand.astro';
 import { useTranslations, localizePath } from '../../i18n/utils';
 import type { Locale } from '../../i18n/config';
@@ -20,85 +25,207 @@ export interface WritingItem {
 
 interface Props {
   lang: Locale;
+  /** Latest posts for the Writing tab. */
   posts: WritingItem[];
-  /** Total number of posts in this locale (for "Page 1 of N"). */
+  /** Featured posts for the Favorites tab. */
+  favorites?: WritingItem[];
+  /** Total number of posts in this locale. */
   total: number;
   pageSize?: number;
 }
 
-const { lang, posts, total, pageSize = 8 } = Astro.props;
+const { lang, posts, favorites = [], total, pageSize = 8 } = Astro.props;
 const t = useTranslations(lang);
 
 const writingHref = localizePath('/writing', lang);
-const favoritesHref = `${writingHref}#favorites`;
 const pages = Math.max(1, Math.ceil(total / pageSize));
+const hasTabs = favorites.length > 0;
 ---
 
-<section aria-labelledby="home-writing-title" class="flex flex-col" data-reveal>
+<section aria-labelledby="home-writing-title" class="writing-section flex flex-col" data-reveal>
   <h2 id="home-writing-title" class="sr-only">{t('home.writing')}</h2>
 
-  <div class="mb-1.5 flex items-center gap-6 px-0.5">
-    <a
-      href={writingHref}
-      class="relative pb-1 font-serif text-[1.0625rem] font-[550] leading-none tracking-[-0.012em] text-ink-strong"
-      aria-current="page"
-    >
-      {t('home.writing')}
-      <span
-        aria-hidden="true"
-        class="absolute inset-x-0 bottom-0 h-px bg-muted/50"
-      ></span>
-    </a>
-    <a
-      href={favoritesHref}
-      class="pb-1 font-serif text-[1.0625rem] leading-none tracking-[-0.012em] text-subtle transition-colors duration-200 hover:text-muted"
-    >
-      {t('home.favorites')}
-    </a>
+  <div class="mb-1.5 flex items-end justify-between gap-4">
+    {
+      hasTabs ? (
+        <div data-home-tabs class="relative flex items-center gap-6">
+          <button
+            type="button"
+            role="tab"
+            id="home-tab-writing"
+            aria-selected="true"
+            aria-controls="home-panel-writing"
+            tabindex="0"
+            data-home-tab
+            class="pb-1 font-serif text-[1.0625rem] font-[550] leading-none tracking-[-0.012em]"
+          >
+            {t('home.writing')}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="home-tab-favorites"
+            aria-selected="false"
+            aria-controls="home-panel-favorites"
+            tabindex="-1"
+            data-home-tab
+            class="pb-1 font-serif text-[1.0625rem] leading-none tracking-[-0.012em]"
+          >
+            {t('home.favorites')}
+          </button>
+          <span
+            aria-hidden="true"
+            data-home-tab-underline
+            class="pointer-events-none absolute bottom-0 left-0 h-px w-0 bg-muted/50 transition-[left,width] duration-300 ease-out"
+          ></span>
+        </div>
+      ) : (
+        <p
+          class="pb-1 font-serif text-[1.0625rem] font-[550] leading-none tracking-[-0.012em] text-ink-strong"
+        >
+          {t('home.writing')}
+        </p>
+      )
+    }
+
+    <ArrowLink href={writingHref} label={t('home.viewAllPosts')} class="pb-1" />
+  </div>
+
+  <div
+    id="home-panel-writing"
+    role={hasTabs ? 'tabpanel' : undefined}
+    aria-labelledby={hasTabs ? 'home-tab-writing' : undefined}
+    tabindex={hasTabs ? '0' : undefined}
+    class="focus-visible:outline-offset-4"
+  >
+    {
+      posts.length > 0 ? (
+        <>
+          <div class="flex flex-col">
+            {posts.map((post) => (
+              <PostRow title={post.title} description={post.description} href={post.href} />
+            ))}
+          </div>
+
+          <div class="mt-2 flex items-center gap-1.5 font-sans text-[0.75rem] text-subtle">
+            {pages > 1 ? (
+              <>
+                <span
+                  aria-hidden="true"
+                  class="grid size-7 place-items-center rounded-full text-faint ring-1 ring-line"
+                >
+                  <Icon name="chevron-right" size={14} class="rotate-180" />
+                </span>
+                <a
+                  href={writingHref}
+                  aria-label={t('common.next')}
+                  class="grid size-7 place-items-center rounded-full text-muted ring-1 ring-line transition-colors duration-200 hover:bg-hover hover:text-ink"
+                >
+                  <Icon name="chevron-right" size={14} />
+                </a>
+                <span class="ml-1.5 tabular">{t('common.page', { n: 1, total: pages })}</span>
+              </>
+            ) : (
+              <span class="tabular">{t('writing.essayCount', { n: total })}</span>
+            )}
+          </div>
+        </>
+      ) : (
+        /* Clearly-marked fallback: content may still be landing in this locale. */
+        <div class="flex flex-col gap-2 py-4">
+          <p class="font-serif text-[0.9375rem] text-muted">{t('common.noResults')}</p>
+        </div>
+      )
+    }
   </div>
 
   {
-    posts.length > 0 ? (
-      <>
-        <div class="flex flex-col">
-          {posts.map((post) => (
-            <PostRow title={post.title} description={post.description} href={post.href} />
-          ))}
-        </div>
-
-        <div class="mt-2 flex items-center gap-1.5 font-sans text-[0.75rem] text-subtle">
-          <span
-            aria-hidden="true"
-            class="grid size-7 place-items-center rounded-full text-faint ring-1 ring-line"
-          >
-            <Icon name="chevron-right" size={14} class="rotate-180" />
-          </span>
-          <a
-            href={writingHref}
-            aria-label={t('common.next')}
-            class="grid size-7 place-items-center rounded-full text-muted ring-1 ring-line transition-colors duration-200 hover:bg-hover hover:text-ink"
-          >
-            <Icon name="chevron-right" size={14} />
-          </a>
-          <span class="ml-1.5 tabular">
-            {t('common.page', { n: 1, total: pages })}
-          </span>
-        </div>
-      </>
-    ) : (
-      /* Clearly-marked fallback: content may still be landing in this locale. */
-      <div class="flex flex-col gap-2 py-4">
-        <p class="font-serif text-[0.9375rem] text-muted">{t('common.noResults')}</p>
-        <a
-          href={writingHref}
-          class="inline-flex w-fit items-center gap-1 font-sans text-[0.75rem] text-accent transition-colors hover:text-accent-strong"
-        >
-          {t('home.viewAllPosts')}
-          <Icon name="arrow-right" size={13} />
-        </a>
+    hasTabs && (
+      <div
+        id="home-panel-favorites"
+        role="tabpanel"
+        aria-labelledby="home-tab-favorites"
+        tabindex="0"
+        hidden
+        class="flex flex-col focus-visible:outline-offset-4"
+      >
+        {favorites.map((post) => (
+          <PostRow title={post.title} description={post.description} href={post.href} />
+        ))}
       </div>
     )
   }
 
   <SubscribeBand lang={lang} class="mt-9" />
 </section>
+
+<style>
+  .writing-section [data-home-tab] {
+    color: var(--subtle);
+    transition: color 200ms var(--ease-out);
+    cursor: pointer;
+  }
+  .writing-section [data-home-tab]:hover {
+    color: var(--muted);
+  }
+  .writing-section [data-home-tab][aria-selected='true'] {
+    color: var(--ink-strong);
+  }
+</style>
+
+<script>
+  // --- Home Writing tabs -----------------------------------------------------
+  // Progressive enhancement: without this script the Writing panel is visible
+  // and the Favorites panel stays hidden — nothing breaks, nothing overlaps.
+  document.querySelectorAll<HTMLElement>('[data-home-tabs]').forEach((tablist) => {
+    const tabs = Array.from(tablist.querySelectorAll<HTMLButtonElement>('[data-home-tab]'));
+    const underline = tablist.querySelector<HTMLElement>('[data-home-tab-underline]');
+    if (tabs.length < 2) return;
+
+    const panels = tabs.map((tab) =>
+      document.getElementById(tab.getAttribute('aria-controls') ?? '')
+    );
+
+    function placeUnderline() {
+      if (!underline) return;
+      const active = tabs.find((tab) => tab.getAttribute('aria-selected') === 'true');
+      if (!active) return;
+      underline.style.left = `${active.offsetLeft}px`;
+      underline.style.width = `${active.offsetWidth}px`;
+    }
+
+    function activate(tab: HTMLButtonElement, focus = false) {
+      tabs.forEach((candidate) => {
+        const selected = candidate === tab;
+        candidate.setAttribute('aria-selected', String(selected));
+        candidate.tabIndex = selected ? 0 : -1;
+      });
+      panels.forEach((panel) => {
+        if (panel) panel.hidden = panel.id !== tab.getAttribute('aria-controls');
+      });
+      placeUnderline();
+      if (focus) tab.focus();
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => activate(tab));
+    });
+
+    tablist.addEventListener('keydown', (event) => {
+      const current = tabs.findIndex((tab) => tab.getAttribute('aria-selected') === 'true');
+      if (current === -1) return;
+      let next = current;
+      if (event.key === 'ArrowRight') next = (current + 1) % tabs.length;
+      else if (event.key === 'ArrowLeft') next = (current - 1 + tabs.length) % tabs.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = tabs.length - 1;
+      else return;
+      event.preventDefault();
+      activate(tabs[next], true);
+    });
+
+    placeUnderline();
+    addEventListener('resize', placeUnderline, { passive: true });
+    document.fonts?.ready.then(placeUnderline);
+  });
+</script>

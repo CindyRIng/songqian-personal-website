@@ -15,10 +15,14 @@ import WorkSection from '../components/home/WorkSection.astro';
 import type { WorkItem } from '../components/home/WorkSection.astro';
 import TimelinePreview from '../components/home/TimelinePreview.astro';
 import type { TimelineItem } from '../components/home/TimelinePreview.astro';
-import { useTranslations, localizePath } from '../i18n/utils';
+import { localizePath } from '../i18n/utils';
 import type { Locale } from '../i18n/config';
 import { getAllPosts } from '../lib/posts';
-import { getFeaturedProjects } from '../lib/projects';
+import {
+  getFeaturedProjects,
+  PROJECT_CATEGORIES,
+  PROJECT_CATEGORY_LABELS,
+} from '../lib/projects';
 import { getTimeline } from '../data/timeline';
 
 interface Props {
@@ -26,24 +30,29 @@ interface Props {
 }
 
 const { lang } = Astro.props;
-const t = useTranslations(lang);
 
-/* Writing — latest eight posts, plus the total for the pagination line. */
+/* Writing — latest eight posts for the list, featured posts for Favorites. */
 const allPosts = await getAllPosts(lang);
-const recentPosts = allPosts.slice(0, 8).map((post) => ({
+const toWritingItem = (post: (typeof allPosts)[number]) => ({
   title: post.title,
   description: post.description,
   href: localizePath(post.path, lang),
-}));
+});
+const recentPosts = allPosts.slice(0, 8).map(toWritingItem);
+const favoritePosts = allPosts.filter((post) => post.featured).slice(0, 4).map(toWritingItem);
 
 /* Selected work — up to two featured projects. */
-const projects: WorkItem[] = (await getFeaturedProjects(lang, 2)).map((project) => ({
-  slug: project.slug,
-  title: project.title,
-  tagline: project.tagline,
-  year: project.year,
-  status: project.status,
-}));
+const projects: WorkItem[] = (await getFeaturedProjects(lang, 2)).map((project) => {
+  const category = PROJECT_CATEGORIES.find((candidate) => project.tags.includes(candidate));
+  return {
+    slug: project.slug,
+    title: project.title,
+    tagline: project.tagline,
+    year: project.year,
+    status: project.status,
+    eyebrow: category ? PROJECT_CATEGORY_LABELS[category][lang] : undefined,
+  };
+});
 
 /* Timeline — the three most recent entries. */
 const timelineEntries: TimelineItem[] = getTimeline(lang)
@@ -59,7 +68,12 @@ const timelineEntries: TimelineItem[] = getTimeline(lang)
 <div class="flex flex-col gap-16 sm:gap-20">
   <Hero lang={lang} />
 
-  <WritingSection lang={lang} posts={recentPosts} total={allPosts.length} />
+  <WritingSection
+    lang={lang}
+    posts={recentPosts}
+    favorites={favoritePosts}
+    total={allPosts.length}
+  />
 
   <WorkSection lang={lang} projects={projects} />
 

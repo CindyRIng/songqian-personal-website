@@ -1,0 +1,17 @@
+---
+import ProjectView from '../../../views/ProjectView.astro';
+import { getAllProjectSlugs } from '../../../lib/projects';
+import { isLocale, secondaryLocales, type Locale } from '../../../i18n/config';
+
+export async function getStaticPaths() {
+  const slugs = await getAllProjectSlugs();
+  return secondaryLocales.flatMap((lang) =>
+    slugs.map((slug) => ({ params: { lang, slug } }))
+  );
+}
+
+const { lang: rawLang, slug = '' } = Astro.params;
+const lang = (isLocale(rawLang) ? rawLang : 'en') as Locale;
+---
+
+<ProjectView lang={lang} slug={slug} />

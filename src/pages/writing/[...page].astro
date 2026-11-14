@@ -1,0 +1,17 @@
+---
+/**
+ * English writing index — page 1 at /writing, then /writing/2, /writing/3…
+ */
+import type { GetStaticPaths } from 'astro';
+import WritingView from '../../views/WritingView.astro';
+import { getAllPosts, POSTS_PAGE_SIZE } from '../../lib/posts';
+import { defaultLocale } from '../../i18n/config';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = await getAllPosts(defaultLocale);
+  return paginate(posts, { pageSize: POSTS_PAGE_SIZE });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+---
+<WritingView lang={defaultLocale} page={page} />

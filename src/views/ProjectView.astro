@@ -1,0 +1,349 @@
+---
+/**
+ * ProjectView — /projects/[slug] and /[lang]/projects/[slug].
+ *
+ * Resolves the project for the locale (with English fallback), renders the MDX
+ * body through .prose, generates a gallery from the same deterministic cover
+ * system and links on to the next project.
+ */
+import { render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CoverArt from '../components/projects/CoverArt.astro';
+import Icon from '../components/ui/Icon.astro';
+import { localizePath, useTranslations } from '../i18n/utils';
+import type { Locale } from '../i18n/config';
+import {
+  PROJECT_CATEGORY_LABELS,
+  PROJECT_STATUS_KEYS,
+  projectCategories,
+  getProjectBySlug,
+  getProjectNeighbors,
+} from '../lib/projects';
+
+interface Props {
+  lang: Locale;
+  slug: string;
+}
+
+const { lang, slug } = Astro.props;
+const t = useTranslations(lang);
+
+const project = await getProjectBySlug(lang, slug);
+if (!project) {
+  throw new Error(`[projects] Unknown project slug "${slug}" for locale "${lang}"`);
+}
+
+const neighbors = await getProjectNeighbors(lang, slug);
+const next = neighbors?.next ?? project;
+
+const { Content } = await render(project.entry);
+
+const copy: Record<
+  Locale,
+  { outcomes: string; process: string; galleryLabels: [string, string, string]; next: string; fallback: string }
+> = {
+  en: {
+    outcomes: 'Outcomes',
+    process: 'Process',
+    galleryLabels: ['Sketch', 'Build', 'Ship'],
+    next: 'Next project',
+    fallback: 'This project is only available in English for now.',
+  },
+  zh: {
+    outcomes: '成果',
+    process: '过程',
+    galleryLabels: ['草图', '构建', '上线'],
+    next: '下一个项目',
+    fallback: '这个项目目前只有英文版本。',
+  },
+  ja: {
+    outcomes: '成果',
+    process: 'プロセス',
+    galleryLabels: ['スケッチ', '構築', 'リリース'],
+    next: '次のプロジェクト',
+    fallback: 'このプロジェクトは現在英語のみです。',
+  },
+  es: {
+    outcomes: 'Resultados',
+    process: 'Proceso',
+    galleryLabels: ['Boceto', 'Construcción', 'Lanzamiento'],
+    next: 'Siguiente proyecto',
+    fallback: 'Este proyecto solo está disponible en inglés por ahora.',
+  },
+  fr: {
+    outcomes: 'Résultats',
+    process: 'Processus',
+    galleryLabels: ['Croquis', 'Construction', 'Lancement'],
+    next: 'Projet suivant',
+    fallback: 'Ce projet n’est disponible qu’en anglais pour le moment.',
+  },
+  de: {
+    outcomes: 'Ergebnisse',
+    process: 'Prozess',
+    galleryLabels: ['Skizze', 'Bau', 'Start'],
+    next: 'Nächstes Projekt',
+    fallback: 'Dieses Projekt ist derzeit nur auf Englisch verfügbar.',
+  },
+};
+
+const c = copy[lang];
+const coverAlt = project.entry.data.coverAlt ?? project.title;
+const categories = projectCategories(project).map((category) => PROJECT_CATEGORY_LABELS[category][lang]);
+const statusLabel = t(PROJECT_STATUS_KEYS[project.status]);
+const backHref = localizePath('/projects', lang);
+const nextHref = localizePath(`/projects/${next.slug}`, lang);
+const detailPath = `/projects/${project.slug}`;
+type DetailLink = { label: string; href: string; icon: 'external' | 'code' | 'book' };
+const links: DetailLink[] = [];
+if (project.links?.live) links.push({ label: t('common.visit'), href: project.links.live, icon: 'external' });
+if (project.links?.repo) links.push({ label: t('common.source'), href: project.links.repo, icon: 'code' });
+if (project.links?.case) links.push({ label: t('common.caseStudy'), href: project.links.case, icon: 'book' });
+---
+
+<BaseLayout
+  lang={lang}
+  title={project.title}
+  description={project.description}
+  type="article"
+  path={detailPath}
+>
+  <!-- Back / breadcrumb ---------------------------------------------------- -->
+  <nav aria-label="Breadcrumb" class="flex items-center gap-2" data-reveal>
+    <a
+      href={backHref}
+      class="group inline-flex items-center gap-1.5 font-sans text-[0.75rem] font-medium tracking-[0.01em] text-subtle transition-colors duration-200 hover:text-ink"
+    >
+      <Icon
+        name="arrow-left"
+        size={13}
+        class="transition duration-200 ease-[var(--ease-out)] group-hover:-translate-x-0.5"
+      />
+      {t('projects.allProjects')}
+    </a>
+    <span class="text-[0.75rem] text-faint">/</span>
+    <span class="truncate font-sans text-[0.75rem] font-medium tracking-[0.01em] text-muted" aria-current="page">
+      {project.title}
+    </span>
+  </nav>
+
+  <!-- Title block ---------------------------------------------------------- -->
+  <header class="mt-7 flex flex-col gap-4">
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+      <span class="font-mono text-[0.6875rem] tabular tracking-[0.04em] text-subtle">{project.year}</span>
+      <span class="size-1 rounded-full bg-faint"></span>
+      <span
+        class:list={[
+          'inline-flex items-center gap-1.5 font-sans text-[0.6875rem] font-medium tracking-[0.02em]',
+          project.status === 'live' || project.status === 'in-progress' ? 'text-accent' : 'text-muted',
+        ]}
+      >
+        <span
+          class:list={[
+            'size-1.5 rounded-full',
+            project.status === 'live' || project.status === 'in-progress' ? 'bg-accent' : 'bg-subtle',
+          ]}
+        ></span>
+        {statusLabel}
+      </span>
+      {
+        categories.map((category) => (
+          <span class="font-sans text-[0.6875rem] font-medium tracking-[0.02em] text-subtle">· {category}</span>
+        ))
+      }
+    </div>
+
+    <h1 class="text-balance font-serif text-[2.125rem] font-[550] leading-[1.04] tracking-[-0.03em] text-ink-strong sm:text-[2.875rem]">
+      {project.title}
+    </h1>
+
+    <p class="max-w-[48ch] text-pretty text-[1.125rem] leading-[1.55] text-muted">{project.tagline}</p>
+  </header>
+
+  <!-- Meta grid ------------------------------------------------------------ -->
+  <dl class="mt-8 grid grid-cols-2 gap-x-6 gap-y-5 border-y border-line py-5 sm:grid-cols-3">
+    <div class="flex flex-col gap-1">
+      <dt class="eyebrow">{t('projects.roleLabel')}</dt>
+      <dd class="text-pretty text-[0.875rem] leading-snug text-ink">{project.role}</dd>
+    </div>
+    <div class="flex flex-col gap-1">
+      <dt class="eyebrow">{t('common.year')}</dt>
+      <dd class="font-mono text-[0.875rem] tabular leading-snug text-ink">{project.year}</dd>
+    </div>
+    <div class="flex flex-col gap-1">
+      <dt class="eyebrow">{t('common.status')}</dt>
+      <dd class="text-[0.875rem] leading-snug text-ink">{statusLabel}</dd>
+    </div>
+    {
+      project.team && (
+        <div class="flex flex-col gap-1">
+          <dt class="eyebrow">{t('common.team')}</dt>
+          <dd class="text-pretty text-[0.875rem] leading-snug text-ink">{project.team}</dd>
+        </div>
+      )
+    }
+    {
+      project.stack.length > 0 && (
+        <div class="col-span-2 flex flex-col gap-1.5">
+          <dt class="eyebrow">{t('common.stack')}</dt>
+          <dd class="flex flex-wrap gap-1.5">
+            {project.stack.map((item) => (
+              <span class="chip">{item}</span>
+            ))}
+          </dd>
+        </div>
+      )
+    }
+    {
+      links.length > 0 && (
+        <div class="col-span-2 flex flex-col gap-1.5 sm:col-span-3">
+          <dt class="eyebrow">Links</dt>
+          <dd class="flex flex-wrap gap-2">
+            {links.map((link) => (
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn text-[0.75rem]"
+              >
+                {link.label}
+                <Icon name={link.icon} size={13} />
+              </a>
+            ))}
+          </dd>
+        </div>
+      )
+    }
+  </dl>
+
+  <!-- Cover ----------------------------------------------------------------- -->
+  <figure
+    class="mt-10 overflow-hidden rounded-lg border border-line shadow-md"
+    role="img"
+    aria-label={coverAlt}
+  >
+    <CoverArt
+      slug={project.coverSeed}
+      title={project.title}
+      year={project.year}
+      eyebrow={categories[0]}
+      class="aspect-[16/10]"
+    />
+  </figure>
+
+  <!-- Body ------------------------------------------------------------------ -->
+  {
+    !project.hasTranslation && (
+      <p class="mt-6 rounded-md border border-line bg-surface px-4 py-3 font-sans text-[0.75rem] leading-relaxed text-muted">
+        {c.fallback}
+      </p>
+    )
+  }
+
+  <div class="mt-12 flex items-baseline gap-3" data-reveal>
+    <h2 class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
+      {t('projects.overview')}
+    </h2>
+    <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
+  </div>
+
+  <div class="prose mt-4" data-reveal>
+    <Content />
+  </div>
+
+  <!-- Metrics ---------------------------------------------------------------- -->
+  {
+    project.metrics.length > 0 && (
+      <section class="mt-14 border-t border-line pt-8" aria-labelledby="project-outcomes" data-reveal>
+        <div class="mb-6 flex items-baseline gap-3">
+          <h2 id="project-outcomes" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
+            {c.outcomes}
+          </h2>
+          <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
+        </div>
+        <dl class="grid grid-cols-1 gap-y-6 sm:grid-cols-3 sm:gap-6">
+          {project.metrics.map((metric) => (
+            <div class="flex flex-col gap-1 border-l border-line pl-4">
+              <dt class="eyebrow order-2">{metric.label}</dt>
+              <dd class="order-1 font-serif text-[1.75rem] font-[550] leading-none tracking-[-0.02em] text-ink-strong tabular">
+                {metric.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    )
+  }
+
+  <!-- Generated gallery ------------------------------------------------------ -->
+  <section class="mt-14 border-t border-line pt-8" aria-labelledby="project-process" data-reveal>
+    <div class="mb-6 flex items-baseline gap-3">
+      <h2 id="project-process" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
+        {c.process}
+      </h2>
+      <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
+      <span class="font-mono text-[0.625rem] tabular text-faint">03</span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+      <div class="col-span-2 overflow-hidden rounded-md border border-line">
+        <CoverArt
+          slug={`${project.coverSeed}:panel:0`}
+          title={project.title}
+          index={1}
+          label={c.galleryLabels[0]}
+          variant="panel"
+          class="aspect-[16/9]"
+        />
+      </div>
+      <div class="overflow-hidden rounded-md border border-line">
+        <CoverArt
+          slug={`${project.coverSeed}:panel:1`}
+          title={project.title}
+          index={2}
+          label={c.galleryLabels[1]}
+          variant="panel"
+          class="aspect-[4/3]"
+        />
+      </div>
+      <div class="overflow-hidden rounded-md border border-line">
+        <CoverArt
+          slug={`${project.coverSeed}:panel:2`}
+          title={project.title}
+          index={3}
+          label={c.galleryLabels[2]}
+          variant="panel"
+          class="aspect-[4/3]"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- Next project ----------------------------------------------------------- -->
+  <a
+    href={nextHref}
+    class="group mt-16 flex items-center gap-4 rounded-lg border border-line bg-surface p-4 transition-all duration-300 ease-[var(--ease-out)] hover:border-line-strong hover:bg-elevated hover:shadow-md sm:gap-5 sm:p-5"
+    data-reveal
+  >
+    <div class="size-16 shrink-0 overflow-hidden rounded-md border border-line sm:size-20">
+      <CoverArt
+        slug={next.coverSeed}
+        title={next.title}
+        variant="panel"
+        class="size-full"
+      />
+    </div>
+    <div class="min-w-0 flex-1">
+      <p class="eyebrow">{c.next}</p>
+      <p class="mt-1 truncate font-serif text-[1.25rem] font-[550] leading-snug tracking-[-0.015em] text-ink-strong">
+        {next.title}
+      </p>
+      <p class="mt-0.5 truncate font-sans text-[0.75rem] text-subtle">{next.tagline}</p>
+    </div>
+    <span
+      class="flex size-9 shrink-0 items-center justify-center rounded-full border border-line text-muted transition duration-300 ease-[var(--ease-out)] group-hover:border-line-strong group-hover:translate-x-0.5 group-hover:text-ink"
+      aria-hidden="true"
+    >
+      <Icon name="arrow-right" size={16} />
+    </span>
+  </a>
+</BaseLayout>

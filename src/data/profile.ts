@@ -160,12 +160,17 @@ export const profile = {
   siteLaunch: '2026-01-01',
 
   /**
-   * SEO defaults.
+   * SEO defaults (title is derived per-locale in BaseLayout from name + role).
    */
   seo: {
-    title: 'Song Qian — Product designer & builder',
-    description:
-      'Song Qian is a product designer and builder based in Shanghai, working on AI-native tools, design systems and the craft of the web.',
+    description: {
+      en: 'Song Qian is a product designer and builder based in Shanghai, working on AI-native tools, design systems and the craft of the web.',
+      zh: '宋倩是一位常驻上海的产品设计师与开发者，专注于 AI 原生工具、设计系统，以及网页工艺。',
+      ja: '上海を拠点に活動するプロダクトデザイナー兼開発者。AI ネイティブなツール、デザインシステム、ウェブの工芸に取り組んでいます。',
+      es: 'Song Qian es diseñadora de producto y desarrolladora en Shanghái, especializada en herramientas nativas de IA, sistemas de diseño y el oficio de la web.',
+      fr: 'Song Qian est designer produit et développeuse basée à Shanghai, spécialisée dans les outils natifs IA, les design systems et le métier du web.',
+      de: 'Song Qian ist Produktdesignerin und Entwicklerin in Shanghai und arbeitet an KI-nativen Werkzeugen, Designsystemen und der Kunst des Webs.',
+    } as L,
   },
 } as const;
 

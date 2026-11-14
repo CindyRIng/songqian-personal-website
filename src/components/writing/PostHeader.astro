@@ -1,0 +1,55 @@
+---
+/**
+ * PostHeader — the article opener.
+ *
+ * Eyebrow category · date, a large serif title (clamp 1.9–2.4rem), the
+ * description as a muted lede, then the quiet metadata row. When the essay is
+ * a translation fallback, an honest note appears in the reader's language.
+ */
+import { formatDate, isoDate, useTranslations } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+import type { TranslationKey } from '../../i18n/ui';
+import type { PostEntry } from '../../lib/posts';
+import PostMeta from './PostMeta.astro';
+import FallbackNote from './FallbackNote.astro';
+
+interface Props {
+  post: PostEntry;
+  lang: Locale;
+}
+
+const { post, lang } = Astro.props;
+const t = useTranslations(lang);
+const categoryKey = `writing.category.${post.category}` as TranslationKey;
+---
+<header class="flex flex-col gap-4">
+  <p class="eyebrow flex flex-wrap items-center gap-x-2 gap-y-1">
+    <span class="text-accent">{t(categoryKey)}</span>
+    <span aria-hidden="true" class="text-faint">·</span>
+    <time datetime={isoDate(post.date)}>{formatDate(post.date, lang, 'short')}</time>
+  </p>
+
+  <h1
+    class="font-serif text-[clamp(1.9rem,4.6vw,2.4rem)] font-[550] leading-[1.14] tracking-[-0.022em] text-ink-strong text-balance"
+  >
+    {post.title}
+  </h1>
+
+  <p class="font-serif text-[1.0625rem] leading-[1.65] text-muted text-pretty">
+    {post.description}
+  </p>
+
+  <div class="flex flex-col gap-2 pt-0.5">
+    <PostMeta post={post} lang={lang} dateStyle="long" />
+    {post.isFallback && <FallbackNote lang={lang} sourceLang={post.lang} />}
+    {
+      post.updated && (
+        <p class="font-sans text-[0.75rem] leading-none text-faint">
+          {t('common.updated')}
+          {' '}
+          <time datetime={isoDate(post.updated)}>{formatDate(post.updated, lang, 'short')}</time>
+        </p>
+      )
+    }
+  </div>
+</header>

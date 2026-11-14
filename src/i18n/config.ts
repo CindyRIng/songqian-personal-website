@@ -35,7 +35,7 @@ export function isLocale(value: string | undefined): value is Locale {
 
 export const SITE = {
   /** Set after the domain is registered. */
-  url: 'https://songqian.dev',
+  url: 'https://songqian-personal-website.pages.dev',
   name: 'Song Qian',
   handle: 'songqian',
   email: 'hello@songqian.dev',

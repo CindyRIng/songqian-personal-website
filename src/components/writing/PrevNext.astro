@@ -1,0 +1,72 @@
+---
+/**
+ * PrevNext — the previous / next essay cards at the foot of an article.
+ * `older` / `newer` are by publication date; the grid keeps both heights even
+ * when only one neighbour exists.
+ */
+import Icon from '../ui/Icon.astro';
+import { formatDate, isoDate, localizePath, useTranslations } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+import type { PostEntry } from '../../lib/posts';
+
+interface Props {
+  lang: Locale;
+  older?: PostEntry;
+  newer?: PostEntry;
+}
+
+const { lang, older, newer } = Astro.props;
+const t = useTranslations(lang);
+const both = Boolean(older && newer);
+const cardClass =
+  'card group flex flex-col gap-2 p-4 sm:p-5 hover:-translate-y-0.5 focus-visible:-translate-y-0.5';
+const eyebrowClass = 'eyebrow inline-flex items-center gap-1.5';
+---
+{
+  (older || newer) && (
+    <nav
+      aria-label={t('common.continueReading')}
+      class:list={['grid grid-cols-1 gap-3', older && newer ? 'sm:grid-cols-2' : '']}
+    >
+      {older && (
+        <a href={localizePath(older.path, lang)} class={cardClass} rel="prev">
+          <span class={eyebrowClass}>
+            <Icon name="arrow-left" size={12} />
+            {t('common.prev')}
+          </span>
+          <span class="font-serif text-[1.0625rem] font-[550] leading-snug tracking-[-0.012em] text-ink-strong text-balance">
+            {older.title}
+          </span>
+          <time
+            datetime={isoDate(older.date)}
+            class="mt-auto pt-1 font-sans text-[0.6875rem] tabular text-subtle"
+          >
+            {formatDate(older.date, lang, 'short')}
+          </time>
+        </a>
+      )}
+
+      {newer && (
+        <a
+          href={localizePath(newer.path, lang)}
+          class:list={[cardClass, both ? 'sm:items-end sm:text-right' : '']}
+          rel="next"
+        >
+          <span class={eyebrowClass}>
+            {t('common.next')}
+            <Icon name="arrow-right" size={12} />
+          </span>
+          <span class="font-serif text-[1.0625rem] font-[550] leading-snug tracking-[-0.012em] text-ink-strong text-balance">
+            {newer.title}
+          </span>
+          <time
+            datetime={isoDate(newer.date)}
+            class="mt-auto pt-1 font-sans text-[0.6875rem] tabular text-subtle"
+          >
+            {formatDate(newer.date, lang, 'short')}
+          </time>
+        </a>
+      )}
+    </nav>
+  )
+}

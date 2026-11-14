@@ -8,8 +8,13 @@
  * to light/dark automatically; the *composition* is deterministic from the seed
  * string (the project slug), so a given project always looks the same.
  *
+ * Variants
+ *   cover    — project card / detail plate: index, category, monogram, wordmark
+ *   panel    — gallery plate: centred outlined letter, rings, small label
+ *   portrait — About hero: large centred monogram with caption
+ *
  * Usage:
- *   <CoverArt slug={project.slug} title={project.title} year={project.year} index={i + 1} class="aspect-[16/10]" />
+ *   <CoverArt slug={project.slug} title={project.title} index={i + 1} class="aspect-[16/10]" />
  *
  * To use a real photograph later: add an `image` prop and swap the `.art-*`
  * layers for an <Image> — the surrounding card/detail layout stays identical.
@@ -25,12 +30,14 @@ interface Props {
   index?: number | string;
   /** Small uppercase label in the top-right corner, e.g. "Product". */
   eyebrow?: string;
-  /** Small label in the bottom corner (details page gallery panels). */
+  /** Small label in the bottom corner (gallery panels). */
   label?: string;
   /** `cover` = project plate, `panel` = gallery plate, `portrait` = About hero. */
   variant?: 'cover' | 'panel' | 'portrait';
   /** Override the monogram, e.g. the initials "SQ" for the portrait. */
   mono?: string;
+  /** Small caption under the portrait monogram (localized by the caller). */
+  caption?: string;
   /** Extra classes on the root — aspect ratio, hover zoom, radius, etc. */
   class?: string;
 }
@@ -44,6 +51,7 @@ const {
   label,
   variant = 'cover',
   mono,
+  caption,
   class: className = '',
 } = Astro.props;
 
@@ -58,21 +66,20 @@ function hash(value: string): number {
 }
 
 const h = hash(slug);
-const accentAmount = 14 + (h % 16); // 14–29% accent in the main glow
-const inkAmount = 5 + ((h >> 4) % 9); // 5–13% ink depth
-const mutedAmount = 20 + ((h >> 8) % 20); // 20–39% muted counter-glow
+const accentAmount = 22 + (h % 20); // 22–41% accent in the main glow
+const inkAmount = 6 + ((h >> 4) % 10); // 6–15% ink depth
+const mutedAmount = 24 + ((h >> 8) % 22); // 24–45% muted counter-glow
 const angle = 96 + ((h >> 12) % 88); // 96–183deg sweep
 const gx1 = 6 + ((h >> 3) % 38); // glow positions (%)
 const gy1 = 2 + ((h >> 6) % 30);
 const gx2 = 56 + ((h >> 10) % 38);
 const gy2 = 48 + ((h >> 14) % 42);
-const ringOffset = 8 + ((h >> 17) % 26); // px bleed of the ring cluster
-const ghostX = 8 + ((h >> 19) % 16); // ghost monogram offset px
-const ghostY = -(6 + ((h >> 21) % 14));
+const ringOffset = 8 + ((h >> 17) % 24); // px bleed of the ring cluster
+const ghostX = 8 + ((h >> 19) % 12); // px offset of the outlined echo
+const ghostRise = 6 + ((h >> 21) % 8); // px the echo rises above the monogram
 
 const initial = (mono ?? title.trim().charAt(0) ?? 'S').slice(0, 2).toUpperCase();
-const isMultiLetter = initial.length > 1;
-const wordmark = (mono ? title : title).toUpperCase();
+const wordmark = title.toUpperCase();
 const paddedIndex = typeof index === 'number' ? String(index).padStart(2, '0') : index;
 
 const style = [
@@ -86,7 +93,7 @@ const style = [
   `--art-y2:${gy2}%`,
   `--art-ring:${ringOffset}px`,
   `--art-ghost-x:${ghostX}px`,
-  `--art-ghost-y:${ghostY}px`,
+  `--art-ghost-rise:${ghostRise}px`,
 ].join(';');
 ---
 
@@ -100,42 +107,46 @@ const style = [
   <div class="art-grid"></div>
 
   <svg class="art-rings" viewBox="0 0 320 320" fill="none" aria-hidden="true">
-    <circle cx="232" cy="88" r="140" stroke="currentColor" stroke-width="1" opacity="0.16"></circle>
-    <circle cx="232" cy="88" r="94" stroke="currentColor" stroke-width="1" opacity="0.13"></circle>
-    <circle cx="232" cy="88" r="48" stroke="currentColor" stroke-width="1" opacity="0.1"></circle>
-    <circle cx="232" cy="88" r="2.5" fill="currentColor" opacity="0.45"></circle>
-    <path d="M232 88 320 34" stroke="currentColor" stroke-width="1" opacity="0.12"></path>
+    <circle cx="232" cy="88" r="140" stroke="currentColor" stroke-width="1" opacity="0.24"></circle>
+    <circle cx="232" cy="88" r="94" stroke="currentColor" stroke-width="1" opacity="0.2"></circle>
+    <circle cx="232" cy="88" r="48" stroke="currentColor" stroke-width="1" opacity="0.15"></circle>
+    <circle cx="232" cy="88" r="2.5" fill="currentColor" opacity="0.5"></circle>
+    <path d="M232 88 320 34" stroke="currentColor" stroke-width="1" opacity="0.16"></path>
   </svg>
 
-  {variant === 'portrait' ? (
-    <div class="art-portrait">
-      <span class="art-ghost art-initial is-portrait" style="--art-dx: 10px; --art-dy: -12px">{initial}</span>
-      <span class="art-initial is-portrait">{initial}</span>
-      <span class="art-portrait-caption">Shanghai · 2026</span>
-    </div>
-  ) : (
-    <>
-      <div class="art-top">
-        <span class="art-counter">{paddedIndex ?? '—'}</span>
-        {eyebrow && <span class="art-eyebrow">{eyebrow}</span>}
+  {
+    variant === 'portrait' ? (
+      <div class="art-portrait">
+        <span class="art-ghost art-initial is-portrait" aria-hidden="true">{initial}</span>
+        <span class="art-initial is-portrait">{initial}</span>
+        {caption && <span class="art-portrait-caption">{caption}</span>}
       </div>
-
-      <div class="art-bottom">
-        <span class="art-ghost art-initial" aria-hidden="true">{initial}</span>
-        <span class="art-initial">{initial}</span>
-        <div class="art-meta">
-          {label ? (
-            <span class="art-label">{label}</span>
-          ) : (
-            <>
-              {year && <span class="art-year tabular">{year}</span>}
-              <span class="art-wordmark">{wordmark}</span>
-            </>
-          )}
+    ) : variant === 'panel' ? (
+      <div class="art-panel">
+        {paddedIndex && <span class="art-counter art-panel-index">{paddedIndex}</span>}
+        <span class="art-panel-echo" aria-hidden="true">{initial}</span>
+        {label ? <span class="art-panel-word">{label}</span> : <span class="art-panel-letter">{initial}</span>}
+      </div>
+    ) : (
+      <>
+        <div class="art-top">
+          <span class="art-counter">{paddedIndex ?? '—'}</span>
+          {eyebrow && <span class="art-eyebrow">{eyebrow}</span>}
         </div>
-      </div>
-    </>
-  )}
+
+        <div class="art-bottom">
+          <div class="art-mono">
+            <span class="art-ghost art-initial" aria-hidden="true">{initial}</span>
+            <span class="art-initial">{initial}</span>
+          </div>
+          <div class="art-meta">
+            <span class="art-wordmark">{wordmark}</span>
+            {year && <span class="art-year tabular">{year}</span>}
+          </div>
+        </div>
+      </>
+    )
+  }
 </div>
 
 <style>
@@ -202,33 +213,35 @@ const style = [
     right: calc(-1 * var(--art-ring));
     width: min(78%, 420px);
     height: auto;
-    color: var(--faint);
+    color: var(--muted);
   }
 
   /* Composition ------------------------------------------------------------ */
-  .art-top,
-  .art-bottom {
-    position: relative;
-    z-index: 2;
+  .cover-art--cover {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    gap: 0.75rem;
   }
 
   .art-top {
+    position: relative;
+    z-index: 2;
+    display: flex;
     align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
     padding: clamp(0.95rem, 4.5cqw, 1.5rem) clamp(1rem, 5cqw, 1.6rem) 0;
   }
 
   .art-bottom {
-    align-items: flex-end;
-    padding: 0 clamp(0.85rem, 4cqw, 1.4rem) clamp(0.9rem, 4.5cqw, 1.4rem);
-  }
-
-  .cover-art:not(.cover-art--portrait) {
+    position: relative;
+    z-index: 2;
     display: flex;
-    flex-direction: column;
+    align-items: flex-end;
     justify-content: space-between;
+    gap: 0.75rem;
+    min-height: clamp(4.25rem, 34cqw, 11rem);
+    padding: 0 clamp(0.85rem, 4cqw, 1.4rem) clamp(0.9rem, 4.5cqw, 1.4rem);
   }
 
   .art-counter,
@@ -249,44 +262,43 @@ const style = [
     color: var(--subtle);
   }
 
-  /* The oversized serif initial + its outlined ghost ----------------------- */
+  /* The oversized serif initial + its outlined echo ------------------------ */
+  .art-mono {
+    position: relative;
+    z-index: 1;
+    line-height: 0;
+  }
+
   .art-initial {
     position: relative;
     z-index: 1;
     display: block;
     font-family: var(--font-serif);
     font-weight: 520;
-    font-size: clamp(4rem, 44cqw, 15rem);
-    line-height: 0.68;
+    font-size: clamp(3.25rem, 36cqw, 11rem);
+    line-height: 0.7;
     letter-spacing: -0.055em;
-    margin-bottom: -0.06em;
-    margin-left: -0.055em;
-    color: color-mix(in oklab, var(--ink-strong) 82%, var(--accent));
-    text-shadow: 0 1px 0 color-mix(in oklab, var(--canvas) 40%, transparent);
+    margin-bottom: -0.085em;
+    margin-left: -0.06em;
+    color: color-mix(in oklab, var(--ink-strong) 84%, var(--accent));
+    text-shadow: 0 1px 0 color-mix(in oklab, var(--canvas) 36%, transparent);
     user-select: none;
   }
 
   .art-ghost {
     position: absolute;
-    left: var(--art-ghost-x);
-    top: var(--art-ghost-y);
     z-index: 0;
     color: transparent;
-    -webkit-text-stroke: 1px color-mix(in oklab, var(--ink) 22%, transparent);
+    -webkit-text-stroke: 1.25px color-mix(in oklab, var(--ink) 26%, transparent);
     text-shadow: none;
   }
 
-  .art-bottom .art-initial {
-    position: absolute;
-    left: 0;
-    bottom: 0;
+  .art-mono .art-ghost {
+    left: var(--art-ghost-x);
+    bottom: var(--art-ghost-rise);
   }
 
-  /* The bottom block needs intrinsic height after the absolute initial ---- */
-  .art-bottom {
-    min-height: clamp(4.25rem, 34cqw, 11rem);
-    align-items: flex-end;
-  }
+  /* Meta block, bottom-right */
 
   .art-meta {
     position: relative;
@@ -295,6 +307,9 @@ const style = [
     flex-direction: column;
     align-items: flex-end;
     gap: 0.35rem;
+    margin-inline-start: auto;
+    padding-inline-start: 0.75rem;
+    padding-bottom: 0.1rem;
     text-align: right;
   }
 
@@ -305,8 +320,7 @@ const style = [
     color: var(--muted);
   }
 
-  .art-wordmark,
-  .art-label {
+  .art-wordmark {
     font-family: var(--font-sans);
     font-size: clamp(0.5625rem, 2.2cqw, 0.6875rem);
     font-weight: 560;
@@ -316,21 +330,84 @@ const style = [
   }
 
   .art-label {
+    font-family: var(--font-sans);
+    font-size: clamp(0.5625rem, 2.2cqw, 0.6875rem);
+    font-weight: 560;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     color: var(--ink);
     background: color-mix(in oklab, var(--canvas) 62%, transparent);
     border: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
     border-radius: 999px;
     padding: 0.25rem 0.6rem;
-    letter-spacing: 0.14em;
+    white-space: nowrap;
   }
 
-  /* Panel variant: quieter, centred counter, no giant initial ------------- */
-  .cover-art--panel .art-initial {
-    font-size: clamp(2.75rem, 30cqw, 8.5rem);
+  /* Panel variant: gallery plate with a centred outlined letter ------------- */
+  .cover-art--panel .art-rings {
+    top: 50%;
+    right: 50%;
+    width: min(118%, 560px);
+    translate: 50% -50%;
+    color: var(--ink);
+    opacity: 0.6;
   }
 
-  .cover-art--panel .art-bottom {
-    min-height: clamp(3rem, 24cqw, 7rem);
+  .art-panel {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    padding: clamp(0.85rem, 4cqw, 1.25rem);
+  }
+
+  .art-panel-echo {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: clamp(7rem, 62cqw, 20rem);
+    line-height: 0.7;
+    letter-spacing: -0.06em;
+    color: transparent;
+    -webkit-text-stroke: 1px color-mix(in oklab, var(--ink) 17%, transparent);
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .art-panel-word {
+    position: relative;
+    z-index: 2;
+    max-width: 88%;
+    text-align: center;
+    text-wrap: balance;
+    font-family: var(--font-serif);
+    font-weight: 520;
+    font-size: clamp(1.5rem, 13.5cqw, 4.25rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    color: color-mix(in oklab, var(--ink-strong) 88%, var(--accent));
+  }
+
+  .art-panel-letter {
+    position: relative;
+    z-index: 2;
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: clamp(2rem, 20cqw, 5.5rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: color-mix(in oklab, var(--ink-strong) 80%, var(--accent));
+  }
+
+  .art-panel-index {
+    position: absolute;
+    top: clamp(0.85rem, 4cqw, 1.25rem);
+    left: clamp(0.95rem, 4.5cqw, 1.4rem);
+    z-index: 3;
   }
 
   /* Portrait variant: big centred monogram --------------------------------- */
@@ -342,9 +419,14 @@ const style = [
   .cover-art--portrait .art-rings {
     top: 50%;
     right: 50%;
-    width: min(92%, 620px);
+    width: min(128%, 720px);
     translate: 50% -50%;
-    opacity: 0.9;
+    color: var(--muted);
+    opacity: 1;
+  }
+
+  .cover-art--portrait .art-rings circle {
+    stroke-width: 1.25;
   }
 
   .art-portrait {
@@ -352,34 +434,36 @@ const style = [
     z-index: 2;
     display: grid;
     place-items: center;
+    width: 100%;
+    height: 100%;
     padding: clamp(1.5rem, 8cqw, 3rem);
   }
 
   .art-initial.is-portrait {
     position: relative;
-    font-size: clamp(4.5rem, 34cqw, 13rem);
-    line-height: 0.72;
+    z-index: 1;
+    font-size: clamp(4rem, 30cqw, 11rem);
+    line-height: 0.74;
     letter-spacing: -0.06em;
     margin: 0;
   }
 
   .art-portrait .art-ghost {
-    position: absolute;
     left: 50%;
+    bottom: auto;
     top: 50%;
-    translate: -50% calc(-50% + var(--art-ghost-y));
-    margin-left: var(--art-ghost-x);
+    translate: calc(-50% + var(--art-ghost-x)) calc(-50% - var(--art-ghost-rise));
   }
 
   .art-portrait-caption {
     position: absolute;
-    bottom: clamp(1rem, 4.5cqw, 1.6rem);
-    left: 50%;
-    translate: -50% 0;
+    left: clamp(1rem, 4.5cqw, 1.6rem);
+    bottom: clamp(0.9rem, 4.5cqw, 1.4rem);
+    z-index: 3;
     font-family: var(--font-sans);
     font-size: clamp(0.5625rem, 2.1cqw, 0.6875rem);
     font-weight: 560;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--muted);
     white-space: nowrap;

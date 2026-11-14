@@ -1,0 +1,61 @@
+---
+/**
+ * PortraitCard — the About page hero.
+ *
+ * There is no real photograph in the repository yet, so the card renders an
+ * elegant generated monogram plate (CoverArt, variant="portrait") that later
+ * accepts a real image without changing the layout.
+ *
+ * HOW TO SWAP IN A REAL PHOTO
+ *   1. Drop the file at `public/images/portrait.jpg` (or anywhere in /public).
+ *   2. In the page/view that renders this component, pass:
+ *        <PortraitCard image="/images/portrait.jpg" name={...} monogram={...} />
+ *      (You can also drive it from `src/data/profile.ts` — add
+ *       `portrait: '/images/portrait.jpg'` there and forward it.)
+ *   3. Optionally update the <figcaption> copy.
+ */
+import CoverArt from '../projects/CoverArt.astro';
+
+interface Props {
+  /** Optional real portrait URL (absolute path inside /public). */
+  image?: string;
+  /** Used as the alt text when an image is present. */
+  name: string;
+  /** Monogram fallback, e.g. "SQ". */
+  monogram: string;
+  /** Caption rendered inside the generated plate (localized by the caller). */
+  caption?: string;
+  /** Caption under the card (rendered by the About view). */
+  class?: string;
+}
+
+const { image, name, monogram, caption, class: className = '' } = Astro.props;
+---
+
+<figure
+  class:list={[
+    'group relative overflow-hidden rounded-lg border border-line bg-surface shadow-sm',
+    className,
+  ]}
+>
+  {
+    image ? (
+      <img
+        src={image}
+        alt={name}
+        class="aspect-[4/3] w-full object-cover transition-transform duration-[900ms] ease-[var(--ease-out)] motion-safe:group-hover:scale-[1.02]"
+        loading="eager"
+        decoding="async"
+      />
+    ) : (
+      <CoverArt
+        slug="song-qian-portrait"
+        title={name}
+        mono={monogram}
+        caption={caption}
+        variant="portrait"
+        class="aspect-[4/3] transition-transform duration-[900ms] ease-[var(--ease-out)] motion-safe:group-hover:scale-[1.02]"
+      />
+    )
+  }
+</figure>

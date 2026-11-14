@@ -30,8 +30,8 @@
   --ink: #33302b;
   --ink-strong: #211e1a;
   --muted: #6d655b;
-  --subtle: #9b9184;
-  --faint: #b8ae9f;
+  --subtle: #8a8072;
+  --faint: #b2a89a;
 
   /* lines */
   --line: rgb(51 48 43 / 0.1);
@@ -561,6 +561,43 @@
     border-radius: 0;
   }
 
+  /* Syntax highlighting — dual Shiki themes emitted as CSS variables so code
+     blocks stay inside the paper/evergreen palette. */
+  .astro-code {
+    background-color: var(--surface) !important;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.25rem;
+    overflow-x: auto;
+    font-size: 0.84rem;
+    line-height: 1.7;
+    tab-size: 2;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-light, inherit);
+    background-color: transparent !important;
+    font-style: var(--shiki-light-font-style, inherit);
+    font-weight: var(--shiki-light-font-weight, inherit);
+    text-decoration: var(--shiki-light-text-decoration, inherit);
+  }
+
+  .dark .astro-code,
+  .dark .astro-code span {
+    color: var(--shiki-dark, inherit);
+    font-style: var(--shiki-dark-font-style, inherit);
+    font-weight: var(--shiki-dark-font-weight, inherit);
+    text-decoration: var(--shiki-dark-text-decoration, inherit);
+  }
+
+  .prose .astro-code code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+
   .prose hr {
     border: 0;
     height: 1px;
@@ -641,8 +678,9 @@
     font-feature-settings: 'tnum' 1;
   }
 
-  /* Fade + rise on scroll, driven by IntersectionObserver */
-  [data-reveal] {
+  /* Fade + rise on scroll, driven by IntersectionObserver.
+     Gated behind `.js` so the site is fully readable without JavaScript. */
+  .js [data-reveal] {
     opacity: 0;
     transform: translateY(10px);
     transition:
@@ -652,13 +690,13 @@
     will-change: opacity, transform;
   }
 
-  [data-reveal].is-revealed {
+  .js [data-reveal].is-revealed {
     opacity: 1;
     transform: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    [data-reveal] {
+    .js [data-reveal] {
       opacity: 1;
       transform: none;
       transition: none;

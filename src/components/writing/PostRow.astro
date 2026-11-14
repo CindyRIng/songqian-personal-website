@@ -1,0 +1,59 @@
+---
+/**
+ * PostRow — a single essay in the writing index.
+ *
+ * Serif title + muted description on the left; sans date and reading time
+ * right-aligned (stacked on ≥sm). A hairline sit above/below comes from the
+ * parent's divider; the hover wash extends past the text column.
+ */
+import { formatDate, isoDate, localizePath, useTranslations } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+import type { PostEntry } from '../../lib/posts';
+
+interface Props {
+  post: PostEntry;
+  lang: Locale;
+  /** Mark essays that are showing the English original. */
+  markFallback?: boolean;
+}
+
+const { post, lang, markFallback = true } = Astro.props;
+const t = useTranslations(lang);
+const href = localizePath(post.path, lang);
+---
+<a
+  href={href}
+  class="group relative -mx-3 flex flex-col gap-1.5 rounded-[0.7rem] px-3 py-4 transition-colors duration-200 ease-out hover:bg-hover focus-visible:bg-hover sm:flex-row sm:items-baseline sm:justify-between sm:gap-8"
+>
+  <span class="flex min-w-0 flex-col gap-1">
+    <span class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      <span
+        class="font-serif text-[1.0625rem] font-[550] leading-snug tracking-[-0.012em] text-ink-strong"
+      >{post.title}</span>
+      {
+        markFallback && post.isFallback && (
+          <span
+            class="font-sans text-[0.625rem] font-medium uppercase tracking-[0.08em] text-faint"
+            title={t('writing.onlyAvailableIn')}
+          >
+            {post.lang}
+          </span>
+        )
+      }
+    </span>
+    <span class="line-clamp-2 max-w-[30rem] font-serif text-[0.9375rem] leading-[1.5] text-muted">
+      {post.description}
+    </span>
+  </span>
+
+  <span
+    class="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-0.5 font-sans text-[0.6875rem] leading-relaxed text-subtle sm:flex-col sm:items-end sm:gap-1 sm:text-right"
+  >
+    <time datetime={isoDate(post.date)} class="tabular transition-colors duration-200 group-hover:text-muted">
+      {formatDate(post.date, lang, 'short')}
+    </time>
+    <span class="tabular text-faint transition-colors duration-200 group-hover:text-subtle">
+      {t('common.minRead', { n: post.readingTime })}
+    </span>
+  </span>
+</a>

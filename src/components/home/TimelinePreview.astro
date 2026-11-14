@@ -1,8 +1,11 @@
 ---
 /**
- * TimelinePreview — the last three timeline entries as a horizontal strip:
- * a hairline rail with a station dot per entry, date over role over org.
- * On narrow screens the strip becomes a snap-scrolling row.
+ * TimelinePreview — the three most recent timeline entries.
+ *
+ * Wide screens: three even columns on a horizontal hairline rail, each entry
+ * hanging from a station dot (the look of the reference).
+ * Narrow screens: a vertical rail — the same content, no clipping, no scroll
+ * affordance needed, and it echoes the Timeline page's spine.
  */
 import SectionHeader from '../ui/SectionHeader.astro';
 import { useTranslations, localizePath } from '../../i18n/utils';
@@ -28,7 +31,12 @@ const timelineHref = localizePath('/timeline', lang);
 
 {
   entries.length > 0 && (
-    <section aria-labelledby="home-timeline-title" class="flex flex-col" data-reveal style="--reveal-delay: 120ms">
+    <section
+      aria-labelledby="home-timeline-title"
+      class="flex flex-col"
+      data-reveal
+      style="--reveal-delay: 120ms"
+    >
       <SectionHeader
         title={t('home.journey')}
         href={timelineHref}
@@ -38,27 +46,25 @@ const timelineHref = localizePath('/timeline', lang);
       />
 
       <div class="relative">
-        <span
-          aria-hidden="true"
-          class="absolute inset-x-0 top-[3px] hidden h-px bg-line sm:block"
-        >
+        {/* horizontal rail — wide screens only */}
+        <span aria-hidden="true" class="absolute inset-x-0 top-[3px] hidden h-px bg-line sm:block">
         </span>
+        {/* vertical rail — narrow screens only */}
+        <span aria-hidden="true" class="absolute inset-y-1 left-[3px] w-px bg-line sm:hidden"></span>
 
-        <ol
-          class="flex snap-x gap-5 overflow-x-auto pb-1 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible"
-        >
+        <ol class="flex flex-col gap-5 sm:grid sm:grid-cols-3 sm:gap-5">
           {entries.map((entry) => (
-            <li class="relative min-w-[9.5rem] shrink-0 snap-start sm:min-w-0">
+            <li class="relative pl-5 sm:pl-0 sm:pt-5">
               <span
                 aria-hidden="true"
-                class="absolute left-0 top-0 block size-[7px] rounded-full bg-accent ring-4 ring-canvas"
+                class="absolute left-0 top-1.5 block size-[7px] rounded-full bg-accent ring-4 ring-canvas sm:top-0"
               >
               </span>
-              <div class="flex flex-col gap-1 pt-5">
-                <p class="font-mono text-[0.625rem] uppercase tracking-[0.1em] text-subtle">
+              <div class="flex flex-col gap-1">
+                <p class="font-mono text-[0.625rem] uppercase leading-none tracking-[0.1em] text-subtle">
                   {entry.period}
                 </p>
-                <p class="font-serif text-[0.9375rem] font-[550] leading-snug tracking-[-0.01em] text-ink-strong">
+                <p class="mt-0.5 font-serif text-[0.9375rem] font-[550] leading-snug tracking-[-0.01em] text-ink-strong">
                   {entry.role}
                 </p>
                 <p class="font-sans text-[0.6875rem] leading-snug text-subtle">{entry.org}</p>

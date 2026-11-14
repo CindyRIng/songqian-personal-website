@@ -1,0 +1,58 @@
+---
+/**
+ * PostMeta — quiet, locale-aware byline metadata: date · reading time.
+ *
+ * Sans-serif, tabular numerals, muted; meant to be read after the title,
+ * never before it.
+ */
+import Icon from '../ui/Icon.astro';
+import { formatDate, isoDate, useTranslations } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+import type { PostEntry } from '../../lib/posts';
+
+interface Props {
+  post: PostEntry;
+  lang: Locale;
+  /** `short` is used in list rows, `long` on the article page. */
+  dateStyle?: 'short' | 'long';
+  showDate?: boolean;
+  showReadTime?: boolean;
+  class?: string;
+}
+
+const {
+  post,
+  lang,
+  dateStyle = 'short',
+  showDate = true,
+  showReadTime = true,
+  class: className = '',
+} = Astro.props;
+
+const t = useTranslations(lang);
+---
+<span
+  class:list={[
+    'inline-flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-[0.75rem] leading-none text-subtle',
+    className,
+  ]}
+>
+  {
+    showDate && (
+      <span class="inline-flex items-center gap-1.5">
+        <Icon name="calendar" size={12} class="text-faint" />
+        <time datetime={isoDate(post.date)} class="tabular">
+          {formatDate(post.date, lang, dateStyle)}
+        </time>
+      </span>
+    )
+  }
+  {
+    showReadTime && (
+      <span class="inline-flex items-center gap-1.5">
+        <Icon name="clock" size={12} class="text-faint" />
+        <span class="tabular">{t('common.minRead', { n: post.readingTime })}</span>
+      </span>
+    )
+  }
+</span>

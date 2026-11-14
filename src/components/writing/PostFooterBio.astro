@@ -1,0 +1,70 @@
+---
+/**
+ * PostFooterBio — the author card that closes every essay.
+ * Content comes from src/data/profile.ts, so it stays in sync with the About page.
+ */
+import Icon from '../ui/Icon.astro';
+import { localizePath, useTranslations } from '../../i18n/utils';
+import { profile, lt } from '../../data/profile';
+import type { Locale } from '../../i18n/config';
+
+interface Props {
+  lang: Locale;
+  class?: string;
+}
+
+const { lang, class: className = '' } = Astro.props;
+const t = useTranslations(lang);
+
+const name = lt(profile.name, lang) || profile.latinName;
+const role = lt(profile.role, lang);
+const bio = lt(profile.aboutBio[0], lang);
+
+const socials = profile.socials.filter((social) =>
+  ['GitHub', 'X / Twitter', 'LinkedIn'].includes(social.label)
+);
+---
+<aside class:list={['rounded-xl border border-line bg-surface p-5 sm:p-6', className]}>
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+    <span
+      aria-hidden="true"
+      class="grid size-12 shrink-0 place-items-center rounded-full bg-accent-soft font-serif text-[0.9375rem] font-[550] tracking-[0.02em] text-accent ring-1 ring-line"
+    >
+      {profile.monogram}
+    </span>
+
+    <div class="flex min-w-0 flex-col gap-2">
+      <p class="eyebrow">{t('common.writtenBy')}</p>
+      <p class="font-serif text-[1.0625rem] font-[550] leading-none tracking-[-0.01em] text-ink-strong">
+        {name}
+      </p>
+      <p class="font-sans text-[0.75rem] leading-none text-subtle">{role}</p>
+      <p class="max-w-[28rem] font-serif text-[0.9375rem] leading-[1.6] text-muted text-pretty">
+        {bio}
+      </p>
+
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1 font-sans text-[0.75rem]">
+        <a
+          href={localizePath('/about', lang)}
+          class="link inline-flex items-center gap-1"
+        >
+          {t('about.title')}
+          <Icon name="arrow-right" size={12} />
+        </a>
+        {
+          socials.map((social) => (
+            <a
+              href={social.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1.5 text-subtle transition-colors duration-200 hover:text-ink"
+            >
+              {social.label}
+              <span class="sr-only">{t('a11y.external')}</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</aside>

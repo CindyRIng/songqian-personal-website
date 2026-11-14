@@ -55,7 +55,7 @@ const panelPath = currentPath;
         >{t('footer.contact')}</a>
       </p>
 
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 font-sans text-[0.75rem] text-subtle">
+      <div class="flex items-center gap-4 font-sans text-[0.75rem] text-subtle">
         <a
           href={rssHref}
           class="group/rss inline-flex items-center gap-1.5 transition-colors duration-200 hover:text-ink"
@@ -67,8 +67,6 @@ const panelPath = currentPath;
           />
           <span>{t('home.rss')}</span>
         </a>
-
-        <LanguageSwitcher lang={lang} path={panelPath} variant="footer" />
 
         <a
           href="#"
@@ -86,14 +84,20 @@ const panelPath = currentPath;
       </div>
     </div>
 
-    <p
-      class="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-[0.6875rem] leading-relaxed text-faint"
+    <div
+      class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line/60 pt-3.5"
     >
-      <span>© {year} {name}</span>
-      <span aria-hidden="true">·</span>
-      <span>{t('footer.rights')}</span>
-      <span aria-hidden="true">·</span>
-      <span>{t('footer.built')}</span>
-    </p>
+      <p
+        class="flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-[0.6875rem] leading-relaxed text-faint"
+      >
+        <span>© {year} {name}</span>
+        <span aria-hidden="true">·</span>
+        <span>{t('footer.rights')}</span>
+        <span aria-hidden="true">·</span>
+        <span>{t('footer.built')}</span>
+      </p>
+
+      <LanguageSwitcher lang={lang} path={panelPath} variant="footer" />
+    </div>
   </div>
 </footer>

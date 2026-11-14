@@ -1,0 +1,23 @@
+---
+/**
+ * Localized writing index — /zh/writing, /ja/writing/2, …
+ * Missing translations fall back to English inside the view.
+ */
+import type { GetStaticPaths } from 'astro';
+import WritingView from '../../../views/WritingView.astro';
+import { getAllPosts, POSTS_PAGE_SIZE } from '../../../lib/posts';
+import { secondaryLocales, type Locale } from '../../../i18n/config';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const paths = [];
+  for (const lang of secondaryLocales) {
+    const posts = await getAllPosts(lang);
+    paths.push(...paginate(posts, { pageSize: POSTS_PAGE_SIZE, params: { lang } }));
+  }
+  return paths;
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+const lang = Astro.params.lang as Locale;
+---
+<WritingView lang={lang} page={page} />

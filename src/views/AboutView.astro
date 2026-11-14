@@ -1,0 +1,329 @@
+---
+/**
+ * AboutView — /about and /[lang]/about.
+ *
+ * Editorial, single column: greeting → generated portrait plate → bio (drop
+ * cap) → experience ledger → elsewhere → colophon + the six-language note.
+ * All persona facts come from src/data/profile.ts; only the page-specific
+ * sentences below live here.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PortraitCard from '../components/about/PortraitCard.astro';
+import Icon from '../components/ui/Icon.astro';
+import { profile, lt } from '../data/profile';
+import { timeline } from '../data/timeline';
+import { localeMeta } from '../i18n/config';
+import { getAlternates, useTranslations } from '../i18n/utils';
+import type { Locale } from '../i18n/config';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const name = lt(profile.name, lang);
+const role = lt(profile.role, lang);
+const tagline = lt(profile.tagline, lang);
+const location = lt(profile.location, lang);
+const bio = profile.aboutBio.map((paragraph) => lt(paragraph, lang));
+const present = t('common.present');
+const isCjk = lang === 'zh' || lang === 'ja';
+
+/** Page-specific copy (content, not chrome — kept beside the template). */
+const copy: Record<
+  Locale,
+  {
+    subtitle: string;
+    portraitCaption: string;
+    sections: { experience: string; elsewhere: string; colophon: string };
+    tech: { built: string; type: string; hosting: string; languages: string; languageNote: string };
+    signature: string;
+  }
+> = {
+  en: {
+    subtitle:
+      "I'm Song Qian — a product designer and builder in Shanghai. I make calm, useful software, and the occasional beautiful website.",
+    portraitCaption: 'Shanghai, 2026',
+    sections: { experience: 'Experience', elsewhere: 'Elsewhere', colophon: 'Colophon' },
+    tech: {
+      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
+      type: 'Source Serif 4 · Inter · JetBrains Mono, self-hosted variable fonts',
+      hosting: 'Cloudflare, fully static',
+      languages: 'Languages',
+      languageNote: 'Written, translated and maintained in six languages.',
+    },
+    signature: 'Shanghai, at a standing desk, most mornings.',
+  },
+  zh: {
+    subtitle: '我是宋倩，一名常驻上海的产品设计师与独立开发者。做安静而有用的产品，偶尔也做一点好看的网站。',
+    portraitCaption: '上海，2026',
+    sections: { experience: '经历', elsewhere: '其他阵地', colophon: '关于本站' },
+    tech: {
+      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
+      type: 'Source Serif 4 · Inter · JetBrains Mono，自托管可变字体',
+      hosting: 'Cloudflare，完全静态',
+      languages: '语言',
+      languageNote: '以六种语言撰写、翻译与维护。',
+    },
+    signature: '大多在清晨，上海的站立式书桌前。',
+  },
+  ja: {
+    subtitle: 'Song Qian（宋倩）です。上海を拠点に、静かで役に立つソフトウェアと、たまに美しいウェブサイトをつくっています。',
+    portraitCaption: '上海、2026',
+    sections: { experience: '経歴', elsewhere: 'リンク', colophon: 'このサイトについて' },
+    tech: {
+      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
+      type: 'Source Serif 4 · Inter · JetBrains Mono（セルフホストの可変フォント）',
+      hosting: 'Cloudflare、完全静的',
+      languages: '言語',
+      languageNote: '6言語で書き、翻訳し、維持しています。',
+    },
+    signature: 'たいてい朝、上海のスタンディングデスクで。',
+  },
+  es: {
+    subtitle: 'Soy Song Qian, diseñadora de producto y desarrolladora en Shanghái. Diseño software sereno y útil, y alguna web bonita de vez en cuando.',
+    portraitCaption: 'Shanghái, 2026',
+    sections: { experience: 'Experiencia', elsewhere: 'En otros sitios', colophon: 'Colofón' },
+    tech: {
+      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
+      type: 'Source Serif 4 · Inter · JetBrains Mono, tipografías variables autoalojadas',
+      hosting: 'Cloudflare, totalmente estático',
+      languages: 'Idiomas',
+      languageNote: 'Escrito, traducido y mantenido en seis idiomas.',
+    },
+    signature: 'Shanghái, en un escritorio alto, casi todas las mañanas.',
+  },
+  fr: {
+    subtitle: 'Je suis Song Qian, designer produit et développeuse à Shanghai. Je conçois des logiciels calmes et utiles — et parfois de beaux sites.',
+    portraitCaption: 'Shanghai, 2026',
+    sections: { experience: 'Expérience', elsewhere: 'Ailleurs', colophon: 'Colophon' },
+    tech: {
+      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
+      type: 'Source Serif 4 · Inter · JetBrains Mono, polices variables auto-hébergées',
+      hosting: 'Cloudflare, entièrement statique',
+      languages: 'Langues',
+      languageNote: 'Écrit, traduit et maintenu en six langues.',
+    },
+    signature: 'Shanghai, à un bureau assis-debout, presque tous les matins.',
+  },
+  de: {
+    subtitle: 'Ich bin Song Qian, Produktdesignerin und Entwicklerin in Shanghai. Ich gestalte ruhige, nützliche Software — und gelegentlich schöne Websites.',
+    portraitCaption: 'Shanghai, 2026',
+    sections: { experience: 'Erfahrung', elsewhere: 'Anderswo', colophon: 'Kolophon' },
+    tech: {
+      built: 'Astro 7 · Tailwind CSS 4 · TypeScript',
+      type: 'Source Serif 4 · Inter · JetBrains Mono, selbst gehostete variable Schriften',
+      hosting: 'Cloudflare, vollständig statisch',
+      languages: 'Sprachen',
+      languageNote: 'In sechs Sprachen geschrieben, übersetzt und gepflegt.',
+    },
+    signature: 'Shanghai, an einem Stehschreibtisch, meistens morgens.',
+  },
+};
+
+const c = copy[lang];
+const alternates = getAlternates('/about');
+
+/**
+ * Short CV ledger: derived from the canonical, fully localized timeline facts
+ * (work + education) so About reads correctly in all six languages. The full
+ * stories live on /timeline.
+ */
+const experience = timeline
+  .filter((entry) => entry.type === 'work' || entry.type === 'education')
+  .sort((a, b) => b.start.localeCompare(a.start))
+  .map((entry) => {
+    const startYear = entry.start.slice(0, 4);
+    const endYear = entry.end ? entry.end.slice(0, 4) : present;
+    return {
+      id: entry.id,
+      org: lt(entry.org, lang),
+      role: lt(entry.role, lang),
+      years: entry.end && entry.end.slice(0, 4) === startYear ? startYear : `${startYear} — ${endYear}`,
+      kind: entry.type,
+    };
+  });
+
+const colophon = profile.colophon.map((paragraph) => lt(paragraph, lang));
+---
+
+<BaseLayout lang={lang} title={t('about.title')} description={tagline} path="/about">
+  <!-- Intro ---------------------------------------------------------------- -->
+  <header class="flex max-w-[34rem] flex-col gap-4">
+    <p class="eyebrow">{t('about.hello')}</p>
+    <h1 class="text-balance font-serif text-[2.25rem] font-[550] leading-[1.06] tracking-[-0.03em] text-ink-strong sm:text-[2.75rem]">
+      {t('about.title')}
+    </h1>
+    <p class="max-w-[46ch] text-pretty text-[1.0625rem] leading-[1.65] text-muted">
+      {c.subtitle}
+    </p>
+  </header>
+
+  <!-- Portrait ------------------------------------------------------------- -->
+  <div class="mt-10" data-reveal>
+    <PortraitCard
+      name={name}
+      monogram={profile.monogram}
+      caption={c.portraitCaption}
+      class="shadow-md"
+    />
+    <p class="mt-3 text-pretty font-sans text-[0.75rem] leading-relaxed text-subtle">
+      {role} · {location}
+    </p>
+  </div>
+
+  <!-- Bio + drop cap -------------------------------------------------------- -->
+  <div
+    class:list={['prose about-bio mt-12', isCjk && 'is-cjk']}
+    data-reveal
+    style="--reveal-delay: 60ms"
+  >
+    {bio.map((paragraph) => <p>{paragraph}</p>)}
+  </div>
+
+  <!-- Experience ledger ----------------------------------------------------- -->
+  <section class="mt-16 border-t border-line pt-8" aria-labelledby="about-experience" data-reveal>
+    <div class="mb-6 flex items-baseline gap-3">
+      <span class="font-mono text-[0.6875rem] tabular text-faint">01</span>
+      <h2 id="about-experience" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
+        {c.sections.experience}
+      </h2>
+      <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
+    </div>
+
+    <ul class="divide-y divide-line">
+      {
+        experience.map((row) => (
+          <li class="group flex items-baseline justify-between gap-6 rounded-md px-2 py-3.5 transition-colors duration-200 hover:bg-hover">
+            <div class="min-w-0">
+              <p class="font-serif text-[1rem] font-[550] leading-snug tracking-[-0.01em] text-ink-strong">
+                {row.org}
+              </p>
+              <p class="mt-0.5 text-pretty text-[0.875rem] leading-snug text-muted">{row.role}</p>
+            </div>
+            <span class="shrink-0 font-sans text-[0.75rem] tabular tracking-[0.01em] text-subtle">
+              {row.years}
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <!-- Elsewhere ------------------------------------------------------------- -->
+  <section class="mt-16 border-t border-line pt-8" aria-labelledby="about-elsewhere" data-reveal>
+    <div class="mb-4 flex items-baseline gap-3">
+      <span class="font-mono text-[0.6875rem] tabular text-faint">02</span>
+      <h2 id="about-elsewhere" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
+        {c.sections.elsewhere}
+      </h2>
+      <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
+    </div>
+
+    <ul class="divide-y divide-line">
+      {
+        profile.elsewhere.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              class="group flex items-center justify-between gap-4 rounded-md px-2 py-3 transition-colors duration-200 hover:bg-hover"
+              rel="me"
+              target="_blank"
+            >
+              <span class="font-serif text-[1rem] font-[550] tracking-[-0.01em] text-ink-strong transition-colors duration-200 group-hover:text-accent">
+                {link.label}
+              </span>
+              <Icon
+                name="arrow-up-right"
+                size={15}
+                class="text-subtle transition duration-200 ease-[var(--ease-out)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
+              />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <!-- Colophon -------------------------------------------------------------- -->
+  <section class="mt-16 border-t border-line pt-8" aria-labelledby="about-colophon" data-reveal>
+    <div class="mb-5 flex items-baseline gap-3">
+      <span class="font-mono text-[0.6875rem] tabular text-faint">03</span>
+      <h2 id="about-colophon" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
+        {c.sections.colophon}
+      </h2>
+      <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
+    </div>
+
+    <div class="prose text-[0.9375rem] leading-[1.72]">
+      {colophon.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+
+    <dl class="mt-8 divide-y divide-line border-y border-line">
+      <div class="flex flex-col gap-0.5 px-2 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+        <dt class="eyebrow">Built</dt>
+        <dd class="text-[0.875rem] leading-snug text-muted">{c.tech.built}</dd>
+      </div>
+      <div class="flex flex-col gap-0.5 px-2 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+        <dt class="eyebrow">Type</dt>
+        <dd class="text-left text-[0.875rem] leading-snug text-muted sm:max-w-[62%] sm:text-right">{c.tech.type}</dd>
+      </div>
+      <div class="flex flex-col gap-0.5 px-2 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+        <dt class="eyebrow">Hosting</dt>
+        <dd class="text-[0.875rem] leading-snug text-muted">{c.tech.hosting}</dd>
+      </div>
+      <div class="flex flex-col gap-1.5 px-2 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+        <dt class="eyebrow">{c.tech.languages}</dt>
+        <dd class="flex flex-wrap gap-x-2 gap-y-1 text-left text-[0.875rem] leading-snug text-muted sm:justify-end sm:text-right">
+          {
+            alternates.map((alternate, index) => (
+              <span class="inline-flex items-baseline gap-2">
+                {index > 0 && <span class="text-faint">·</span>}
+                <a
+                  href={alternate.href}
+                  class:list={[
+                    'transition-colors duration-150 hover:text-accent',
+                    alternate.lang === lang ? 'text-ink-strong underline decoration-line-strong underline-offset-[3px]' : 'text-muted',
+                  ]}
+                  hreflang={localeMeta[alternate.lang].htmlLang}
+                >
+                  {localeMeta[alternate.lang].nativeLabel}
+                </a>
+              </span>
+            ))
+          }
+        </dd>
+      </div>
+    </dl>
+
+    <p class="mt-3 text-[0.75rem] leading-relaxed text-subtle">{c.tech.languageNote}</p>
+  </section>
+
+  <!-- Signature -------------------------------------------------------------- -->
+  <p class="mt-16 text-pretty font-serif text-[0.9375rem] italic leading-relaxed text-subtle" data-reveal>
+    — {name}, {c.signature}
+  </p>
+</BaseLayout>
+
+<style>
+  /* Drop cap — the small editorial flourish at the top of the bio. */
+  .about-bio > p:first-child::first-letter {
+    float: left;
+    font-family: var(--font-serif);
+    font-size: 3.45em;
+    line-height: 0.78;
+    font-weight: 520;
+    padding-right: 0.11em;
+    padding-top: 0.055em;
+    color: var(--accent);
+  }
+
+  .about-bio.is-cjk > p:first-child::first-letter {
+    font-size: 2.6em;
+    line-height: 0.95;
+    padding-top: 0.1em;
+    font-weight: 560;
+  }
+</style>

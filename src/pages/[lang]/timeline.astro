@@ -1,0 +1,13 @@
+---
+import TimelineView from '../../views/TimelineView.astro';
+import { isLocale, secondaryLocales, type Locale } from '../../i18n/config';
+
+export function getStaticPaths() {
+  return secondaryLocales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang: rawLang } = Astro.params;
+const lang = (isLocale(rawLang) ? rawLang : 'en') as Locale;
+---
+
+<TimelineView lang={lang} />

@@ -17,7 +17,7 @@ import SiteNav from '../components/chrome/SiteNav.astro';
 import SiteFooter from '../components/chrome/SiteFooter.astro';
 import { SITE } from '../i18n/config';
 import { defaultLocale, localeMeta, type Locale } from '../i18n/config';
-import { getAlternates, useTranslations, localizePath } from '../i18n/utils';
+import { getAlternates, useTranslations, localizePath, stripLocale } from '../i18n/utils';
 import { profile, lt } from '../data/profile';
 
 interface Props {
@@ -47,15 +47,34 @@ const {
 const t = useTranslations(lang);
 const meta = localeMeta[lang];
 
-const currentPath = Astro.props.path ?? (Astro.url.pathname.replace(/\/$/, '') || '/');
+// Pages may pass a locale-free `path`; otherwise derive it from the URL and
+// strip any locale prefix so `localizePath()` never doubles it (/de/de/writing).
+const rawPath = Astro.props.path ?? Astro.url.pathname;
+const { path: localeFreePath } = stripLocale(rawPath);
+const currentPath = localeFreePath === '' ? '/' : localeFreePath.replace(/\/$/, '') || '/';
 const alternates = getAlternates(currentPath);
 
 const siteUrl = Astro.site ?? new URL(SITE.url);
 const canonical = new URL(localizePath(currentPath, lang), siteUrl).href;
 
 const siteName = lt(profile.name, lang) || profile.latinName;
-const fullTitle = title ? `${title} — ${profile.latinName}` : profile.seo.title;
-const desc = description ?? lt(profile.seo.description as unknown as { en: string }, lang) ?? profile.seo.description;
+const role = lt(profile.role, lang);
+
+/**
+ * Title rules:
+ *  - no title        -> "<Name> — <Role>" (localized home title)
+ *  - title === name   -> "<Name> — <Role>"
+ *  - title has the brand name already -> keep as-is (never duplicate)
+ *  - otherwise        -> "<Title> — Song Qian"
+ */
+const fullTitle = (() => {
+  if (!title || title === siteName || title === profile.latinName) {
+    return `${siteName} — ${role}`;
+  }
+  return title.includes(profile.latinName) ? title : `${title} — ${profile.latinName}`;
+})();
+
+const desc = description ?? lt(profile.seo.description, lang);
 const ogImage = new URL(image, siteUrl).href;
 
 const jsonLdPerson = {
@@ -89,6 +108,7 @@ const jsonLdPerson = {
     <!-- Theme bootstrap: runs before paint to avoid a flash of the wrong theme. -->
     <script is:inline>
       (function () {
+        document.documentElement.classList.add('js');
         try {
           var stored = localStorage.getItem('theme');
           var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -139,6 +159,7 @@ const jsonLdPerson = {
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${siteName} — ${lt(profile.tagline, lang)}`} />
     <meta property="og:locale" content={meta.ogLocale} />
     {alternates
       .filter((alt) => alt.lang !== lang)
@@ -147,6 +168,7 @@ const jsonLdPerson = {
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={`${siteName} — ${lt(profile.tagline, lang)}`} />
 
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
@@ -180,7 +202,10 @@ const jsonLdPerson = {
     <script>
       // --- Scroll reveal -----------------------------------------------------
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (!reduced) {
+      const revealAll = () =>
+        document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-revealed'));
+
+      if (!reduced && 'IntersectionObserver' in window) {
         const io = new IntersectionObserver(
           (entries) => {
             for (const entry of entries) {
@@ -194,7 +219,8 @@ const jsonLdPerson = {
         );
         document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
       } else {
-        document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-revealed'));
+        // No JS-driven motion: content must never be hidden.
+        revealAll();
       }
 
       // --- Theme toggle with radial reveal from the click point ---------------

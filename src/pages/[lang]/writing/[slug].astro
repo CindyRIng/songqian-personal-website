@@ -1,0 +1,52 @@
+---
+/**
+ * Localized essay page — /zh/writing/<slug>, /ja/writing/<slug>, …
+ * When a locale has no translation the English original is rendered with a
+ * quiet note, and the URL stays inside the requested locale.
+ */
+import type { GetStaticPaths } from 'astro';
+import PostView from '../../../views/PostView.astro';
+import {
+  getAllPosts,
+  getAdjacentPosts,
+  getPostBySlug,
+  getRelatedPosts,
+  renderPost,
+} from '../../../lib/posts';
+import { secondaryLocales, type Locale } from '../../../i18n/config';
+
+export const getStaticPaths = (async () => {
+  const paths: { params: { lang: string; slug: string } }[] = [];
+  for (const lang of secondaryLocales) {
+    const posts = await getAllPosts(lang);
+    for (const post of posts) {
+      paths.push({ params: { lang, slug: post.slug } });
+    }
+  }
+  return paths;
+}) satisfies GetStaticPaths;
+
+const lang = Astro.params.lang as Locale;
+const slug = Astro.params.slug;
+if (!slug) throw new Error('Missing slug');
+
+const post = await getPostBySlug(lang, slug);
+if (!post) throw new Error(`Missing post: ${lang}/${slug}`);
+
+const [related, adjacent, rendered] = await Promise.all([
+  getRelatedPosts(lang, post),
+  getAdjacentPosts(lang, post.slug),
+  renderPost(post),
+]);
+
+const { Content, headings } = rendered;
+---
+<PostView
+  lang={lang}
+  post={post}
+  Content={Content}
+  headings={headings}
+  related={related}
+  older={adjacent.older}
+  newer={adjacent.newer}
+/>
