@@ -15,7 +15,7 @@ import EssayRow from '../components/writing/EssayRow.astro';
 import Pagination from '../components/writing/Pagination.astro';
 import { localizePath, useTranslations } from '../i18n/utils';
 import { copy, c, pair } from '../data/copy';
-import type { Locale } from '../i18n/config';
+import { SITE, localeMeta, type Locale } from '../i18n/config';
 import type { PostEntry } from '../lib/posts';
 
 interface Props {
@@ -34,12 +34,38 @@ const label = `${copy.sections.writing.number} / ${copy.sections.writing.title[l
 
 /** Index numbers continue across paginated pages. */
 const startIndex = (page.currentPage - 1) * page.size + 1;
+const listingJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      name: title.title,
+      description: lede,
+      url: new URL(localizePath(page.currentPage > 1 ? `/writing/${page.currentPage}` : '/writing', lang), Astro.site ?? new URL(SITE.url)).href,
+      inLanguage: localeMeta[lang].htmlLang,
+      isPartOf: { '@type': 'WebSite', url: (Astro.site ?? new URL(SITE.url)).href },
+    },
+    {
+      '@type': 'ItemList',
+      itemListElement: posts.map((post, index) => ({
+        '@type': 'ListItem',
+        position: startIndex + index,
+        url: new URL(localizePath(post.path, lang), Astro.site ?? new URL(SITE.url)).href,
+        name: post.title,
+      })),
+    },
+  ],
+};
+
 const pageTitle =
   page.currentPage > 1
     ? `${title.title} · ${t('common.pageOf', { n: page.currentPage, total: page.lastPage })}`
     : `${copy.writing.title.zh} · ${copy.writing.title.en}`;
 ---
 <BaseLayout lang={lang} title={pageTitle} description={c(copy.meta.writingDescription, lang)} wide>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(listingJsonLd)} />
+  </Fragment>
   <div class="wrap">
     <header class="flex flex-col gap-6 pb-10 sm:pb-14">
       <p class="font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-subtle">{label}</p>

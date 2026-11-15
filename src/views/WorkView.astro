@@ -17,7 +17,7 @@ import StatBar from '../components/ui/StatBar.astro';
 import LayerDiagram from '../components/projects/LayerDiagram.astro';
 import { terminalFor } from '../components/projects/terminal';
 import { localizePath, useTranslations } from '../i18n/utils';
-import type { Locale } from '../i18n/config';
+import { SITE, localeMeta, type Locale } from '../i18n/config';
 import {
   PROJECT_CATEGORIES,
   PROJECT_STATUS_KEYS,
@@ -69,6 +69,43 @@ const hrefNext = localizePath(`/works/${next.slug}`, lang);
 const statusLabel = t(PROJECT_STATUS_KEYS[project.status]);
 const isCurrent = project.status === 'live' || project.status === 'in-progress';
 const typeLabel = primaryCategory ? t(`filter.${primaryCategory}` as never) : t('filter.tool');
+
+const siteUrl = Astro.site ?? new URL(SITE.url);
+const canonical = new URL(localizePath(`/works/${project.slug}`, lang), siteUrl).href;
+const workType = project.tags.includes('product') ? 'SoftwareApplication' : 'CreativeWork';
+const workJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': workType,
+      '@id': `${canonical}#work`,
+      name: project.title,
+      description: project.description,
+      abstract: project.tagline,
+      url: canonical,
+      dateCreated: String(project.year),
+      inLanguage: localeMeta[lang].htmlLang,
+      applicationCategory: project.tags.includes('tool') ? 'DeveloperApplication' : 'BusinessApplication',
+      operatingSystem: 'Linux, macOS',
+      programmingLanguage: project.stack,
+      author: { '@id': `${siteUrl.href}#person` },
+      ...(project.links?.repo ? { codeRepository: project.links.repo } : {}),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: lang === 'zh' ? '首页' : 'Home', item: siteUrl.href },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: lang === 'zh' ? '作品' : 'Works',
+          item: new URL(localizePath('/works', lang), siteUrl).href,
+        },
+        { '@type': 'ListItem', position: 3, name: project.title, item: canonical },
+      ],
+    },
+  ],
+};
 ---
 
 <BaseLayout
@@ -78,6 +115,9 @@ const typeLabel = primaryCategory ? t(`filter.${primaryCategory}` as never) : t(
   path={`/works/${project.slug}`}
   wide
 >
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(workJsonLd)} />
+  </Fragment>
   <div class="wrap">
     <!-- Back -->
     <a

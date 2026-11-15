@@ -48,7 +48,7 @@ export function isLocale(value: string | undefined): value is Locale {
 
 export const SITE = {
   /** Update once a custom domain is registered. */
-  url: 'https://songqian-personal-website.pages.dev',
+  url: 'https://songqian.me',
   name: 'Song Qian',
   nameZh: '宋谦',
   handle: 'songqian',

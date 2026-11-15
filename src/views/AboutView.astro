@@ -11,6 +11,7 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, localeMeta } from '../i18n/config';
 import PortraitPlate from '../components/about/PortraitPlate.astro';
 import Icon from '../components/ui/Icon.astro';
 import { profile, lt } from '../data/profile';
@@ -76,6 +77,29 @@ const hasWechatQr = existsSync(join(imagesDir, 'wechat-qr.png'));
 
 const colophon = profile.colophon.map((paragraph) => lt(paragraph, lang));
 const quickFacts = copy.home.quickFacts.filter((fact) => ['在读', '网球'].includes(fact.label.zh));
+
+const siteUrl = Astro.site ?? new URL(SITE.url);
+const faq = copy.faq.items.map((item) => ({ q: c(item.q, lang), a: c(item.a, lang) }));
+const aboutJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'ProfilePage',
+      name: c(copy.about.title, lang),
+      url: new URL(localizePath('/about', lang), siteUrl).href,
+      inLanguage: localeMeta[lang].htmlLang,
+      mainEntity: { '@id': `${siteUrl.href}#person` },
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((item) => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      })),
+    },
+  ],
+};
 ---
 
 <BaseLayout
@@ -85,6 +109,9 @@ const quickFacts = copy.home.quickFacts.filter((fact) => ['在读', '网球'].in
   path="/about"
   wide
 >
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(aboutJsonLd)} />
+  </Fragment>
   <!-- Hero ---------------------------------------------------------------- -->
   <header class="wrap pt-2 sm:pt-6">
     <p class="label" data-reveal>{c(copy.about.lede, lang)}</p>
@@ -260,6 +287,31 @@ const quickFacts = copy.home.quickFacts.filter((fact) => ['在读', '网球'].in
           <p class="max-w-[44ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted" data-reveal style={`--reveal-delay: ${index * 60}ms`}>
             {paragraph}
           </p>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- FAQ (also emitted as FAQPage structured data) ---------------------- -->
+  <section class="wrap section" aria-labelledby="about-faq">
+    <div class="flex items-baseline justify-between gap-4 border-b border-line pb-3" data-reveal>
+      <h2 id="about-faq" class="label">{c(copy.faq.title, lang)}</h2>
+    </div>
+    <div class="mt-2 divide-y divide-line">
+      {
+        faq.map((item, index) => (
+          <details class="group py-4" data-reveal style={`--reveal-delay: ${index * 40}ms`}>
+            <summary class="flex cursor-pointer list-none items-start justify-between gap-6 text-pretty font-serif text-[1.0625rem] font-[540] leading-snug text-ink-strong transition-colors hover:text-accent">
+              <span>{item.q}</span>
+              <span
+                aria-hidden="true"
+                class="mt-1 shrink-0 font-mono text-[0.75rem] text-subtle transition-transform duration-200 group-open:rotate-45"
+              >
+                +
+              </span>
+            </summary>
+            <p class="mt-3 max-w-[56ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted">{item.a}</p>
+          </details>
         ))
       }
     </div>

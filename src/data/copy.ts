@@ -178,6 +178,47 @@ export const copy = {
     rssLabel: { zh: 'RSS', en: 'RSS' } as L,
   },
 
+  faq: {
+    title: { zh: '常见问题', en: 'FAQ' } as L,
+    items: [
+      {
+        q: { zh: '你是做什么的？', en: 'What do you do?' } as L,
+        a: {
+          zh: '正职是孚盟软件的客户经理，做外贸 SaaS 的销售与客户服务；业余把销售里重复、耗时的部分写成工具，也写关于系统、杠杆和 AI 的文章。',
+          en: 'By day I am an account manager at Fumamx, selling and supporting foreign-trade SaaS. After hours I turn the repetitive parts of that work into tools, and write about systems, leverage and AI.',
+        } as L,
+      },
+      {
+        q: { zh: '这个网站是你自己做的吗？', en: 'Did you build this site yourself?' } as L,
+        a: {
+          zh: '是。Astro 7 + Tailwind CSS 4 + TypeScript，静态输出，中英双语，部署在 Cloudflare Pages；设计、代码和文案都是自己写的。',
+          en: 'Yes. Astro 7 + Tailwind CSS 4 + TypeScript, static output, Chinese and English, deployed on Cloudflare Pages. Design, code and copy are all mine.',
+        } as L,
+      },
+      {
+        q: { zh: '你在找什么合作或机会？', en: 'What are you open to?' } as L,
+        a: {
+          zh: 'AI 实施、销售工具与流程自动化、企业 AI 培训与售前方案；也欢迎聊工具、网球或写作。',
+          en: 'AI implementation, sales tooling and workflow automation, enterprise AI training and pre-sales. Conversations about tools, tennis or writing are welcome too.',
+        } as L,
+      },
+      {
+        q: { zh: '项目里的数字可信吗？', en: 'Are the numbers in your projects real?' } as L,
+        a: {
+          zh: '项目指标来自各自的 README 与测试结果（例如 53 个测试、93/93 测试通过、27/27 验收），没有编造的用户量或收入。',
+          en: 'Project metrics come from each repository README and test results (e.g. 53 tests, 93/93 passing, 27/27 acceptance). No invented users or revenue.',
+        } as L,
+      },
+      {
+        q: { zh: '怎么联系你？', en: 'How can I reach you?' } as L,
+        a: {
+          zh: '邮箱 cindyring_dream@outlook.com，或页脚的电话 / 微信二维码；GitHub 是 CindyRIng。',
+          en: 'Email cindyring_dream@outlook.com, or use the phone / WeChat QR in the footer. GitHub: CindyRIng.',
+        } as L,
+      },
+    ],
+  },
+
   meta: {
     homeTitle: { zh: '宋谦 · 孚盟软件客户经理 / AI 工作流构建者', en: 'Song Qian · Account manager at Fumamx / AI workflow builder' } as L,
     homeDescription: {

@@ -4,7 +4,7 @@ The personal site of **宋谦 (Song Qian)** — account manager at [Fumamx](http
 
 A hand-built, bilingual (Chinese-first / English at `/en/`) static site in a warm paper-and-ink editorial language: a magazine masthead, oversized serif type, a full-bleed engraved art plate, CLI terminal project cards, and restrained but choreographed motion.
 
-**Live:** https://songqian-personal-website.pages.dev · **Repo:** https://github.com/CindyRIng/songqian-personal-website
+**Live:** https://songqian.me *(custom domain — DNS record pending)* · **Mirror:** https://songqian-personal-website.pages.dev · **Repo:** https://github.com/CindyRIng/songqian-personal-website
 
 ## Preview
 
@@ -102,6 +102,14 @@ pnpm build                   # static build → dist/
 pnpm preview                 # preview the production build
 pnpm deploy                  # build + wrangler pages deploy
 ```
+
+## SEO & GEO
+
+- **Canonical domain** `songqian.me`, `hreflang` zh-CN / en / x-default, per-page titles + descriptions, per-article social images (`public/og/posts/*.jpg`), XML sitemap, two RSS feeds, `rel=me` identity links.
+- **Structured data** (validated JSON-LD, one `@graph` per page): `Person` (enriched: employer, alma mater, languages, `knowsAbout`, social profiles), `WebSite`, `Blog`, `BlogPosting` + `BreadcrumbList` on essays, `CollectionPage` + `ItemList` on writing/works/timeline indexes, `SoftwareApplication`/`CreativeWork` + `BreadcrumbList` on case studies, `ProfilePage` + `FAQPage` on About.
+- **Generative Engine Optimization:** `/llms.txt` (bilingual entity facts, page map, essay/project links) and `/llms-full.txt` (complete zh/en essay and case-study text) generated from the content collections at build time; `robots.txt` explicitly welcomes GPTBot, OAI-SearchBot, ClaudeBot, Claude-SearchBot, PerplexityBot, Google-Extended, Applebot-Extended, CCBot and Bytespider.
+- **Legacy URLs:** old `/projects/*` → `/works/*` 301; old `/zh /ja /es /fr /de` prefixes → two-language routes 301.
+- **Accessibility / technical:** semantic landmarks, skip link, visible focus rings, AA contrast, reduced-motion paths, no-JS readable pages, security headers + immutable asset caching.
 
 ## Design & interaction notes
 

@@ -18,7 +18,7 @@ import WorkRow from '../components/projects/WorkRow.astro';
 import { terminalFor } from '../components/projects/terminal';
 import { copy, c } from '../data/copy';
 import { localizePath, useTranslations } from '../i18n/utils';
-import type { Locale } from '../i18n/config';
+import { SITE, localeMeta, type Locale } from '../i18n/config';
 import { getLocalizedProjects, PROJECT_CATEGORIES, type ProjectCategory } from '../lib/projects';
 
 interface Props {
@@ -37,6 +37,30 @@ const counts = Object.fromEntries(
   FILTERABLE.map((category) => [category, projects.filter((project) => project.tags.includes(category)).length])
 ) as Record<ProjectCategory, number>;
 const activeFilters = FILTERABLE.filter((category) => counts[category] > 0);
+
+const siteUrl = Astro.site ?? new URL(SITE.url);
+const worksJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      name: c(copy.works.title, lang),
+      description: c(copy.works.lede, lang),
+      url: new URL(localizePath('/works', lang), siteUrl).href,
+      inLanguage: localeMeta[lang].htmlLang,
+    },
+    {
+      '@type': 'ItemList',
+      itemListElement: projects.map((project, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: project.title,
+        description: project.tagline,
+        url: new URL(localizePath(`/works/${project.slug}`, lang), siteUrl).href,
+      })),
+    },
+  ],
+};
 ---
 
 <BaseLayout
@@ -46,6 +70,9 @@ const activeFilters = FILTERABLE.filter((category) => counts[category] > 0);
   path="/works"
   wide
 >
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(worksJsonLd)} />
+  </Fragment>
   <!-- Page heading --------------------------------------------------------- -->
   <header class="wrap pt-2 sm:pt-6">
     <SectionHeading

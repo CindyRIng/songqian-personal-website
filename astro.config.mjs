@@ -9,7 +9,7 @@ import shikiEvergreen from './src/styles/shiki/songqian-evergreen.json';
 // NOTE: `site` is the current Cloudflare Pages domain; switch it once a
 // custom domain is registered.
 export default defineConfig({
-  site: 'https://songqian-personal-website.pages.dev',
+  site: 'https://songqian.me',
   trailingSlash: 'always',
   build: {
     format: 'directory',

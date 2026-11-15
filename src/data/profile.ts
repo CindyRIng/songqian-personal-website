@@ -42,7 +42,7 @@ export const profile = {
   contact: {
     email: 'cindyring_dream@outlook.com',
     /** Add a public phone number here to reveal it on the site. */
-    phone: '',
+    phone: '15652910075',
     /** Drop the QR code at public/images/wechat-qr.png and the WeChat block appears. */
     wechatQr: '/images/wechat-qr.png',
   },

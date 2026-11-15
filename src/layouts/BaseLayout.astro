@@ -29,6 +29,9 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
+  /** Optional social-image dimensions (articles use their 3:2 cover). */
+  imageWidth?: number;
+  imageHeight?: number;
   type?: 'website' | 'article';
   noindex?: boolean;
   /** Locale-free pathname, e.g. "/works". Defaults to the current URL. */
@@ -42,6 +45,8 @@ const {
   title,
   description,
   image = '/og/default.png',
+  imageWidth = 1200,
+  imageHeight = 630,
   type = 'website',
   noindex = false,
   wide = false,
@@ -66,16 +71,66 @@ const fullTitle = title
 const desc = description ?? lt(profile.seo.description, lang);
 const ogImage = new URL(image, siteUrl).href;
 
-const jsonLdPerson = {
+const personId = `${siteUrl.href}#person`;
+const websiteId = `${siteUrl.href}#website`;
+
+const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Person',
-  name: siteName,
-  alternateName: profile.latinName,
-  url: siteUrl.href,
-  jobTitle: lt(profile.role, lang),
-  email: `mailto:${profile.contact.email}`,
-  address: { '@type': 'PostalAddress', addressLocality: lt(profile.location, lang) },
-  sameAs: profile.socials.filter((s) => s.href.startsWith('http')).map((s) => s.href),
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': personId,
+      name: siteName,
+      alternateName: ['宋谦', 'Song Qian'],
+      url: siteUrl.href,
+      image: new URL('/og/default.png', siteUrl).href,
+      email: `mailto:${profile.contact.email}`,
+      jobTitle: lt(profile.role, lang),
+      description: desc,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: lang === 'zh' ? '石家庄' : 'Shijiazhuang',
+        addressCountry: 'CN',
+      },
+      worksFor: { '@type': 'Organization', name: 'Fumamx', alternateName: '孚盟软件' },
+      alumniOf: {
+        '@type': 'CollegeOrUniversity',
+        name: 'Hebei University of Engineering Technology',
+        alternateName: '河北工程技术学院',
+      },
+      knowsLanguage: ['zh-CN', 'en'],
+      knowsAbout: [
+        'AI implementation',
+        'sales engineering',
+        'foreign-trade SaaS',
+        'TypeScript',
+        'Astro',
+        'MCP (Model Context Protocol)',
+        'design systems',
+        'knowledge management',
+        'tennis',
+      ],
+      sameAs: profile.socials.filter((s) => s.href.startsWith('http')).map((s) => s.href),
+    },
+    {
+      '@type': 'WebSite',
+      '@id': websiteId,
+      url: siteUrl.href,
+      name: siteName,
+      alternateName: '宋谦的个人网站',
+      description: desc,
+      inLanguage: ['zh-CN', 'en'],
+      publisher: { '@id': personId },
+    },
+    {
+      '@type': 'Blog',
+      '@id': `${siteUrl.href}#blog`,
+      name: '宋谦 · 写作 / Song Qian · Writing',
+      url: new URL('/writing/', siteUrl).href,
+      inLanguage: ['zh-CN', 'en'],
+      author: { '@id': personId },
+    },
+  ],
 };
 ---
 
@@ -93,6 +148,12 @@ const jsonLdPerson = {
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{fullTitle}</title>
     <meta name="description" content={desc} />
+    {noindex ? (
+      <meta name="robots" content="noindex, nofollow" />
+    ) : (
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    )}
+    <meta name="author" content="宋谦 (Song Qian)" />
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={canonical} />
 
@@ -130,6 +191,12 @@ const jsonLdPerson = {
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="apple-mobile-web-app-title" content={profile.latinName} />
 
+    <!-- Identity: rel=me tells engines these profiles are the same person. -->
+    <link rel="me" href={profile.socials.find((s) => s.label === 'GitHub')?.href ?? SITE.github} />
+    <link rel="me" href={`mailto:${profile.contact.email}`} />
+    <!-- Machine-readable site summary for generative engines. -->
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+
     <link
       rel="alternate"
       type="application/rss+xml"
@@ -152,8 +219,8 @@ const jsonLdPerson = {
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image:width" content={String(imageWidth)} />
+    <meta property="og:image:height" content={String(imageHeight)} />
     <meta property="og:image:alt" content={`${siteName} — ${lt(profile.tagline, lang)}`} />
     <meta property="og:locale" content={meta.ogLocale} />
     {alternates
@@ -165,11 +232,9 @@ const jsonLdPerson = {
     <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:image:alt" content={`${siteName} — ${lt(profile.tagline, lang)}`} />
 
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
-
     <slot name="head" />
 
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLdPerson)} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
 
   <body class="grain relative min-h-dvh overflow-x-clip">

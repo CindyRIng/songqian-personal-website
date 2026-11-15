@@ -14,7 +14,7 @@ import Icon from '../components/ui/Icon.astro';
 import TimelineEntry from '../components/timeline/TimelineEntry.astro';
 import { copy, c } from '../data/copy';
 import { localizePath, useTranslations } from '../i18n/utils';
-import type { Locale } from '../i18n/config';
+import { SITE, localeMeta, type Locale } from '../i18n/config';
 import {
   TIMELINE_TYPES,
   TIMELINE_TYPE_KEYS,
@@ -34,6 +34,31 @@ const entries = getTimeline(lang);
 const groups = groupTimelineByYear(entries);
 const counts = countTimelineByType(entries);
 const activeTypes = TIMELINE_TYPES.filter((type) => counts[type] > 0);
+
+const siteUrl = Astro.site ?? new URL(SITE.url);
+const timelineJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      name: c(copy.timeline.title, lang),
+      description: c(copy.meta.timelineDescription, lang),
+      url: new URL(localizePath('/timeline', lang), siteUrl).href,
+      inLanguage: localeMeta[lang].htmlLang,
+    },
+    {
+      '@type': 'ItemList',
+      itemListElement: entries.map((entry, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: `${entry.org} · ${entry.role}`,
+        description: entry.summary,
+        startDate: entry.start,
+        endDate: entry.end ?? undefined,
+      })),
+    },
+  ],
+};
 ---
 
 <BaseLayout
@@ -43,6 +68,9 @@ const activeTypes = TIMELINE_TYPES.filter((type) => counts[type] > 0);
   path="/timeline"
   wide
 >
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(timelineJsonLd)} />
+  </Fragment>
   <header class="wrap pt-2 sm:pt-6">
     <SectionHeading
       number="03"
