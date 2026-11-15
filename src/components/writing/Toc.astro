@@ -218,11 +218,11 @@ const items = headings.filter((heading) => heading.depth === 2);
     }
   }
 
-  /* ClientRouter: re-bind the rail on every client-side navigation. */
-  let lastBootedPath = '';
+  /* ClientRouter: re-bind the rail after every page swap (body-node guard). */
+  let lastBootedBody: HTMLElement | null = null;
   function bootToc() {
-    if (location.pathname === lastBootedPath) return;
-    lastBootedPath = location.pathname;
+    if (document.body === lastBootedBody) return;
+    lastBootedBody = document.body;
     initToc();
   }
   document.addEventListener('astro:page-load', bootToc);

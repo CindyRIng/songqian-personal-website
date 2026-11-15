@@ -390,12 +390,17 @@ const jsonLdPerson = {
         if (anchor) prefetchLink(anchor);
       }, { passive: true });
 
-      /* --- Boot / re-boot on every client-side navigation ------------------- */
-      let lastBootedPath = '';
+      /* --- Boot / re-boot on every client-side navigation -------------------
+       * Guard on the <body> node rather than the pathname: a navigation to the
+       * same URL (e.g. re-selecting the current language) still swaps the body,
+       * so its scripts must be re-initialised. A stable body means the initial
+       * load double-event (page-load + load) is only booted once.
+       * -------------------------------------------------------------------- */
+      let lastBootedBody: HTMLElement | null = null;
 
       function bootPage() {
-        if (location.pathname === lastBootedPath) return;
-        lastBootedPath = location.pathname;
+        if (document.body === lastBootedBody) return;
+        lastBootedBody = document.body;
 
         initReveal();
         initProgress();
@@ -423,11 +428,7 @@ const jsonLdPerson = {
 
       document.addEventListener('astro:page-load', bootPage);
       // Fallback: if the router never boots, the first load still works.
-      window.addEventListener('load', () => {
-        window.setTimeout(() => {
-          if (!document.documentElement.classList.contains('js')) bootPage();
-        }, 0);
-      });
+      window.addEventListener('load', bootPage);
     </script>
 
     <slot name="scripts" />

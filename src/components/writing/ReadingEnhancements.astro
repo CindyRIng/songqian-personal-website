@@ -255,11 +255,11 @@ const labels = {
     }
   }
 
-  /* ClientRouter: re-run on every client-side navigation to an article. */
-  let lastBootedPath = '';
+  /* ClientRouter: re-run after every page swap (body-node guard). */
+  let lastBootedBody: HTMLElement | null = null;
   function bootReading() {
-    if (location.pathname === lastBootedPath) return;
-    lastBootedPath = location.pathname;
+    if (document.body === lastBootedBody) return;
+    lastBootedBody = document.body;
     initReading();
   }
   document.addEventListener('astro:page-load', bootReading);

@@ -176,7 +176,7 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
   }
 
   function finishClose(panel: HTMLElement) {
-    if (!panel.dataset.closing) return;
+    if (panel.dataset.closing !== 'true') return;
     panel.hidden = true;
     delete panel.dataset.closing;
   }
@@ -190,7 +190,7 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
       panel.hidden = true;
       return;
     }
-    panel.dataset.closing = '';
+    panel.dataset.closing = 'true';
     window.setTimeout(() => finishClose(panel), exitDuration);
   }
 
@@ -233,8 +233,12 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
       });
 
       // Following a language link resets the popover for bfcache restores.
+      // Re-selecting the current language is a no-op: close without navigating.
       panel.addEventListener('click', (event) => {
-        if ((event.target as Element | null)?.closest('a')) close(root);
+        const link = (event.target as Element | null)?.closest('a');
+        if (!link) return;
+        if (link.getAttribute('aria-current')) event.preventDefault();
+        close(root);
       });
     });
   }
@@ -246,11 +250,12 @@ const triggerClass: Record<NonNullable<Props['variant']>, string> = {
     });
   });
 
-  /* ClientRouter: rebind to the popovers in the newly swapped page. */
-  let lastBootedPath = '';
+  /* ClientRouter: rebind after every page swap — including same-URL swaps,
+     which is why the guard tracks the <body> node instead of the pathname. */
+  let lastBootedBody: HTMLElement | null = null;
   function bootLangSwitcher() {
-    if (location.pathname === lastBootedPath) return;
-    lastBootedPath = location.pathname;
+    if (document.body === lastBootedBody) return;
+    lastBootedBody = document.body;
     bindRoots();
   }
   document.addEventListener('astro:page-load', bootLangSwitcher);
