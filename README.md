@@ -4,7 +4,7 @@ The personal site of **宋谦 (Song Qian)** — account manager at [Fumamx](http
 
 A hand-built, bilingual (Chinese-first / English at `/en/`) static site in a warm paper-and-ink editorial language: a magazine masthead, oversized serif type, a full-bleed engraved art plate, CLI terminal project cards, and restrained but choreographed motion.
 
-**Live:** https://songqian.me *(custom domain — DNS record pending)* · **Mirror:** https://songqian-personal-website.pages.dev · **Repo:** https://github.com/CindyRIng/songqian-personal-website
+**Live:** https://songqian.me · **Repo:** https://github.com/CindyRIng/songqian-personal-website
 
 ## Preview
 
@@ -104,6 +104,8 @@ pnpm deploy                  # build + wrangler pages deploy
 node scripts/indexnow.mjs https://songqian.me   # submit sitemap to IndexNow
 ```
 
+> The custom domain, TLS certificate, www→apex redirect and legacy-host redirect are all configured; the sitemap was submitted to IndexNow (HTTP 202). For Google, verify the domain in Search Console and submit `https://songqian.me/sitemap-index.xml`.
+
 ## SEO & GEO
 
 - **Canonical domain** `songqian.me`, `hreflang` zh-CN / en / x-default, per-page titles + descriptions, per-article social images (`public/og/posts/*.jpg`), XML sitemap, two RSS feeds, `rel=me` identity links.
@@ -124,7 +126,7 @@ node scripts/indexnow.mjs https://songqian.me   # submit sitemap to IndexNow
 
 ## Deployment
 
-- **Cloudflare Pages** project: `songqian-personal-website` → https://songqian-personal-website.pages.dev
+- **Cloudflare Pages** project: `songqian-personal-website` — custom domain **https://songqian.me** (apex CNAME → Pages, proxied), `www.songqian.me` 301s to the apex, and the legacy `*.pages.dev` host 301s to the domain via `functions/_middleware.ts`.
 - Manual deploy: `pnpm deploy`.
 - **Automated deploy (ready to enable):** `.github/ci/deploy-cloudflare.yml` builds and deploys on every push to `main`. Move it to `.github/workflows/deploy.yml` once the GitHub credential has the `workflow` scope (`gh auth refresh -s workflow`). The `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` repository secrets are already configured.
 
