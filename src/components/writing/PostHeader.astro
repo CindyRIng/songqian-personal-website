@@ -1,17 +1,14 @@
 ---
 /**
- * PostHeader — the article opener.
+ * PostHeader — the article opener (A+ direction).
  *
- * Eyebrow category · date, a large serif title (clamp 1.9–2.4rem), the
- * description as a muted lede, then the quiet metadata row. When the essay is
- * a translation fallback, an honest note appears in the reader's language.
+ * Category / date / reading time label, an oversized serif title, the other
+ * language's title as an italic subtitle, then the lede.
  */
 import { formatDate, isoDate, useTranslations } from '../../i18n/utils';
-import type { Locale } from '../../i18n/config';
 import type { TranslationKey } from '../../i18n/ui';
+import type { Locale } from '../../i18n/config';
 import type { PostEntry } from '../../lib/posts';
-import PostMeta from './PostMeta.astro';
-import FallbackNote from './FallbackNote.astro';
 
 interface Props {
   post: PostEntry;
@@ -20,36 +17,36 @@ interface Props {
 
 const { post, lang } = Astro.props;
 const t = useTranslations(lang);
-const categoryKey = `writing.category.${post.category}` as TranslationKey;
+const categoryKey = (`writing.category.${post.category}`) as TranslationKey;
+const otherLocale: Locale = lang === 'zh' ? 'en' : 'zh';
+const subtitle = post.titleByLocale[otherLocale];
 ---
-<header class="flex flex-col gap-4">
-  <p class="eyebrow flex flex-wrap items-center gap-x-2 gap-y-1">
-    <span class="text-accent">{t(categoryKey)}</span>
+<header class="flex flex-col">
+  <p class="flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-accent">
+    <span>{t(categoryKey)}</span>
     <span aria-hidden="true" class="text-faint">·</span>
-    <time datetime={isoDate(post.date)}>{formatDate(post.date, lang, 'short')}</time>
+    <time datetime={isoDate(post.date)} class="tabular text-subtle">
+      {formatDate(post.date, lang, 'long')}
+    </time>
+    <span aria-hidden="true" class="text-faint">·</span>
+    <span class="tabular text-subtle">{t('common.minRead', { n: post.readingTime })}</span>
   </p>
 
   <h1
-    class="font-serif text-[clamp(1.875rem,1.45rem+1.7vw,2.375rem)] font-[550] leading-[1.12] tracking-[-0.018em] text-ink-strong text-balance"
+    class="mt-6 font-serif text-[clamp(2rem,5vw,3.25rem)] font-[520] leading-[1.1] tracking-[-0.028em] text-ink-strong text-balance"
   >
     {post.title}
   </h1>
 
-  <p class="font-serif text-[1.25rem] leading-[1.5] tracking-[-0.006em] text-muted text-pretty">
-    {post.description}
-  </p>
+  {
+    subtitle && (
+      <p class="display-latin mt-4 text-[1.25rem] leading-[1.4] text-muted sm:text-[1.5rem]">
+        {subtitle}
+      </p>
+    )
+  }
 
-  <div class="flex flex-col gap-2 pt-0.5">
-    <PostMeta post={post} lang={lang} dateStyle="long" />
-    {post.isFallback && <FallbackNote lang={lang} sourceLang={post.lang} />}
-    {
-      post.updated && (
-        <p class="font-sans text-[0.75rem] leading-none text-subtle">
-          {t('common.updated')}
-          {' '}
-          <time datetime={isoDate(post.updated)}>{formatDate(post.updated, lang, 'short')}</time>
-        </p>
-      )
-    }
-  </div>
+  <p class="lede mt-7 max-w-[35rem]">{post.description}</p>
+
+  <div class="mt-8 h-px w-full bg-line"></div>
 </header>

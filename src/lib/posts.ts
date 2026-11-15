@@ -35,6 +35,10 @@ export interface PostEntry {
   translations: Locale[];
   title: string;
   description: string;
+  /** Title in each locale this slug has, for the bilingual subtitle. */
+  titleByLocale: Partial<Record<Locale, string>>;
+  /** Description in each locale this slug has. */
+  descriptionByLocale: Partial<Record<Locale, string>>;
   date: Date;
   updated?: Date;
   tags: string[];
@@ -141,6 +145,12 @@ function toPostEntry(
   const computedReadingTime = data.readingTime ?? estimateReadingTime(text);
 
   const entryLocales = [...byLocale.keys()];
+  const titleByLocale: Partial<Record<Locale, string>> = {};
+  const descriptionByLocale: Partial<Record<Locale, string>> = {};
+  for (const [locale, localized] of byLocale) {
+    titleByLocale[locale] = localized.data.title;
+    descriptionByLocale[locale] = localized.data.description;
+  }
 
   return {
     slug,
@@ -150,6 +160,8 @@ function toPostEntry(
     translations: locales.filter((l) => entryLocales.includes(l)),
     title: data.title,
     description: data.description,
+    titleByLocale,
+    descriptionByLocale,
     date: data.date,
     updated: data.updated,
     tags: data.tags ?? [],

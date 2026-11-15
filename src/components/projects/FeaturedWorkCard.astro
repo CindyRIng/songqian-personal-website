@@ -1,0 +1,94 @@
+---
+/**
+ * FeaturedWorkCard — the two large featured cards on the Works index.
+ *
+ * A+ direction: a credible CLI window (forge's ui/TerminalCard) with the
+ * project's real bilingual metadata underneath — title, slug, one-liner,
+ * metric line and the status dot.
+ */
+import TerminalCard from '../ui/TerminalCard.astro';
+import Icon from '../ui/Icon.astro';
+import { localizePath, useTranslations } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+import { PROJECT_CATEGORIES, PROJECT_STATUS_KEYS, type ProjectEntry } from '../../lib/projects';
+import type { TerminalData } from './terminal';
+
+interface Props {
+  lang: Locale;
+  project: ProjectEntry;
+  terminal: TerminalData;
+  /** Stagger for the scroll reveal, in ms. */
+  delay?: number;
+}
+
+const { lang, project, terminal, delay = 0 } = Astro.props;
+
+const t = useTranslations(lang);
+const href = localizePath(`/works/${project.slug}`, lang);
+const statusLabel = t(PROJECT_STATUS_KEYS[project.status]);
+const isCurrent = project.status === 'live' || project.status === 'in-progress';
+const primaryCategory = PROJECT_CATEGORIES.find((category) => project.tags.includes(category));
+const typeLabel = primaryCategory ? t(`filter.${primaryCategory}` as never) : t('filter.tool');
+const metrics = project.metrics.slice(0, 3);
+---
+
+<article
+  class="group flex h-full flex-col gap-5"
+  data-work-item
+  data-tags={project.tags.join(' ')}
+  data-reveal
+  style={`--reveal-delay: ${delay}ms`}
+>
+  <a
+    href={href}
+    class="flex h-full flex-col gap-5 rounded-[6px] focus-visible:outline-none"
+    aria-label={`${project.title} — ${t('actions.viewProject')}`}
+  >
+    <TerminalCard
+      title={terminal.title}
+      caption={terminal.caption}
+      meta={terminal.meta}
+      lines={terminal.lines}
+      variant={terminal.variant}
+      class="transition-transform duration-300 ease-[var(--ease-out)] group-hover:-translate-y-1"
+    />
+
+    <div class="flex flex-1 flex-col gap-3">
+      <div class="flex items-center justify-between gap-3">
+        <span class="label">{t('nav.works')} / {typeLabel}</span>
+        <span class="mono inline-flex items-center gap-1.5 text-[0.6875rem] uppercase tracking-[0.12em] text-muted">
+          <span class:list={['size-1.5 rounded-full', isCurrent ? 'bg-accent' : 'bg-subtle']}></span>
+          {statusLabel}
+        </span>
+      </div>
+
+      <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h3 class="h3 transition-colors duration-200 group-hover:text-accent-deep">{project.title}</h3>
+        <span class="mono text-[0.75rem] text-subtle">{project.slug}</span>
+      </div>
+
+      <p class="max-w-[52ch] text-pretty text-[1rem] leading-[1.65] text-muted">{project.tagline}</p>
+
+      <div class="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-line pt-3">
+        <ul class="mono flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[0.6875rem] text-ink">
+          {
+            metrics.map((metric) => (
+              <li class="inline-flex items-baseline gap-1.5">
+                <span class="text-[0.8125rem] text-ink-strong">{metric.value}</span>
+                <span class="text-subtle">{metric.label}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <span class="inline-flex items-center gap-1.5 text-[0.8125rem] text-muted transition-colors duration-200 group-hover:text-accent-deep">
+          {t('actions.viewProject')}
+          <Icon
+            name="arrow-right"
+            size={14}
+            class="transition-transform duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5"
+          />
+        </span>
+      </div>
+    </div>
+  </a>
+</article>

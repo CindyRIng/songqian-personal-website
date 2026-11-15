@@ -1,0 +1,252 @@
+---
+/**
+ * TerminalCard — a credible, CSS-only terminal window.
+ *
+ *   ● ● ●   fuma — zsh — 120×32                        CLI
+ *   $ fuma tools --list
+ *   ✓ 43 capabilities / 4 interfaces
+ *   $
+ *
+ * Both variants are dark windows (the "screenshot" doubles as the project
+ * cover); `paper` is warm charcoal, `evergreen` is deep green. No images, no
+ * clipboard behaviour — purely presentational (aria-hidden, labelled wrapper).
+ */
+interface TerminalLine {
+  cmd?: string;
+  out?: string;
+  tone?: 'accent' | 'muted' | 'dim';
+}
+
+interface Props {
+  title: string;
+  caption?: string;
+  meta?: string;
+  lines: TerminalLine[];
+  variant?: 'paper' | 'evergreen';
+  /** Blinking cursor after the last line (disabled by reduced-motion CSS). */
+  cursor?: boolean;
+  class?: string;
+}
+
+const {
+  title,
+  caption,
+  meta,
+  lines,
+  variant = 'paper',
+  cursor = true,
+  class: className = '',
+} = Astro.props;
+---
+
+<div
+  class:list={['terminal-card', `terminal-card--${variant}`, className]}
+  role="img"
+  aria-label={`${title}${caption ? ` — ${caption}` : ''}`}
+>
+  <div class="term-bar" aria-hidden="true">
+    <span class="term-dots"><i></i><i></i><i></i></span>
+    <span class="term-title">{title}</span>
+    {meta && <span class="term-meta">{meta}</span>}
+  </div>
+
+  <div class="term-body" aria-hidden="true">
+    {
+      lines.map((line) => (
+        <p class="term-line">
+          {line.cmd ? (
+            <>
+              <span class="term-prompt">$</span> <span class="term-cmd">{line.cmd}</span>
+            </>
+          ) : (
+            <span class:list={['term-out', line.tone && `term-${line.tone}`]}>
+              {line.out}
+            </span>
+          )}
+        </p>
+      ))
+    }
+    {
+      cursor && (
+        <p class="term-line term-last">
+          <span class="term-prompt">$</span> <span class="term-cursor" aria-hidden="true"></span>
+        </p>
+      )
+    }
+  </div>
+
+  {caption && <p class="term-caption" aria-hidden="true">{caption}</p>}
+</div>
+
+<style>
+  .terminal-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid color-mix(in oklab, var(--ink) 50%, transparent);
+    background: #2a2620;
+    color: #ede6d7;
+    box-shadow: 0 24px 44px -30px rgb(36 33 28 / 0.55);
+    overflow: hidden;
+  }
+
+  .terminal-card--evergreen {
+    background: #17251e;
+    border-color: color-mix(in oklab, #17251e 70%, transparent);
+    box-shadow: 0 24px 44px -30px rgb(20 35 27 / 0.55);
+  }
+
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    height: 1.875rem;
+    padding-inline: 0.75rem;
+    background: #332e27;
+    border-bottom: 1px solid rgb(237 230 215 / 0.1);
+    flex: 0 0 auto;
+  }
+
+  .terminal-card--evergreen .term-bar {
+    background: #1e2f26;
+    border-bottom-color: rgb(234 228 213 / 0.1);
+  }
+
+  .term-dots {
+    display: flex;
+    gap: 4px;
+  }
+
+  .term-dots i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgb(237 230 215 / 0.3);
+  }
+
+  .term-title {
+    margin-inline-start: 2px;
+    font-family: var(--font-mono);
+    font-size: 0.5938rem;
+    letter-spacing: 0.04em;
+    color: rgb(237 230 215 / 0.58);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .term-meta {
+    margin-inline-start: auto;
+    font-family: var(--font-mono);
+    font-size: 0.5313rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(237 230 215 / 0.34);
+    white-space: nowrap;
+  }
+
+  .term-body {
+    height: var(--term-h, clamp(14.5rem, 20vw, 17.5rem));
+    padding: 0.9375rem 1rem 0.875rem;
+    font-family: var(--font-mono);
+    font-size: clamp(0.5938rem, 0.72vw, 0.6875rem);
+    line-height: 1.72;
+    letter-spacing: 0.01em;
+    color: rgb(237 230 215 / 0.86);
+    overflow: hidden;
+  }
+
+  .terminal-card--evergreen .term-body {
+    color: rgb(234 228 213 / 0.88);
+  }
+
+  .term-line {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .term-line + .term-line {
+    margin-top: 0.125rem;
+  }
+
+  .term-prompt {
+    color: #a6be87;
+  }
+
+  .terminal-card--evergreen .term-prompt {
+    color: #b7cc9b;
+  }
+
+  .term-cmd {
+    color: #f2ecdf;
+  }
+
+  .term-accent {
+    color: #a6be87;
+  }
+
+  .terminal-card--evergreen .term-accent {
+    color: #c3d6a4;
+  }
+
+  .term-muted {
+    color: rgb(237 230 215 / 0.6);
+  }
+
+  .term-dim {
+    color: rgb(237 230 215 / 0.38);
+  }
+
+  .term-cursor {
+    display: inline-block;
+    width: 0.375rem;
+    height: 0.75rem;
+    background: #a6be87;
+    vertical-align: -1px;
+    animation: term-blink 1.2s steps(1) infinite;
+  }
+
+  .terminal-card--evergreen .term-cursor {
+    background: #b7cc9b;
+  }
+
+  @keyframes term-blink {
+    0%,
+    48% {
+      opacity: 0.85;
+    }
+    49%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .term-caption {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.25rem 0.125rem 0;
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .term-cursor {
+      animation: none;
+      opacity: 0.8;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .term-body {
+      height: clamp(12rem, 52vw, 15rem);
+      font-size: 0.625rem;
+      line-height: 1.68;
+    }
+  }
+</style>

@@ -2,7 +2,7 @@
 # Source of truth: https://github.com/CindyRIng/tanji-client README (2026-11).
 title: 'Tanji Client'
 tagline: 'A local client for Tanji AI prospecting: one owner process, multi-account sessions, a cache you can measure.'
-description: 'tanji-client wraps Tanji AI prospecting into a local service: resident cloak browser session, multi-account isolation, CLI / REST / MCP / SKILL entry points, SQLite cache, priority/bulk rate limiting and a 345-condition filter registry.'
+description: 'A local client for Tanji AI prospecting: resident cloak browser session, per-account isolation, CLI / REST / MCP / SKILL entry points, SQLite cache, priority/bulk rate limiting and a 345-condition filter registry.'
 year: 2026
 role: 'Design & development, solo'
 team: 'Solo'
@@ -24,26 +24,30 @@ featured: false
 order: 6
 ---
 
-Tanji is a prospecting platform: search companies, filter them, read a company's registration, shareholders and key people, and — if you spend quota — a contact. It is genuinely powerful in a browser and genuinely annoying from a program: login depends on SSO cookies, frequent requests trigger rate limiting, the page APIs change, and multiple scripts sharing one account fight over the same browser profile.
+Tanji is genuinely powerful in a browser and genuinely awkward from a program: login depends on SSO cookies, frequent requests trigger rate limits, page APIs change, and multiple scripts sharing one account fight over the same browser profile.
 
-tanji-client converges all of that into one local owner process: a browser, a REST service, a cache and a rate limiter. Other processes — CLI, MCP, scripts — talk to the local REST API and never open a browser themselves.
+## The problem
 
-## One owner, many accounts
+Tanji charges by quota. Searching companies, reading registration data, shareholders and key people, and unlocking contact details all spend quota. Doing that by hand in a web page is slow and easy to waste on poor-fit leads. I wanted a local interface that caches, limits its own request rate and can be called by an agent — without getting the account blocked.
 
-Each account gets its own profile, cache and port. A single service owns the browser; the MCP server by default only proxies to REST and never holds the profile, so the "already running" lock problem disappears. Login is phone and password → SSO → the prospecting product, with an explicit recovery path for the awkward state where the account centre is logged in but the product session has expired. Captchas fall back to a visible browser.
+## What I built
 
-## Filters as data
+tanji-client converges all of this into one local owner process: a browser, a REST service, a cache and a rate limiter. Other processes — CLI, MCP, scripts — talk to the local REST API and never open a browser themselves.
 
-The search surface has 12 categories and 345 advanced filter conditions. Rather than hard-code a form, the client ships a filter registry generated from one source and accepts filter files. Advanced filtering becomes a data problem instead of a UI problem.
+Multi-account support gives every account its own profile, cache and port. MCP only proxies to REST by default and never holds the profile, so the "already running" lock problem disappears.
 
-## Rate limiting is product design
+## Architecture notes
 
-Prospecting is quota-metered, so thrift is a feature. Company detail can be fetched in a light mode to save calls; unlock defaults to a single upstream call; and the limiter has two channels — priority for unlocks and logins, bulk for reads — so a long batch run never blocks an unlock. The cache is cache-aside with TTLs, roughly one to two milliseconds on a hit, and there is a clear command for when you need the truth.
-
-## Interfaces and honesty
-
-13 MCP tools, a CLI with per-operation documentation, REST with OpenAPI, and a SKILL for agents, backed by 59 vitest cases. The README lists real limits: the cache has no LRU, some cache keys ignore sort order, and unlock consumes quota — which is why it requires an explicit confirmation flag. The licence is Unlicense: public domain.
+- Filters are data, not a form: 12 categories and 345 advanced filter conditions live in a registry, and the client accepts filter files. Advanced filtering becomes a data problem.
+- Rate limiting is product design: company detail has a light mode that fetches only the basic and detail sections; unlock spends a single upstream call by default; the limiter has two channels — priority for unlocks and logins, bulk for reads — so a long batch never blocks an unlock.
+- Cache: cache-aside with TTLs, roughly one to two milliseconds on a hit, plus a clear command for when you need the truth.
+- Login: handles the awkward state where the account centre is still logged in but the product session expired; captchas fall back to a visible browser.
+- Operations: systemd service, multi-account startup, log rotation, health checks.
 
 ## What I learned
 
-Multi-account systems are isolation problems before they are feature problems. Rate limiting should be designed together with the API, not bolted on after the first blocked account. And when the upstream is a changing web surface, the adapter layer is where you budget your maintenance time.
+Multi-account systems are isolation problems before they are feature problems. Rate limiting should be designed with the API, not patched in after the first account gets limited.
+
+Honesty matters too: the README states the real limits — the cache has no LRU, some cache keys ignore sort order, and unlock consumes quota so it requires explicit confirmation. Writing that down made the tool easier to trust, not harder.
+
+59 tests, 13 MCP tools, 345 filter conditions. The project is released under the Unlicense (public domain).

@@ -1,0 +1,15 @@
+---
+import WorkView from '../../../views/WorkView.astro';
+import { defaultLocale, isLocale, secondaryLocales, type Locale } from '../../../i18n/config';
+import { getAllProjectSlugs } from '../../../lib/projects';
+
+export async function getStaticPaths() {
+  const slugs = await getAllProjectSlugs();
+  return secondaryLocales.flatMap((lang) => slugs.map((slug) => ({ params: { lang, slug } })));
+}
+
+const { lang: rawLang, slug = '' } = Astro.params;
+const lang = (isLocale(rawLang) ? rawLang : defaultLocale) as Locale;
+---
+
+<WorkView lang={lang} slug={slug} />

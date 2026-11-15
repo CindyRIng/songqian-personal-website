@@ -1,0 +1,610 @@
+---
+/**
+ * WorksSection — "工作 Works": two featured terminal cards + four compact tool
+ * rows. Data comes from src/lib/projects.ts; strings from copy.ts; terminal
+ * "screenshots" from ./works-terminal.ts.
+ */
+import SectionHeading from '../ui/SectionHeading.astro';
+import TerminalCard from '../ui/TerminalCard.astro';
+import { copy, c, pair } from '../../data/copy';
+import type { ProjectEntry, ProjectStatus } from '../../lib/projects';
+import { localizePath, useTranslations } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+import type { TranslationKey } from '../../i18n/ui';
+import { terminalFor } from './works-terminal';
+import { chromeLabel, bilingualPair } from './labels';
+
+interface Props {
+  lang: Locale;
+  /** Featured projects (usually 2), in editorial order. */
+  featured: ProjectEntry[];
+  /** Remaining tools (compact rows). */
+  tools: ProjectEntry[];
+  /** Total tool count for the section meta. */
+  total: number;
+}
+
+const { lang, featured, tools, total } = Astro.props;
+const t = useTranslations(lang);
+
+const section = copy.sections.works;
+const sectionTitle = pair(section.title, lang);
+const worksHref = localizePath('/works', lang);
+const viewProject = chromeLabel('workView', lang);
+
+const statusKey: Record<ProjectStatus, TranslationKey> = {
+  live: 'status.live',
+  shipped: 'status.shipped',
+  'in-progress': 'status.inProgress',
+  archived: 'status.archived',
+  concept: 'status.concept',
+};
+
+const TAG_LABEL_KEY: Record<string, TranslationKey> = {
+  product: 'filter.product',
+  tool: 'filter.tool',
+  experiment: 'filter.experiment',
+};
+const typeLabel = (project: ProjectEntry) => {
+  const tag = project.tags[0];
+  if (!tag) return '—';
+  const key = TAG_LABEL_KEY[tag];
+  const localized = key ? t(key) : tag;
+  // Chinese pages read "产品 · PRODUCT"; English pages would otherwise repeat
+  // themselves ("Product · PRODUCT"), so they keep the mono form only.
+  return lang === 'zh' ? `${localized} · ${tag.toUpperCase()}` : tag.toUpperCase();
+};
+
+const moreTools = bilingualPair('其余工具', 'More tools', lang);
+
+const metricLine = (project: ProjectEntry) =>
+  project.metrics
+    .slice(0, 2)
+    .map((metric) => `${metric.value} ${metric.label}`)
+    .join(' · ');
+---
+
+<section class="works section" aria-labelledby="works-title" data-reveal>
+  <div class="wrap">
+    <SectionHeading
+      number={section.number}
+      title={sectionTitle.title}
+      en={sectionTitle.secondary}
+      lede={c(section.lede, lang)}
+      href={worksHref}
+      actionLabel={c(section.action, lang)}
+      id="works-title"
+    />
+
+    <div class="featured-grid">
+      {
+        featured.map((project, index) => {
+          const terminal = terminalFor(project.slug, project.title, project.metrics);
+          const variant = index % 2 === 0 ? 'paper' : 'evergreen';
+          const href = localizePath(`/works/${project.slug}`, lang);
+          return (
+            <article class="featured-card">
+              <a class="featured-cover" href={href} tabindex="-1" aria-hidden="true">
+                <span class="cover-grid" />
+                <span class="cover-ring cover-ring--a" />
+                <span class="cover-ring cover-ring--b" />
+                <TerminalCard
+                  title={terminal.window}
+                  meta={terminal.meta}
+                  lines={terminal.lines}
+                  variant={variant}
+                  class="featured-terminal"
+                />
+                <span class="cover-caption mono">
+                  <span>FIG. {String(index + 1).padStart(2, '0')} — {project.slug}</span>
+                  <span>{project.stack.slice(0, 2).join(' · ')}</span>
+                </span>
+              </a>
+
+              <div class="featured-body">
+                <div class="featured-meta">
+                  <span>
+                    {typeLabel(project)} · {project.year}
+                  </span>
+                  <span class="status-line">
+                    <span class="status-dot" aria-hidden="true" />
+                    {t(statusKey[project.status])}
+                  </span>
+                </div>
+                <h3 class="featured-title">
+                  <a href={href}>{project.title}</a>
+                </h3>
+                <p class="featured-slug mono">{project.slug}</p>
+                <p class="featured-desc">{project.tagline}</p>
+                <p class="featured-metrics mono">{metricLine(project)}</p>
+                <div class="featured-foot">
+                  <p class="featured-stack mono">{project.stack.join(' / ')}</p>
+                  <a class="featured-go" href={href}>
+                    {viewProject} <span aria-hidden="true">→</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+          );
+        })
+      }
+    </div>
+
+    <p class="more-label">
+      {moreTools.primary}
+      <span aria-hidden="true">/</span>
+      <span class="more-label-secondary">{moreTools.secondary}</span>
+    </p>
+    <div class="tool-rows">
+      {
+        tools.map((project, index) => {
+          const href = localizePath(`/works/${project.slug}`, lang);
+          return (
+            <a class="tool-row" href={href}>
+              <span class="tool-num mono">{String(index + 3).padStart(2, '0')}</span>
+              <span class="tool-main">
+                <span class="tool-title">{project.title}</span>
+                <span class="tool-slug mono">{project.slug}</span>
+              </span>
+              <span class="tool-desc">
+                <span class="tool-metrics mono">{metricLine(project)}</span>
+                <span class="tool-line">{project.tagline}</span>
+              </span>
+              <span class="tool-end mono">
+                <span class="tool-status">{t(statusKey[project.status])}</span>
+                <span class="tool-year">{project.year}</span>
+              </span>
+              <span class="tool-arrow" aria-hidden="true">→</span>
+            </a>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /* --- featured cards ---------------------------------------------------- */
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.75rem, 3.4vw, 2.75rem);
+    margin-top: 2.25rem;
+  }
+
+  .featured-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .featured-cover {
+    position: relative;
+    display: block;
+    padding: 1.5rem 1.5rem 0.8125rem;
+    overflow: hidden;
+    text-decoration: none;
+    background: linear-gradient(
+      152deg,
+      var(--paper) 0%,
+      color-mix(in oklab, var(--sage-tint) 72%, var(--paper)) 62%,
+      var(--sage-tint) 100%
+    );
+    border: 1px solid var(--line-strong);
+    transition:
+      border-color var(--dur-2, 200ms) ease-out,
+      box-shadow var(--dur-2, 200ms) ease-out;
+  }
+
+  .featured-card:nth-child(2n) .featured-cover {
+    background: linear-gradient(
+      152deg,
+      color-mix(in oklab, var(--paper) 60%, var(--sage-tint)) 0%,
+      var(--sage-tint) 58%,
+      color-mix(in oklab, var(--sage-tint) 70%, var(--accent)) 100%
+    );
+  }
+
+  .cover-grid {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, transparent 0 49.8%, color-mix(in oklab, var(--ink) 8%, transparent) 49.8% 50%, transparent 50%),
+      linear-gradient(180deg, transparent 0 49.8%, color-mix(in oklab, var(--ink) 6%, transparent) 49.8% 50%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .cover-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid color-mix(in oklab, var(--accent-deep) 22%, transparent);
+    pointer-events: none;
+  }
+
+  .cover-ring--a {
+    right: -5.5rem;
+    bottom: -11.5rem;
+    width: 27.5rem;
+    height: 27.5rem;
+  }
+
+  .cover-ring--b {
+    right: -10.5rem;
+    bottom: -18rem;
+    width: 38.75rem;
+    height: 38.75rem;
+    border-color: color-mix(in oklab, var(--accent-deep) 12%, transparent);
+  }
+
+  .featured-terminal {
+    position: relative;
+    z-index: 1;
+    transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
+    --term-h: clamp(15rem, 20vw, 16.5rem);
+  }
+
+  .cover-caption {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-top: 0.8125rem;
+    font-size: 0.5625rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+
+  .featured-card:hover .featured-cover {
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-md);
+  }
+
+  .featured-card:hover .featured-terminal {
+    transform: translateY(-4px);
+  }
+
+  .featured-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding-top: 1.375rem;
+  }
+
+  .featured-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+
+  .status-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4375rem;
+    color: var(--accent-strong);
+  }
+
+  .status-dot {
+    position: relative;
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .status-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    opacity: 0;
+    animation: work-breathe 3s var(--ease-out, ease-out) infinite;
+  }
+
+  @keyframes work-breathe {
+    0% {
+      opacity: 0.45;
+      transform: scale(0.9);
+    }
+    70%,
+    100% {
+      opacity: 0;
+      transform: scale(1.5);
+    }
+  }
+
+  .featured-title {
+    margin-top: 0.8125rem;
+    font-family: var(--font-serif);
+    font-size: var(--text-h3);
+    font-weight: 500;
+    line-height: 1.28;
+    letter-spacing: 0.015em;
+    color: var(--ink-strong);
+  }
+
+  .featured-title a {
+    text-decoration: none;
+    transition: color var(--dur-1, 120ms) ease-out;
+  }
+
+  .featured-title a:hover {
+    color: var(--accent-strong);
+  }
+
+  .featured-slug {
+    margin-top: 0.25rem;
+    font-size: 0.6563rem;
+    letter-spacing: 0.03em;
+    color: var(--accent-strong);
+  }
+
+  .featured-desc {
+    margin-top: 0.8125rem;
+    max-width: 29.5rem;
+    font-family: var(--font-serif);
+    font-size: 0.9688rem;
+    line-height: 1.76;
+    color: var(--muted);
+  }
+
+  .featured-metrics {
+    margin-top: 0.9375rem;
+    font-size: 0.6563rem;
+    letter-spacing: 0.02em;
+    color: var(--subtle);
+  }
+
+  .featured-foot {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: auto;
+    padding-top: 1.125rem;
+  }
+
+  .featured-stack {
+    font-size: 0.5938rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--subtle);
+    line-height: 1.7;
+  }
+
+  .featured-go {
+    flex: 0 0 auto;
+    font-family: var(--font-sans);
+    font-size: 0.7188rem;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 3px;
+    white-space: nowrap;
+    transition:
+      color var(--dur-1, 120ms) ease-out,
+      border-color var(--dur-1, 120ms) ease-out;
+  }
+
+  .featured-go span {
+    color: var(--accent);
+    transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
+    display: inline-block;
+  }
+
+  .featured-go:hover {
+    color: var(--accent-strong);
+    border-color: var(--accent);
+  }
+
+  .featured-go:hover span {
+    transform: translateX(3px);
+  }
+
+  /* --- compact rows ------------------------------------------------------ */
+  .more-label {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    margin-top: 2.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+
+  .more-label-secondary {
+    color: var(--subtle);
+  }
+
+  .more-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .tool-rows {
+    border-top: 1px solid var(--line);
+    margin-top: 0.875rem;
+  }
+
+  .tool-row {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr) minmax(0, 22rem) 9.5rem 1.5rem;
+    gap: 1.375rem;
+    align-items: center;
+    padding-block: 1.0625rem;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+    transition: background-color var(--dur-1, 120ms) ease-out;
+  }
+
+  .tool-row:hover {
+    background: color-mix(in oklab, var(--accent) 4%, transparent);
+  }
+
+  .tool-num {
+    font-size: 0.6563rem;
+    letter-spacing: 0.06em;
+    color: var(--subtle);
+  }
+
+  .tool-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .tool-title {
+    font-family: var(--font-serif);
+    font-size: 1.1563rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.4;
+    color: var(--ink);
+    transition: color var(--dur-1, 120ms) ease-out;
+  }
+
+  .tool-row:hover .tool-title {
+    color: var(--accent-strong);
+  }
+
+  .tool-slug {
+    font-size: 0.5938rem;
+    letter-spacing: 0.04em;
+    color: var(--subtle);
+  }
+
+  .tool-desc {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .tool-metrics {
+    font-size: 0.6563rem;
+    letter-spacing: 0.01em;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .tool-line {
+    font-family: var(--font-serif);
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: var(--subtle);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .tool-end {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.125rem;
+    font-size: 0.5625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--subtle);
+    line-height: 1.8;
+  }
+
+  .tool-status {
+    color: var(--accent-strong);
+  }
+
+  .tool-arrow {
+    font-family: var(--font-sans);
+    color: var(--faint);
+    text-align: right;
+    transition:
+      transform var(--dur-2, 200ms) var(--ease-out, ease-out),
+      color var(--dur-1, 120ms) ease-out;
+  }
+
+  .tool-row:hover .tool-arrow {
+    transform: translateX(3px);
+    color: var(--accent-strong);
+  }
+
+  @media (max-width: 1023px) {
+    .featured-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .tool-row {
+      grid-template-columns: 2.25rem minmax(0, 1fr) 8.5rem 1.25rem;
+      gap: 1rem;
+    }
+
+    .tool-desc {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cover-caption > span:last-child {
+      display: none;
+    }
+
+    .featured-cover {
+      padding: 1rem 1rem 0.75rem;
+    }
+
+    .featured-terminal {
+      --term-h: clamp(12.5rem, 54vw, 15rem);
+    }
+
+    .tool-row {
+      grid-template-columns: 2rem minmax(0, 1fr) 1.25rem;
+      gap: 0.75rem;
+      padding-block: 0.9375rem;
+    }
+
+    .tool-end {
+      display: none;
+    }
+
+    .tool-title {
+      font-size: 1.0625rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .featured-terminal,
+    .featured-go span,
+    .tool-arrow,
+    .tool-title {
+      transition: none;
+    }
+
+    .featured-card:hover .featured-terminal,
+    .featured-go:hover span,
+    .tool-row:hover .tool-arrow {
+      transform: none;
+    }
+
+    .status-dot::after {
+      animation: none;
+    }
+  }
+</style>

@@ -1,21 +1,23 @@
 ---
 /**
- * AboutView — /about and /[lang]/about.
+ * AboutView — `/about` (zh) and `/en/about` (en).
  *
- * Fully data-driven: every persona fact comes from src/data/profile.ts and
- * src/data/timeline.ts, and every UI label from src/i18n/ui.ts. Nothing about
- * the owner is hardcoded here — edit the data files, not this view.
- *
- * Layout: greeting → generated portrait plate → bio (drop cap) → CV ledger →
- * elsewhere → colophon + the six-language row.
+ * A+ direction: an oversized bilingual title, then the three threads
+ * (sales / code / writing) straight from profile.aboutBio, a portrait slot
+ * (real photo if public/images/portrait.* exists, monogram plate otherwise),
+ * the short CV from timeline entries flagged `cv: true`, Now, optional
+ * life/notes photo slots, tools & method (from profile.colophon), contact.
  */
+import { existsSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PortraitCard from '../components/about/PortraitCard.astro';
+import PortraitPlate from '../components/about/PortraitPlate.astro';
 import Icon from '../components/ui/Icon.astro';
 import { profile, lt } from '../data/profile';
 import { timeline } from '../data/timeline';
-import { locales, localeMeta, type Locale } from '../i18n/config';
-import { getAlternates, useTranslations } from '../i18n/utils';
+import { copy, c } from '../data/copy';
+import type { Locale } from '../i18n/config';
+import { localizePath, useTranslations } from '../i18n/utils';
 
 interface Props {
   lang: Locale;
@@ -26,244 +28,245 @@ const t = useTranslations(lang);
 
 const name = lt(profile.name, lang);
 const role = lt(profile.role, lang);
-const tagline = lt(profile.tagline, lang);
 const location = lt(profile.location, lang);
-const bio = profile.aboutBio.map((paragraph) => lt(paragraph, lang));
 const present = t('common.present');
-const isCjk = lang === 'zh' || lang === 'ja';
 
-/** Build year of this site — keeps the portrait caption data-driven. */
-const siteYear = profile.siteLaunch.slice(0, 4);
-const portraitCaption = `${location} · ${siteYear}`;
+/** Three threads: sales → code → writing. Labels are structural UI copy. */
+const THREADS = [
+  { number: '01', label: { zh: '销售', en: 'Sales' } as const },
+  { number: '02', label: { zh: '代码', en: 'Code' } as const },
+  { number: '03', label: { zh: '写作', en: 'Writing' } as const },
+] as const;
 
-/**
- * Short CV ledger, derived from the canonical, fully localized timeline data:
- * one row per organisation (the longest span wins), current roles first, then
- * past roles, with education at the end. The full stories live on /timeline.
- */
-const yearsOf = (start: string, end: string | null): string => {
-  const startYear = start.slice(0, 4);
-  if (!end) return `${startYear} — ${present}`;
-  const endYear = end.slice(0, 4);
-  return endYear === startYear ? startYear : `${startYear} — ${endYear}`;
-};
+/** Short CV ledger from timeline entries marked `cv: true`. */
+const cvRows = timeline
+  .filter((entry) => entry.cv === true)
+  .map((entry) => {
+    const startYear = entry.start.slice(0, 4);
+    const endYear = entry.end ? entry.end.slice(0, 4) : present;
+    return {
+      id: entry.id,
+      start: entry.start,
+      period: !entry.end
+        ? `${startYear} — ${present}`
+        : endYear === startYear
+          ? startYear
+          : `${startYear} — ${endYear}`,
+      org: lt(entry.org, lang),
+      role: lt(entry.role, lang),
+      summary: lt(entry.summary, lang),
+    };
+  })
+  .sort((a, b) => b.start.localeCompare(a.start));
 
-const spanLength = (start: string, end: string | null): number => {
-  const startValue = Number(start.slice(0, 4)) * 12 + Number(start.slice(5, 7));
-  const endValue = end ? Number(end.slice(0, 4)) * 12 + Number(end.slice(5, 7)) : 999912;
-  return endValue - startValue;
-};
-
-/**
- * Prefer explicitly curated CV rows (`cv: true` in timeline.ts). Fall back to
- * work + education + leadership entries so the page never renders empty.
- */
-const curatedCv = timeline.filter((entry) => entry.cv === true);
-const cvSource =
-  curatedCv.length > 0
-    ? curatedCv
-    : timeline.filter(
-        (entry) =>
-          entry.type === 'work' ||
-          entry.type === 'education' ||
-          (entry.tags ?? []).includes('Leadership')
-      );
-
-/** One row per organisation — longest span represents that organisation. */
-const cvByOrg = new Map<string, (typeof cvSource)[number]>();
-for (const entry of cvSource) {
-  const key = entry.org.en;
-  const existing = cvByOrg.get(key);
-  if (!existing || spanLength(entry.start, entry.end) > spanLength(existing.start, existing.end)) {
-    cvByOrg.set(key, entry);
+/** Optional media slots (spec §6): show only when the assets exist. */
+const imagesDir = join(process.cwd(), 'public', 'images');
+const listImages = (prefix: string): string[] => {
+  try {
+    return readdirSync(imagesDir)
+      .filter((file) => file.startsWith(prefix) && /\.(jpe?g|png|webp)$/i.test(file))
+      .sort();
+  } catch {
+    return [];
   }
-}
-const cvRows = [...cvByOrg.values()]
-  .map((entry) => ({
-    id: entry.id,
-    kind: entry.type,
-    start: entry.start,
-    end: entry.end,
-    org: lt(entry.org, lang),
-    role: lt(entry.role, lang),
-    years: yearsOf(entry.start, entry.end),
-  }))
-  .sort((a, b) => {
-    // Current roles first (earliest start = primary role), then past roles and
-    // leadership by most recent end, with education last.
-    const aCurrent = a.end === null ? 0 : 1;
-    const bCurrent = b.end === null ? 0 : 1;
-    if (aCurrent !== bCurrent) return aCurrent - bCurrent;
-    if (aCurrent === 0 && bCurrent === 0) return a.start.localeCompare(b.start);
-    const aEducation = a.kind === 'education' ? 1 : 0;
-    const bEducation = b.kind === 'education' ? 1 : 0;
-    if (aEducation !== bEducation) return aEducation - bEducation;
-    return (b.end ?? '').localeCompare(a.end ?? '');
-  });
+};
+const lifeImages = listImages('life-');
+const noteImages = listImages('notes-');
+const hasWechatQr = existsSync(join(imagesDir, 'wechat-qr.png'));
 
 const colophon = profile.colophon.map((paragraph) => lt(paragraph, lang));
-const alternates = getAlternates('/about');
+const quickFacts = copy.home.quickFacts.filter((fact) => ['在读', '网球'].includes(fact.label.zh));
 ---
 
-<BaseLayout lang={lang} title={t('about.title')} description={tagline} path="/about">
-  <!-- Intro ---------------------------------------------------------------- -->
-  <header class="flex max-w-[34rem] flex-col gap-4">
-    <p class="eyebrow">{t('about.hello')}</p>
-    <h1 class="text-balance font-serif text-[2.25rem] font-[550] leading-[1.06] tracking-[-0.03em] text-ink-strong sm:text-[2.75rem]">
-      {t('about.title')}
+<BaseLayout
+  lang={lang}
+  title={c(copy.about.title, lang)}
+  description={c(copy.meta.aboutDescription, lang)}
+  path="/about"
+  wide
+>
+  <!-- Hero ---------------------------------------------------------------- -->
+  <header class="wrap pt-2 sm:pt-6">
+    <p class="label" data-reveal>{c(copy.about.lede, lang)}</p>
+    <h1 class="display mt-5 max-w-[14ch]" data-reveal style="--reveal-delay: 40ms">
+      {c(copy.about.title, lang)}
+      <span class="display-latin ml-4 text-[0.62em] text-muted">{lang === 'zh' ? 'Song Qian' : '关于'}</span>
     </h1>
-    <p class="max-w-[46ch] text-pretty text-[1.0625rem] leading-[1.65] text-muted">
-      {role}
+    <p class="mono mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.75rem] uppercase tracking-[0.1em] text-subtle" data-reveal style="--reveal-delay: 80ms">
+      <span>{role}</span>
+      <span class="size-0.5 rounded-full bg-[var(--faint)]" aria-hidden="true"></span>
+      <span>{location}</span>
     </p>
-    <p class="max-w-[46ch] text-pretty text-[0.9375rem] leading-[1.6] text-subtle">{tagline}</p>
   </header>
 
-  <!-- Portrait ------------------------------------------------------------- -->
-  <div class="mt-10" data-reveal>
-    <PortraitCard
-      name={name}
-      monogram={profile.monogram}
-      caption={portraitCaption}
-      class="shadow-md"
-    />
-  </div>
-
-  <!-- Bio + drop cap -------------------------------------------------------- -->
-  <div
-    class:list={['prose about-bio mt-12', isCjk && 'is-cjk']}
-    data-reveal
-    style="--reveal-delay: 60ms"
-  >
-    {bio.map((paragraph) => <p>{paragraph}</p>)}
-  </div>
-
-  <!-- CV ledger ------------------------------------------------------------- -->
-  <section class="mt-16 border-t border-line pt-8" aria-labelledby="about-experience" data-reveal>
-    <div class="mb-6 flex items-baseline gap-3">
-      <span class="font-mono text-[0.6875rem] tabular text-faint">01</span>
-      <h2 id="about-experience" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
-        {t('about.experience')}
-      </h2>
-      <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
+  <!-- Three threads ------------------------------------------------------- -->
+  <section class="wrap section" aria-labelledby="about-threads">
+    <div class="flex items-baseline justify-between gap-4 border-b border-line pb-3" data-reveal>
+      <h2 id="about-threads" class="label">{c(copy.about.threadsTitle, lang)}</h2>
     </div>
 
-    <ul class="divide-y divide-line">
+    <div class="mt-8 grid grid-cols-1 gap-x-10 gap-y-8 md:grid-cols-3">
+      {
+        profile.aboutBio.map((paragraph, index) => (
+          <article class="flex flex-col gap-3" data-reveal style={`--reveal-delay: ${index * 80}ms`}>
+            <div class="flex items-baseline gap-3">
+              <span class="mono text-[0.6875rem] text-[var(--faint)]">
+                {THREADS[index]?.number ?? String(index + 1).padStart(2, '0')}
+              </span>
+              <h3 class="font-serif text-[1.25rem] font-[540] leading-none tracking-[-0.015em] text-ink-strong">
+                {lang === 'zh' ? THREADS[index]?.label.zh : THREADS[index]?.label.en}
+              </h3>
+            </div>
+            <p class="max-w-[42ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted">{lt(paragraph, lang)}</p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Portrait + manifesto ------------------------------------------------ -->
+  <section class="wrap" aria-label={`${name} — ${role}`}>
+    <div class="grid grid-cols-1 items-end gap-8 md:grid-cols-[minmax(0,20rem)_1fr] md:gap-12">
+      <div data-reveal>
+        <PortraitPlate
+          name={name}
+          monogram={profile.monogram}
+          alt={t('about.portraitAlt')}
+          caption={`${location} · ${profile.siteLaunch.slice(0, 4)}`}
+        />
+      </div>
+      <div class="flex flex-col gap-5 pb-2" data-reveal style="--reveal-delay: 80ms">
+        <p class="max-w-[24ch] font-serif text-[clamp(1.75rem,3.2vw,2.5rem)] leading-[1.18] tracking-[-0.02em] text-ink-strong">
+          {c(copy.home.plate.quote, lang)}
+        </p>
+        <p class="mono max-w-[34ch] text-[0.6875rem] uppercase leading-[1.9] tracking-[0.12em] text-subtle">
+          {c(copy.home.plate.meta, lang)}
+        </p>
+        <div class="flex flex-wrap gap-x-4 gap-y-2">
+          <a
+            href={localizePath('/works', lang)}
+            class="group inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted transition-colors duration-200 hover:text-ink"
+          >
+            {t('actions.viewWorks')}
+            <Icon
+              name="arrow-right"
+              size={14}
+              class="transition duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5"
+            />
+          </a>
+          <a
+            href={localizePath('/writing', lang)}
+            class="group inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted transition-colors duration-200 hover:text-ink"
+          >
+            {t('actions.readEssays')}
+            <Icon
+              name="arrow-right"
+              size={14}
+              class="transition duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5"
+            />
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CV ledger ----------------------------------------------------------- -->
+  <section class="wrap section" aria-labelledby="about-experience">
+    <div class="flex items-baseline justify-between gap-4 border-b border-line pb-3" data-reveal>
+      <h2 id="about-experience" class="label">{c(copy.about.experienceTitle, lang)}</h2>
+    </div>
+
+    <ol class="mt-2">
       {
         cvRows.map((row) => (
-          <li class="group flex items-baseline justify-between gap-6 rounded-md px-2 py-3.5 transition-colors duration-200 hover:bg-hover">
-            <div class="min-w-0">
-              <p class="font-serif text-[1rem] font-[550] leading-snug tracking-[-0.01em] text-ink-strong">
-                {row.org}
-              </p>
-              <p class="mt-0.5 text-pretty text-[0.875rem] leading-snug text-muted">{row.role}</p>
+          <li class="grid grid-cols-1 gap-1 border-b border-line py-4 md:grid-cols-[9rem_1fr] md:gap-6" data-reveal>
+            <span class="mono pt-0.5 text-[0.6875rem] text-subtle">{row.period}</span>
+            <div class="flex flex-col gap-1">
+              <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h3 class="font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.01em] text-ink-strong">
+                  {row.org}
+                </h3>
+                <span class="text-[0.875rem] text-muted">{row.role}</span>
+              </div>
+              <p class="max-w-[62ch] text-pretty text-[0.875rem] leading-[1.65] text-muted">{row.summary}</p>
             </div>
-            <span class="shrink-0 font-sans text-[0.75rem] tabular tracking-[0.01em] text-subtle">
-              {row.years}
-            </span>
           </li>
         ))
       }
-    </ul>
+    </ol>
   </section>
 
-  <!-- Elsewhere ------------------------------------------------------------- -->
-  <section class="mt-16 border-t border-line pt-8" aria-labelledby="about-elsewhere" data-reveal>
-    <div class="mb-4 flex items-baseline gap-3">
-      <span class="font-mono text-[0.6875rem] tabular text-faint">02</span>
-      <h2 id="about-elsewhere" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
-        {t('about.elsewhere')}
-      </h2>
-      <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
+  <!-- Now ----------------------------------------------------------------- -->
+  <section class="wrap" aria-labelledby="about-now">
+    <div
+      class="grid grid-cols-1 gap-4 rounded-[6px] border border-line bg-[var(--paper)] p-6 md:grid-cols-[9rem_1fr] md:gap-6 md:p-8"
+      data-reveal
+    >
+      <h2 id="about-now" class="label pt-0.5">{c(copy.about.nowTitle, lang)}</h2>
+      <div class="flex flex-col gap-4">
+        <p class="max-w-[54ch] text-pretty font-serif text-[1.125rem] leading-[1.7] text-ink">{lt(profile.now, lang)}</p>
+        <dl class="flex flex-wrap gap-x-8 gap-y-3">
+          {
+            quickFacts.map((fact) => (
+              <div class="flex flex-col gap-0.5">
+                <dt class="label">{lt(fact.label, lang)}</dt>
+                <dd class="text-[0.875rem] text-muted">{lt(fact.value, lang)}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
     </div>
+  </section>
 
-    <ul class="divide-y divide-line">
-      {
-        profile.elsewhere.map((link) => (
-          <li>
-            <a
-              href={link.href}
-              class="group flex items-center justify-between gap-4 rounded-md px-2 py-3 transition-colors duration-200 hover:bg-hover"
-              rel="me"
-              target="_blank"
-            >
-              <span class="font-serif text-[1rem] font-[550] tracking-[-0.01em] text-ink-strong transition-colors duration-200 group-hover:text-accent">
-                {link.label}
-              </span>
-              <Icon
-                name="arrow-up-right"
-                size={15}
-                class="text-subtle transition duration-200 ease-[var(--ease-out)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
+  <!-- Notes & photos (optional assets, spec §6) --------------------------- -->
+  {
+    (lifeImages.length > 0 || noteImages.length > 0) && (
+      <section class="wrap section" aria-labelledby="about-notes">
+        <div class="flex items-baseline justify-between gap-4 border-b border-line pb-3" data-reveal>
+          <h2 id="about-notes" class="label">{c(copy.about.notesTitle, lang)}</h2>
+        </div>
+        <p class="mt-3 text-[0.875rem] text-subtle">{c(copy.about.notesHint, lang)}</p>
+        <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3">
+          {[...lifeImages, ...noteImages].map((file) => (
+            <figure class="overflow-hidden rounded-[6px] border border-line bg-[var(--paper)]" data-reveal>
+              <img
+                src={`/images/${file}`}
+                alt={file.replace(/\.(jpe?g|png|webp)$/i, '').replace(/[-_]/g, ' ')}
+                width={1200}
+                height={900}
+                loading="lazy"
+                decoding="async"
+                class="aspect-[4/3] w-full object-cover"
               />
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </section>
+              <figcaption class="mono px-3 py-2 text-[0.625rem] uppercase tracking-[0.12em] text-subtle">
+                {file}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+    )
+  }
 
-  <!-- Colophon -------------------------------------------------------------- -->
-  <section class="mt-16 border-t border-line pt-8" aria-labelledby="about-colophon" data-reveal>
-    <div class="mb-5 flex items-baseline gap-3">
-      <span class="font-mono text-[0.6875rem] tabular text-faint">03</span>
-      <h2 id="about-colophon" class="font-sans text-[0.8125rem] font-[560] tracking-[0.01em] text-ink-strong">
-        {t('about.site')}
-      </h2>
-      <span class="h-px flex-1 translate-y-[-0.15em] bg-line"></span>
+  <!-- Tools & method ------------------------------------------------------ -->
+  <section class="wrap section" aria-labelledby="about-tools">
+    <div class="flex items-baseline justify-between gap-4 border-b border-line pb-3" data-reveal>
+      <h2 id="about-tools" class="label">{c(copy.about.toolsTitle, lang)}</h2>
     </div>
-
-    <div class="prose text-[0.9375rem] leading-[1.72]">
-      {colophon.map((paragraph) => <p>{paragraph}</p>)}
-    </div>
-
-    <!-- Languages: generated from the locale registry, never hardcoded. -->
-    <div class="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-line pt-4">
-      <span class="eyebrow mr-2">{t('lang.switch')}</span>
+    <div class="mt-8 grid grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-3">
       {
-        alternates.map((alternate) => (
-          <span class="inline-flex items-baseline gap-2">
-            {alternate.lang !== locales[0] && <span class="text-faint" aria-hidden="true">·</span>}
-            <a
-              href={alternate.href}
-              class:list={[
-                'font-sans text-[0.8125rem] leading-relaxed transition-colors duration-150 hover:text-accent',
-                alternate.lang === lang
-                  ? 'text-ink-strong underline decoration-line-strong underline-offset-[3px]'
-                  : 'text-muted',
-              ]}
-              hreflang={localeMeta[alternate.lang].htmlLang}
-              aria-current={alternate.lang === lang ? 'page' : undefined}
-            >
-              {localeMeta[alternate.lang].nativeLabel}
-            </a>
-          </span>
+        colophon.map((paragraph, index) => (
+          <p class="max-w-[44ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted" data-reveal style={`--reveal-delay: ${index * 60}ms`}>
+            {paragraph}
+          </p>
         ))
       }
     </div>
   </section>
 
-  <!-- Signature -------------------------------------------------------------- -->
-  <p class="mt-16 text-pretty font-serif text-[0.9375rem] italic leading-relaxed text-subtle" data-reveal>
-    — {name}, {location}
+  <!-- Signature — the page ends here; the global footer carries the contact CTA. -->
+  <p class="wrap mt-16 border-t border-line pt-8 font-serif text-[0.9375rem] italic leading-relaxed text-subtle" data-reveal>
+    — {c(copy.about.signature, lang)}
   </p>
 </BaseLayout>
-
-<style>
-  /* Drop cap — the small editorial flourish at the top of the bio. */
-  .about-bio > p:first-child::first-letter {
-    float: left;
-    font-family: var(--font-serif);
-    font-size: 3.45em;
-    line-height: 0.78;
-    font-weight: 520;
-    padding-right: 0.11em;
-    padding-top: 0.055em;
-    color: var(--accent);
-  }
-
-  .about-bio.is-cjk > p:first-child::first-letter {
-    font-size: 2.6em;
-    line-height: 0.95;
-    padding-top: 0.1em;
-    font-weight: 560;
-  }
-</style>

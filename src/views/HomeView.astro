@@ -1,29 +1,29 @@
 ---
 /**
- * HomeView — the shared home template for all six locales.
+ * HomeView — the A+ home page, shared by zh (/) and en (/en/).
  *
- * Order: intro → writing (latest 8 | subscribe) → selected work → timeline.
- * Copy comes from the i18n dictionary + src/data/profile.ts; content comes
- * from the sibling-owned data modules:
- *   - src/lib/posts.ts      (lumen)  — latest posts
- *   - src/lib/projects.ts    (atelier) — featured projects
- *   - src/data/timeline.ts   (atelier) — latest timeline entries
+ * Order: Hero → StatBar → full-bleed ArtPlate → Works (2 terminal cards +
+ * 4 compact rows) → Writing (numbered index) → Timeline (5 nodes).
+ * The global SiteFooter closes the page with the contact CTA.
+ *
+ * Copy: src/data/copy.ts · identity: src/data/profile.ts ·
+ * projects/posts/timeline: the libraries + data modules.
  */
 import Hero from '../components/home/Hero.astro';
+import WorksSection from '../components/home/WorksSection.astro';
 import WritingSection from '../components/home/WritingSection.astro';
-import WorkSection from '../components/home/WorkSection.astro';
-import type { WorkItem } from '../components/home/WorkSection.astro';
-import TimelinePreview from '../components/home/TimelinePreview.astro';
-import type { TimelineItem } from '../components/home/TimelinePreview.astro';
+import type { WritingItem } from '../components/home/WritingSection.astro';
+import TimelineStrip from '../components/home/TimelineStrip.astro';
+import HomeMotion from '../components/home/HomeMotion.astro';
+import StatBar from '../components/ui/StatBar.astro';
+import ArtPlate from '../components/ui/ArtPlate.astro';
+import { categoryLabel } from '../components/home/labels';
+import { copy, c, pair } from '../data/copy';
+import { getFeaturedProjects, getLocalizedProjects, type ProjectEntry } from '../lib/projects';
+import { getAllPosts } from '../lib/posts';
+import { getTimeline, homeMilestones } from '../data/timeline';
 import { localizePath } from '../i18n/utils';
 import type { Locale } from '../i18n/config';
-import { getAllPosts } from '../lib/posts';
-import {
-  getFeaturedProjects,
-  PROJECT_CATEGORIES,
-  PROJECT_CATEGORY_LABELS,
-} from '../lib/projects';
-import { getTimeline } from '../data/timeline';
 
 interface Props {
   lang: Locale;
@@ -31,51 +31,154 @@ interface Props {
 
 const { lang } = Astro.props;
 
-/* Writing — latest eight posts for the list, featured posts for Favorites. */
-const allPosts = await getAllPosts(lang);
-const toWritingItem = (post: (typeof allPosts)[number]) => ({
+/* -------------------------------------------------------------------------- */
+/* Projects                                                                   */
+/* -------------------------------------------------------------------------- */
+const allProjects = await getLocalizedProjects(lang);
+const featuredProjects = await getFeaturedProjects(lang, 2);
+const featuredSlugs = new Set(featuredProjects.map((project) => project.slug));
+
+/* The A+ direction orders the compact rows as BOSS → 智联 → 探迹 → robot,
+ * which is the story order (job boards become leads before the thesis toy). */
+const TOOL_ORDER = ['boss-client', 'zhilian-client', 'tanji-client', 'tennis-ball-robot'];
+const tools: ProjectEntry[] = allProjects
+  .filter((project) => !featuredSlugs.has(project.slug))
+  .sort((a, b) => {
+    const indexA = TOOL_ORDER.indexOf(a.slug);
+    const indexB = TOOL_ORDER.indexOf(b.slug);
+    return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
+  });
+
+/* -------------------------------------------------------------------------- */
+/* Writing                                                                    */
+/* -------------------------------------------------------------------------- */
+const posts = await getAllPosts(lang);
+const otherLang: Locale = lang === 'zh' ? 'en' : 'zh';
+const otherPosts = await getAllPosts(otherLang);
+const otherTitleBySlug = new Map(otherPosts.map((post) => [post.slug, post.title]));
+
+const dateLabel = (date: Date) => date.toISOString().slice(0, 10).replaceAll('-', '.');
+
+const toWritingItem = (post: (typeof posts)[number], index: number): WritingItem => ({
   title: post.title,
+  secondaryTitle: otherTitleBySlug.get(post.slug) ?? '',
   description: post.description,
+  category: categoryLabel(post.category, lang),
+  tag: post.tags[0] ?? '',
+  dateLabel: dateLabel(post.date),
+  readingTime: post.readingTime,
   href: localizePath(post.path, lang),
-});
-const recentPosts = allPosts.slice(0, 8).map(toWritingItem);
-const favoritePosts = allPosts.filter((post) => post.featured).slice(0, 4).map(toWritingItem);
-
-/* Selected work — up to two featured projects. */
-const projects: WorkItem[] = (await getFeaturedProjects(lang, 2)).map((project) => {
-  const category = PROJECT_CATEGORIES.find((candidate) => project.tags.includes(candidate));
-  return {
-    slug: project.slug,
-    title: project.title,
-    tagline: project.tagline,
-    year: project.year,
-    status: project.status,
-    eyebrow: category ? PROJECT_CATEGORY_LABELS[category][lang] : undefined,
-  };
+  number: String(index + 1).padStart(2, '0'),
 });
 
-/* Timeline — the three most recent entries. */
-const timelineEntries: TimelineItem[] = getTimeline(lang)
-  .slice(0, 3)
-  .map((entry) => ({
-    id: entry.id,
-    period: entry.period,
-    role: entry.role,
-    org: entry.org,
-  }));
+/* Editorial order from the A+ direction: the featured essay first, then the
+ * sequence that builds the argument (leverage → knowledge → AI → tennis). */
+const WRITING_ORDER = [
+  'compounding-through-university',
+  'linear-labor-and-compounding-leverage',
+  'personal-knowledge-management',
+  'ai-after-the-internet',
+  'tennis-as-neural-training',
+];
+const orderedPosts = [...posts].sort((a, b) => {
+  const indexA = WRITING_ORDER.indexOf(a.slug);
+  const indexB = WRITING_ORDER.indexOf(b.slug);
+  if (indexA !== -1 || indexB !== -1) {
+    return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
+  }
+  return b.date.getTime() - a.date.getTime();
+});
+
+const featuredPost = orderedPosts.find((post) => post.slug === WRITING_ORDER[0]) ?? orderedPosts[0];
+
+const writingTotal = posts.length;
+const years = posts.map((post) => post.date.getUTCFullYear());
+const yearRange = years.length ? `${String(Math.min(...years))}—${String(Math.max(...years))}` : '';
+
+const writingFeatured = featuredPost ? toWritingItem(featuredPost, 0) : null;
+const writingRows = featuredPost
+  ? orderedPosts
+      .filter((post) => post.slug !== featuredPost.slug)
+      .slice(0, 4)
+      .map((post, index) => toWritingItem(post, index + 1))
+  : orderedPosts.slice(0, 4).map((post, index) => toWritingItem(post, index + 1));
+
+/* -------------------------------------------------------------------------- */
+/* Timeline                                                                   */
+/* -------------------------------------------------------------------------- */
+const timelineEntries = getTimeline(lang);
+const timelineById = new Map(timelineEntries.map((entry) => [entry.id, entry]));
+const milestones = homeMilestones
+  .map((id) => timelineById.get(id))
+  .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
+
+/* -------------------------------------------------------------------------- */
+/* Stats + plate                                                              */
+/* -------------------------------------------------------------------------- */
+const stats = copy.home.stats.map((stat) => {
+  const label = pair(stat.label, lang);
+  return { value: stat.value, label: label.title, en: label.secondary };
+});
+
+const plateQuote = pair(copy.home.plate.quote, lang);
+const plateMeta = c(copy.home.plate.meta, lang);
+const statLabel = lang === 'zh' ? '数字速览' : 'At a glance';
 ---
 
-<div class="flex flex-col gap-16 sm:gap-24">
+<div data-home class="home-page">
+  <!-- BaseLayout's reveal observer adds .is-revealed; without JS nothing may
+       stay hidden, so the no-JS fallback is declared here. -->
+  <noscript>
+    <style>
+      [data-reveal],
+      [data-hero-step] {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    </style>
+  </noscript>
+
   <Hero lang={lang} />
 
-  <WritingSection
-    lang={lang}
-    posts={recentPosts}
-    favorites={favoritePosts}
-    total={allPosts.length}
-  />
+  <div class="wrap">
+    <StatBar stats={stats} label={statLabel} class="home-stats" />
+  </div>
 
-  <WorkSection lang={lang} projects={projects} />
+  <ArtPlate quote={plateQuote.title} quoteEn={plateQuote.secondary} meta={plateMeta} />
 
-  <TimelinePreview lang={lang} entries={timelineEntries} />
+  <WorksSection lang={lang} featured={featuredProjects} tools={tools} total={allProjects.length} />
+
+  {
+    writingFeatured && (
+      <WritingSection
+        lang={lang}
+        featured={writingFeatured}
+        rows={writingRows}
+        total={writingTotal}
+        yearRange={yearRange}
+      />
+    )
+  }
+
+  <TimelineStrip lang={lang} entries={milestones} />
+
+  <HomeMotion />
 </div>
+
+<style>
+  /* BaseLayout's main already owns the page top padding; trim it so the hero
+     sits close to the masthead like the A+ direction. */
+  .home-page {
+    margin-top: calc(var(--space-8) * -1);
+  }
+
+  .home-stats {
+    margin-top: clamp(2.5rem, 4.5vw, 4rem);
+  }
+
+  @media (min-width: 640px) {
+    .home-page {
+      margin-top: calc(var(--space-9) * -1);
+    }
+  }
+</style>

@@ -1,8 +1,8 @@
 ---
 # Source of truth: https://github.com/CindyRIng/feige-outbound-platform README (2026-11).
 title: 'Feige Outbound Platform'
-tagline: 'A local outbound-call platform: four entry points, 100% local ASR, and a pipeline that runs unattended.'
-description: 'Feige Outbound Platform (FOP) wraps the Feige outbound-call console into a local service: REST/CLI/MCP/SKILL entry points, multi-account login with JWT keep-alive, local MiniMax ASR with channel-split speaker separation, DeepSeek post-processing and a recoverable call pipeline.'
+tagline: 'A local pipeline that connects calling, recordings, transcripts and follow-up without a human babysitter.'
+description: 'Feige Outbound Platform (FOP): REST / CLI / MCP / SKILL entry points, multi-account login with JWT keep-alive, 100% local ASR with channel-split speaker separation, DeepSeek post-processing and a recoverable outbound pipeline.'
 year: 2026
 role: 'Design & development, solo'
 team: 'Solo'
@@ -13,9 +13,9 @@ cover: 'generated:feige-outbound-platform'
 coverAlt: 'Generated cover plate: an oversized serif F on a cool layered gradient.'
 metrics:
   - label: 'Tests passing'
-    value: '93/93'
+    value: '93 / 93'
   - label: 'Acceptance checks'
-    value: '27/27'
+    value: '27 / 27'
   - label: 'REST operations'
     value: '35'
 links:
@@ -24,22 +24,26 @@ featured: true
 order: 2
 ---
 
-Outbound calling is where a sales team's words become data — and where most of that data gets lost. The Feige console only works as a web page: recordings appear for a while, transcripts are incomplete or missing, and there is no token, no SDK, no callback. Anything an agent or a script might want to do with a call needs a human with a browser open.
+Outbound calling is where a salesperson's words turn into data — and where most of that data gets lost. The Feige console lets you read call logs, listen to recordings and dial out, but recordings expire, transcripts are incomplete, and there is no API and no callback. Anything a script or an agent might do with a call needs a human keeping a browser open.
 
-feige-outbound-platform (FOP) is a local platform that closes that last mile. It has two halves. Northbound, four entry points: a REST v1 API on loopback (Fastify, bearer token, OpenAPI 3.1 and Swagger), a CLI, an MCP stdio server and a SKILL document. Southbound, automation: multi-account login through the real web page including the slider captcha, seven-day JWT keep-alive, incremental and full call-log sync, and outbound dialing with a queued state machine.
+## The problem
 
-## 100% local transcription
+I split outbound work into three jobs: dial, keep the call log and recording, turn the recording into readable text and analysis. Upstream only offers a web page for all three. Two practical problems make it worse: the login expires after seven days and the Aliyun slider is hard to automate; call history is scattered across pages, and recordings disappear after a window.
 
-The decision I am proudest of is that transcripts are ours. Recordings are downloaded, hashed and archived as WAV files, then transcribed with MiniMax's asr-1.0. Because the recordings turn out to be 8 kHz stereo with agent and customer on separate channels, splitting the two channels gives speaker separation for free — far more reliable than diarization guesses. Long calls are cut at silence points, each chunk is cached so a retry resumes instead of restarting, and a term dictionary normalises homophones: the company name alone has nine common mishearings.
+## What I built
 
-## Analysis as a schema, not a vibe
+FOP is a resident local platform. Northbound it has four entry points: REST v1 (Fastify, loopback plus bearer, OpenAPI 3.1 and Swagger), a CLI, an MCP stdio server and a SKILL document. Southbound it automates the page: multi-account login including the slider, seven-day JWT keep-alive, incremental and full call-log sync, and outbound dialing with a queued state machine.
 
-DeepSeek post-processing runs with a fixed prompt and a JSON schema; validation failures escalate through a retry chain. The output is a structured summary, intent, keywords, action items, risk flags and quality notes — not a paragraph a human must re-read.
+The most important part is that recordings stop disappearing. They are downloaded during sync, hashed and archived as WAV files by year/month/day. Then transcription happens 100% locally.
 
-## Everything through one door
+## Architecture notes
 
-CLI and MCP never touch the database or the browser directly. Every entry point goes through REST v1. Write-capable MCP tools sit behind a flag and require confirmation. The service runs under systemd, with Xvfb for headless login, and a recoverable job queue drives the audio → ASR → analysis pipeline.
+- Local ASR: MiniMax asr-1.0. The recordings turn out to be 8 kHz stereo with the agent and the customer on separate channels, so splitting the channels gives speaker separation for free — far more reliable than diarization guesses. Long calls are cut at silence points; chunk results are cached so a retry resumes instead of restarting. A term dictionary normalises the nine common mishearings of the company name.
+- AI post-processing: DeepSeek with a fixed prompt and a JSON schema; validation failures escalate through a retry chain. The output is a structured summary, intent, keywords, action items, risk flags and quality notes.
+- Storage and runtime: SQLite WAL with 15 tables, WAV archive, SSE events and a recoverable job queue. systemd keeps it running; Xvfb handles headless login.
 
-## Honest limits
+## What I learned
 
-The upstream has no SIP line: real dialing is callback mode, so the agent's phone has to answer first, and v1 does no AI voice calling. ASR concurrency on a default account is one, which makes full backfills slow. I shipped 93 unit tests and 27 acceptance checks, and wrote those limits down next to them.
+93/93 unit tests and 27/27 acceptance checks pass. Writing limits honestly matters too: upstream has no SIP line, so real dialing is callback mode and the agent's phone must answer first; v1 does no AI voice calling; ASR concurrency on a default account is one, which makes full backfills slow. All of that is in the README.
+
+The bigger takeaway is data ownership: when recordings and transcripts live on your own machine, the sales process becomes something you can query and review for the first time.

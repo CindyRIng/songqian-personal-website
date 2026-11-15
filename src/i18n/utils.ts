@@ -1,7 +1,7 @@
 import { defaultLocale, isLocale, localeMeta, locales, type Locale } from './config';
 import { ui, type TranslationKey } from './ui';
 
-/** Reads the active locale from a URL path (/zh/about -> zh). */
+/** Reads the active locale from a URL path (/en/about -> en; /about -> zh). */
 export function getLangFromUrl(url: URL): Locale {
   const [, first] = url.pathname.split('/');
   return isLocale(first) ? first : defaultLocale;
@@ -19,10 +19,9 @@ export function stripLocale(pathname: string): { lang: Locale; path: string } {
 }
 
 /**
- * Builds a locale-aware href.
- * localizePath('/about', 'en') -> '/about'
- * localizePath('/about', 'zh') -> '/zh/about'
- * localizePath('/', 'ja')      -> '/ja'
+ * Builds a locale-aware href. The default locale lives at the root and the
+ * English pages under `/en/`. Page routes end with a slash (directory build +
+ * `trailingSlash: 'always'`); files (feeds, images) never do.
  */
 export function localizePath(path: string, lang: Locale): string {
   let clean = path.startsWith('/') ? path : `/${path}`;
@@ -31,10 +30,8 @@ export function localizePath(path: string, lang: Locale): string {
   const localized =
     lang === defaultLocale ? clean || '/' : clean === '/' ? `/${lang}` : `/${lang}${clean}`;
 
-  // The site is built with `build.format: 'directory'` and
-  // `trailingSlash: 'always'`, so page routes end with a slash (matching the
-  // sitemap and avoiding Cloudflare's 308 redirects). Assets never do.
-  const isFile = /\.[a-z0-9]+$/i.test(localized) || localized.includes('?') || localized.includes('#');
+  const isFile =
+    /\.[a-z0-9]+$/i.test(localized) || localized.includes('?') || localized.includes('#');
   if (localized === '/' || isFile || localized.endsWith('/')) return localized;
   return `${localized}/`;
 }
@@ -47,16 +44,10 @@ export function getAlternates(pathname: string): { lang: Locale; href: string }[
 
 export function interpolate(template: string, vars?: Record<string, string | number>): string {
   if (!vars) return template;
-  return template.replace(/\{(\w+)\}/g, (match, key) =>
-    key in vars ? String(vars[key]) : match
-  );
+  return template.replace(/\{(\w+)\}/g, (match, key) => (key in vars ? String(vars[key]) : match));
 }
 
-/**
- * Translation helper bound to a locale.
- *   const t = useTranslations(lang);
- *   t('nav.about') // "About" | "关于" | ...
- */
+/** Translation helper bound to a locale. */
 export function useTranslations(lang: Locale) {
   return (key: TranslationKey, vars?: Record<string, string | number>): string => {
     const value = ui[lang][key] ?? ui[defaultLocale][key] ?? key;
@@ -64,7 +55,7 @@ export function useTranslations(lang: Locale) {
   };
 }
 
-/** Locale-aware date formatting, e.g. "November 15, 2026" / "2026年11月15日". */
+/** Locale-aware date formatting, e.g. "2026年11月15日" / "November 15, 2026". */
 export function formatDate(date: Date, lang: Locale, style: 'long' | 'short' = 'long'): string {
   return new Intl.DateTimeFormat(localeMeta[lang].htmlLang, {
     dateStyle: style === 'long' ? 'long' : 'medium',
@@ -72,22 +63,11 @@ export function formatDate(date: Date, lang: Locale, style: 'long' | 'short' = '
   }).format(date);
 }
 
-/** "2024 — 2026" / "2024 — Present" style ranges for timelines and projects. */
-export function formatRange(
-  start: string,
-  end: string | null | undefined,
-  lang: Locale
-): string {
-  const t = useTranslations(lang);
-  const endLabel = end ? end : t('common.present');
-  return `${start} — ${endLabel}`;
-}
-
 /** Rough reading time in minutes for plain text / markdown. */
-export function readingTime(text: string, wordsPerMinute = 230): number {
+export function readingTime(text: string, wordsPerMinute = 300): number {
   const latinWords = text.trim().split(/\s+/).filter(Boolean).length;
   const cjkChars = (text.match(/[\u4e00-\u9fff\u3040-\u30ff]/g) ?? []).length;
-  const words = latinWords + cjkChars / 2.2;
+  const words = latinWords + cjkChars / 2;
   return Math.max(1, Math.round(words / wordsPerMinute));
 }
 
@@ -96,7 +76,7 @@ export function isoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-/** Month formatting for timelines: 2024-03 -> "Mar 2024" / "2024年3月" */
+/** Month formatting for timelines: 2026-03 -> "2026年3月" / "Mar 2026" */
 export function formatMonth(value: string, lang: Locale): string {
   const match = /^(\d{4})-(\d{2})$/.exec(value);
   if (!match) return value;
@@ -104,12 +84,11 @@ export function formatMonth(value: string, lang: Locale): string {
   const date = new Date(Date.UTC(Number(year), Number(month) - 1, 1));
   return new Intl.DateTimeFormat(localeMeta[lang].htmlLang, {
     year: 'numeric',
-    month: 'short',
+    month: lang === 'zh' ? 'numeric' : 'short',
     timeZone: 'UTC',
   }).format(date);
 }
 
-/** All locales that have real translations for a given slug — used to filter the switcher. */
 export function uniqueBy<T>(items: T[], key: (item: T) => string): T[] {
   const seen = new Set<string>();
   return items.filter((item) => {

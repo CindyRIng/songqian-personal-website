@@ -1,30 +1,43 @@
 /**
- * Central i18n configuration.
- * To change the site's primary language, change `defaultLocale` here AND in
- * `astro.config.mjs` (`i18n.defaultLocale`).
- *
- * Route strategy:
- *   default locale -> `/`, `/about`, `/writing/...`
- *   other locales  -> `/zh`, `/zh/about`, `/ja/writing/...`
+ * Central i18n configuration — the site ships in Chinese (default, at `/`)
+ * and English (at `/en/…`). Adding a locale later means adding it here, in
+ * `astro.config.mjs`, in `ui.ts`, and in the content folders.
  */
 
-export const locales = ['en', 'zh', 'ja', 'es', 'fr', 'de'] as const;
+export const locales = ['zh', 'en'] as const;
 
 export type Locale = (typeof locales)[number];
 
-export const defaultLocale: Locale = 'en';
+export const defaultLocale: Locale = 'zh';
 
 /** BCP-47 tags used for <html lang>, hreflang and Intl APIs. */
 export const localeMeta: Record<
   Locale,
-  { htmlLang: string; label: string; nativeLabel: string; dir: 'ltr' | 'rtl'; ogLocale: string }
+  {
+    htmlLang: string;
+    label: string;
+    nativeLabel: string;
+    shortLabel: string;
+    dir: 'ltr' | 'rtl';
+    ogLocale: string;
+  }
 > = {
-  en: { htmlLang: 'en', label: 'English', nativeLabel: 'English', dir: 'ltr', ogLocale: 'en_US' },
-  zh: { htmlLang: 'zh-CN', label: 'Chinese', nativeLabel: '简体中文', dir: 'ltr', ogLocale: 'zh_CN' },
-  ja: { htmlLang: 'ja', label: 'Japanese', nativeLabel: '日本語', dir: 'ltr', ogLocale: 'ja_JP' },
-  es: { htmlLang: 'es', label: 'Spanish', nativeLabel: 'Español', dir: 'ltr', ogLocale: 'es_ES' },
-  fr: { htmlLang: 'fr', label: 'French', nativeLabel: 'Français', dir: 'ltr', ogLocale: 'fr_FR' },
-  de: { htmlLang: 'de', label: 'German', nativeLabel: 'Deutsch', dir: 'ltr', ogLocale: 'de_DE' },
+  zh: {
+    htmlLang: 'zh-CN',
+    label: 'Chinese',
+    nativeLabel: '中文',
+    shortLabel: '中',
+    dir: 'ltr',
+    ogLocale: 'zh_CN',
+  },
+  en: {
+    htmlLang: 'en',
+    label: 'English',
+    nativeLabel: 'English',
+    shortLabel: 'EN',
+    dir: 'ltr',
+    ogLocale: 'en_US',
+  },
 };
 
 export const secondaryLocales = locales.filter((l) => l !== defaultLocale);
@@ -34,12 +47,13 @@ export function isLocale(value: string | undefined): value is Locale {
 }
 
 export const SITE = {
-  /** Set after the domain is registered. */
+  /** Update once a custom domain is registered. */
   url: 'https://songqian-personal-website.pages.dev',
   name: 'Song Qian',
+  nameZh: '宋谦',
   handle: 'songqian',
   email: 'cindyring_dream@outlook.com',
   github: 'https://github.com/CindyRIng',
-  /** Used by the footer's "handcrafted for N months" counter (first sketch of this site). */
+  /** Used by the footer's "handcrafted for N months" counter (first sketch). */
   siteLaunch: '2026-07-14',
 } as const;

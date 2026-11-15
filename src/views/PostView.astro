@@ -1,28 +1,24 @@
 ---
 /**
- * PostView — the shared essay template for all six locales.
+ * PostView — the essay page (A+ direction).
  *
- * A book page, not a landing page: back link, category · date eyebrow, large
- * serif title, muted lede, the abstract cover, a quiet contents list, the MDX
- * body in .prose, then tags, share controls, the author card, neighbours and a
- * short "more writing" list. Reading progress is wired by BaseLayout through
- * the #reading-progress element.
+ * Oversized serif title with the other language's title as an italic subtitle,
+ * category / date / reading time, cover, table of contents, prose body, tags,
+ * previous/next essay and the author card. Reading enhancements (heading
+ * anchors, code copy, image lightbox, progress bar) are wired by BaseLayout
+ * for `type="article"` pages.
  */
 import type { MarkdownHeading } from 'astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/ui/Icon.astro';
 import PostHeader from '../components/writing/PostHeader.astro';
-import PostCover from '../components/writing/PostCover.astro';
 import Toc from '../components/writing/Toc.astro';
-import ShareRow from '../components/writing/ShareRow.astro';
-import PostFooterBio from '../components/writing/PostFooterBio.astro';
 import PrevNext from '../components/writing/PrevNext.astro';
-import PostRow from '../components/writing/PostRow.astro';
-import { localizePath, useTranslations, localeMeta } from '../i18n/utils';
+import PostFooterBio from '../components/writing/PostFooterBio.astro';
+import { formatDate, isoDate, localizePath, useTranslations, localeMeta } from '../i18n/utils';
 import type { Locale } from '../i18n/config';
-import { lt, profile } from '../data/profile';
 import { hasCoverAsset, type PostEntry } from '../lib/posts';
-import type { TranslationKey } from '../i18n/ui';
+import { profile, lt } from '../data/profile';
 
 interface Props {
   lang: Locale;
@@ -34,15 +30,15 @@ interface Props {
   newer?: PostEntry;
 }
 
-const { lang, post, Content, headings, related, older, newer } = Astro.props;
+const { lang, post, Content, headings, related } = Astro.props;
 const t = useTranslations(lang);
 
-const siteUrl = Astro.site ?? new URL('https://songqian.dev');
-const cover = hasCoverAsset(post.cover) ? post.cover : undefined;
+const siteUrl = Astro.site ?? new URL('https://songqian-personal-website.pages.dev');
 const canonical = new URL(localizePath(post.path, lang), siteUrl).href;
+const cover = hasCoverAsset(post.cover) ? post.cover : undefined;
 const writingHref = localizePath('/writing', lang);
 const authorName = lt(profile.name, lang) || profile.latinName;
-const categoryKey = `writing.category.${post.category}` as TranslationKey;
+const otherLocale: Locale = lang === 'zh' ? 'en' : 'zh';
 
 const articleJsonLd = {
   '@context': 'https://schema.org',
@@ -57,7 +53,7 @@ const articleJsonLd = {
   url: canonical,
   image: new URL('/og/default.png', siteUrl).href,
   inLanguage: localeMeta[lang].htmlLang,
-  articleSection: t(categoryKey),
+  articleSection: t(`writing.category.${post.category}` as never),
   keywords: post.tags.join(', '),
   timeRequired: `PT${post.readingTime}M`,
 };
@@ -75,40 +71,38 @@ const articleJsonLd = {
 
   <div id="reading-progress" class="progress" aria-hidden="true"></div>
 
-  <article class="flex flex-col gap-8">
+  <article>
     <a
       href={writingHref}
-      class="group inline-flex w-fit items-center gap-1.5 font-sans text-[0.75rem] text-subtle transition-colors duration-200 ease-out hover:text-ink"
+      class="group inline-flex items-center gap-2 font-sans text-[0.8125rem] text-subtle transition-colors hover:text-ink"
     >
       <Icon
         name="arrow-left"
-        size={13}
-        class="transition-transform duration-200 ease-out motion-safe:group-hover:-translate-x-0.5"
+        size={14}
+        class="transition-transform duration-200 ease-out motion-safe:group-hover:-translate-x-1"
       />
-      {t('writing.backToWriting')}
+      {t('writing.all')}
     </a>
 
-    <PostHeader post={post} lang={lang} />
+    <div class="mt-10 sm:mt-14">
+      <PostHeader post={post} lang={lang} />
+    </div>
 
-    {cover ? (
-      <figure class="overflow-hidden rounded-xl bg-surface ring-1 ring-line">
-        <img
-          src={cover}
-          alt={post.coverAlt ?? ''}
-          class="aspect-[16/9] w-full object-cover sm:aspect-[2/1]"
-          loading="eager"
-          decoding="async"
-        />
-      </figure>
-    ) : (
-      <PostCover
-        slug={post.slug}
-        title={post.title}
-        year={post.date.getUTCFullYear()}
-        size="hero"
-        class="aspect-[16/9] sm:aspect-[2/1]"
-      />
-    )}
+    {
+      cover && (
+        <figure class="mt-10 overflow-hidden rounded-lg border border-line bg-surface sm:mt-14">
+          <img
+            src={cover}
+            alt={post.coverAlt ?? ''}
+            width="1600"
+            height="900"
+            loading="eager"
+            decoding="async"
+            class="aspect-[16/9] w-full object-cover"
+          />
+        </figure>
+      )
+    }
 
     <Toc headings={headings} lang={lang} />
 
@@ -118,44 +112,48 @@ const articleJsonLd = {
 
     {
       post.tags.length > 0 && (
-        <div class="flex flex-wrap items-center gap-2 border-t border-line pt-5">
-          <span class="eyebrow me-1">{t('common.tags')}</span>
+        <div class="mt-12 flex flex-wrap items-center gap-2">
           {post.tags.map((tag) => (
-            <span class="chip">{tag}</span>
+            <span class="inline-flex items-center rounded-full border border-line px-2.5 py-1 font-sans text-[0.6875rem] tracking-[0.02em] text-subtle">
+              {tag}
+            </span>
           ))}
         </div>
       )
     }
 
-    <ShareRow
-      lang={lang}
-      url={canonical}
-      class="border-b border-line pb-6"
-    />
+    <PrevNext lang={lang} older={Astro.props.older} newer={Astro.props.newer} />
 
     <PostFooterBio lang={lang} />
 
-    <PrevNext lang={lang} older={older} newer={newer} />
-
     {
       related.length > 0 && (
-        <section class="flex flex-col gap-3" aria-labelledby="more-writing">
-          <h2 id="more-writing" class="eyebrow">
-            {t('writing.moreWriting')}
+        <section class="mt-16" aria-labelledby="related-title">
+          <h2
+            id="related-title"
+            class="font-sans text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-subtle"
+          >
+            {t('writing.related')}
           </h2>
-          <div class="flex flex-col border-t border-line divide-y divide-line">
+          <ul class="mt-5 border-t border-line">
             {related.map((item) => (
-              <PostRow post={item} lang={lang} />
+              <li>
+                <a
+                  href={localizePath(item.path, lang)}
+                  class="group flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-line py-4 transition-colors hover:text-accent-strong"
+                >
+                  <span class="font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.012em] text-ink-strong transition-colors group-hover:text-accent-strong">
+                    {item.title}
+                  </span>
+                  <span class="font-mono text-[0.6875rem] tabular uppercase tracking-[0.06em] text-subtle">
+                    {formatDate(item.date, lang, 'short')}
+                  </span>
+                </a>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       )
     }
   </article>
-
-  <style>
-    .post-body {
-      hanging-punctuation: first last;
-    }
-  </style>
 </BaseLayout>

@@ -31,10 +31,10 @@ const items = headings.filter((heading) => heading.depth === 2);
       {/* Reading flow — phones, tablets and no-JS */}
       <nav
         data-toc-inline
-        aria-label={t('writing.contents')}
+        aria-label={t('writing.toc')}
         class="my-9 border-y border-line py-5 lg:hidden"
       >
-        <p class="eyebrow mb-3">{t('writing.contents')}</p>
+        <p class="eyebrow mb-3">{t('writing.toc')}</p>
         <ol class="flex flex-col gap-1.5">
           {items.map((heading, index) => (
             <li class="flex items-baseline gap-3">
@@ -56,10 +56,10 @@ const items = headings.filter((heading) => heading.depth === 2);
       {/* Sticky rail — desktop only */}
       <nav
         data-toc-rail
-        aria-label={t('writing.contents')}
+        aria-label={t('writing.toc')}
         class="fixed right-5 top-32 z-40 hidden w-44 lg:block xl:right-8 xl:w-48"
       >
-        <p class="eyebrow mb-3 pl-3">{t('writing.contents')}</p>
+        <p class="eyebrow mb-3 pl-3">{t('writing.toc')}</p>
         <div class="relative">
           <span
             aria-hidden="true"
@@ -72,7 +72,7 @@ const items = headings.filter((heading) => heading.depth === 2);
                 <a
                   href={`#${heading.slug}`}
                   data-toc-link={heading.slug}
-                  class="toc-link group flex items-baseline gap-2 py-1.5 pl-3 pr-2 font-sans text-[0.75rem] leading-snug text-subtle transition-colors duration-200 hover:text-ink"
+                  class="toc-link group flex items-baseline gap-2 py-1.5 pl-3 pr-2 font-sans text-[0.75rem] leading-snug text-muted transition-colors duration-200 hover:text-ink"
                 >
                   <span class="shrink-0 font-mono text-[0.5625rem] tabular tracking-[0.04em] text-faint transition-colors duration-200 group-hover:text-subtle">
                     {String(index + 1).padStart(2, '0')}

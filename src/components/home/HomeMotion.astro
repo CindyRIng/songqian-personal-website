@@ -1,0 +1,124 @@
+---
+/**
+ * HomeMotion — page-aware client choreography for the home page only.
+ *
+ *   - stat count-up (data-count), tabular numbers, reduced-motion → final value
+ *   - ArtPlate reveal (.is-inview) + wheel parallax (--plate-shift)
+ *
+ * BaseLayout owns the reveal observer, page transitions and theme; this script
+ * only runs on pages that render data-home and re-inits on astro:page-load.
+ */
+---
+
+<script>
+  type Cleanup = () => void;
+  let cleanups: Cleanup[] = [];
+
+  const prefersReduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function initHomeMotion() {
+    while (cleanups.length) cleanups.pop()?.();
+
+    const root = document.querySelector<HTMLElement>('[data-home]');
+    if (!root) return;
+
+    /* --- Stat count-up -------------------------------------------------- */
+    const counts = Array.from(root.querySelectorAll<HTMLElement>('[data-count]'));
+    const setFinal = (el: HTMLElement) => {
+      const target = Number(el.dataset.count ?? 0);
+      if (Number.isFinite(target)) el.textContent = String(target);
+    };
+
+    if (counts.length && !prefersReduced() && 'IntersectionObserver' in window) {
+      for (const el of counts) el.textContent = '0';
+
+      const animate = (el: HTMLElement) => {
+        const target = Number(el.dataset.count ?? 0);
+        if (!Number.isFinite(target)) return setFinal(el);
+        const duration = 720;
+        const started = performance.now();
+        const tick = (now: number) => {
+          const t = Math.min(1, (now - started) / duration);
+          const eased = 1 - Math.pow(1 - t, 3);
+          el.textContent = String(Math.round(target * eased));
+          if (t < 1) requestAnimationFrame(tick);
+          else el.textContent = String(target);
+        };
+        requestAnimationFrame(tick);
+      };
+
+      const counter = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            animate(entry.target as HTMLElement);
+            counter.unobserve(entry.target);
+          }
+        },
+        { threshold: 0.4 }
+      );
+      counts.forEach((el) => counter.observe(el));
+      cleanups.push(() => counter.disconnect());
+    } else {
+      counts.forEach(setFinal);
+    }
+
+    /* --- ArtPlate reveal + parallax ------------------------------------ */
+    const plates = Array.from(root.querySelectorAll<HTMLElement>('[data-plate]'));
+
+    if (plates.length) {
+      if (prefersReduced() || !('IntersectionObserver' in window)) {
+        plates.forEach((plate) => plate.classList.add('is-inview'));
+      } else {
+        const reveal = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              entry.target.classList.add('is-inview');
+              reveal.unobserve(entry.target);
+            }
+          },
+          { threshold: 0.16, rootMargin: '0px 0px -4% 0px' }
+        );
+        plates.forEach((plate) => reveal.observe(plate));
+        cleanups.push(() => reveal.disconnect());
+      }
+
+      if (!prefersReduced()) {
+        const wheels = plates
+          .map((plate) => ({ plate, wheel: plate.querySelector<HTMLElement>('[data-plate-wheel]') }))
+          .filter((item): item is { plate: HTMLElement; wheel: HTMLElement } => Boolean(item.wheel));
+
+        let frame = 0;
+        const update = () => {
+          frame = 0;
+          const vh = window.innerHeight;
+          for (const { plate, wheel } of wheels) {
+            const rect = plate.getBoundingClientRect();
+            if (rect.bottom < -80 || rect.top > vh + 80) continue;
+            const center = rect.top + rect.height / 2;
+            const progress = Math.max(-1, Math.min(1, (vh / 2 - center) / vh));
+            wheel.style.setProperty('--plate-shift', `${(progress * 3).toFixed(2)}%`);
+          }
+        };
+        const onScroll = () => {
+          if (!frame) frame = requestAnimationFrame(update);
+        };
+        update();
+        addEventListener('scroll', onScroll, { passive: true });
+        addEventListener('resize', onScroll, { passive: true });
+        cleanups.push(() => {
+          removeEventListener('scroll', onScroll);
+          removeEventListener('resize', onScroll);
+          if (frame) cancelAnimationFrame(frame);
+        });
+      }
+    }
+  }
+
+  document.addEventListener('astro:page-load', initHomeMotion);
+  document.addEventListener('astro:before-swap', () => {
+    while (cleanups.length) cleanups.pop()?.();
+  });
+  if (document.readyState !== 'loading') initHomeMotion();
+</script>

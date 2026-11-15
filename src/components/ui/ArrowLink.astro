@@ -1,45 +1,80 @@
 ---
 /**
- * ArrowLink — the small "View all →" affordance used next to section headers.
- * Quiet by default; the arrow nudges right on hover.
+ * ArrowLink — the one text-link affordance: label + an arrow that nudges right.
+ * The underline is a 1px hairline that turns sage on hover.
  */
-import Icon from './Icon.astro';
-
 interface Props {
   href: string;
   label?: string;
-  icon?: 'arrow-right' | 'arrow-up-right' | 'chevron-right';
-  tone?: 'muted' | 'accent';
+  /** Arrow direction; `none` renders a plain link. */
+  arrow?: 'right' | 'up-right' | 'none';
   external?: boolean;
   class?: string;
 }
 
-const {
-  href,
-  label,
-  icon = 'arrow-right',
-  tone = 'muted',
-  external = false,
-  class: className = '',
-} = Astro.props;
-
+const { href, label, arrow = 'right', external = false, class: className = '' } = Astro.props;
 const isExternal = external || /^(https?:|mailto:)/.test(href);
 ---
 
 <a
   href={href}
-  class:list={[
-    'group/arrow inline-flex items-center gap-1 whitespace-nowrap font-sans text-[0.75rem] leading-none transition-colors duration-200',
-    tone === 'accent' ? 'text-accent hover:text-accent-strong' : 'text-subtle hover:text-ink',
-    className,
-  ]}
+  class:list={['arrow-link inline-flex items-baseline gap-2 whitespace-nowrap', className]}
   target={isExternal && !href.startsWith('mailto:') ? '_blank' : undefined}
   rel={isExternal && !href.startsWith('mailto:') ? 'noreferrer noopener' : undefined}
 >
-  <span><slot />{label}</span>
-  <Icon
-    name={icon}
-    size={13}
-    class="transition-transform duration-300 ease-out motion-safe:group-hover/arrow:translate-x-0.5"
-  />
+  <span class="arrow-label"><slot />{label}</span>
+  {arrow !== 'none' && (
+    <span aria-hidden="true" class="arrow-glyph">{arrow === 'up-right' ? '↗' : '→'}</span>
+  )}
 </a>
+
+<style>
+  .arrow-link {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    line-height: 1.6;
+    color: var(--ink);
+    text-decoration: none;
+    transition: color var(--dur-1, 120ms) ease-out;
+  }
+
+  .arrow-label {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+    transition: border-color var(--dur-1, 120ms) ease-out;
+  }
+
+  .arrow-glyph {
+    color: var(--accent);
+    transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
+  }
+
+  .arrow-link:hover {
+    color: var(--accent-strong);
+  }
+
+  .arrow-link:hover .arrow-label {
+    border-color: var(--accent);
+  }
+
+  .arrow-link:hover .arrow-glyph {
+    transform: translateX(3px);
+  }
+
+  .arrow-link:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .arrow-glyph,
+    .arrow-label,
+    .arrow-link {
+      transition: none;
+    }
+    .arrow-link:hover .arrow-glyph {
+      transform: none;
+    }
+  }
+</style>

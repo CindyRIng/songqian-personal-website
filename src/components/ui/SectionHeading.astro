@@ -1,0 +1,101 @@
+---
+/**
+ * SectionHeading — the numbered section chrome used by every page.
+ *
+ *   02  工作  Selected work                                   3 工具 · 全部作品 →
+ *   ──────────────────────────────────────────────────────────────────────────
+ *
+ * The rule above is the ink hairline; number is mono sage, title sans, the
+ * English secondary label serif italic. Right side carries a quiet lede and an
+ * optional action link. Purely presentational — strings come from copy.ts.
+ */
+import ArrowLink from './ArrowLink.astro';
+
+interface Props {
+  number?: string;
+  title: string;
+  en?: string;
+  lede?: string;
+  href?: string;
+  actionLabel?: string;
+  id?: string;
+  class?: string;
+}
+
+const { number, title, en, lede, href, actionLabel, id, class: className = '' } = Astro.props;
+---
+
+<header id={id} class:list={['section-heading border-t-[1.5px] border-ink pt-4', className]}>
+  <div class="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
+    <p class="section-label flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+      {number && <span class="section-number">{number}</span>}
+      <span class="section-title">{title}</span>
+      {en && <em class="section-en">{en}</em>}
+    </p>
+
+    <div class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+      {lede && <span class="section-lede">{lede}</span>}
+      {
+        href && actionLabel && (
+          <ArrowLink href={href} label={actionLabel} class="section-action" />
+        )
+      }
+    </div>
+  </div>
+</header>
+
+<style>
+  .section-label {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  .section-number {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .section-title {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .section-en {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    color: var(--subtle);
+  }
+
+  .section-lede {
+    max-width: 34rem;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    letter-spacing: 0.01em;
+    color: var(--subtle);
+    line-height: 1.5;
+  }
+
+  :global(.section-action) {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+</style>

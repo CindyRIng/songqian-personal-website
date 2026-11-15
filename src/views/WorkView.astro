@@ -1,0 +1,236 @@
+---
+/**
+ * WorkView — `/works/<slug>` (zh) and `/en/works/<slug>` (en).
+ *
+ * A+ direction: oversized serif title, a credible CLI window (or a CSS layer
+ * diagram for hardware projects), the MDX case study in .prose, a mono metric
+ * bar, GitHub link and a next-project row.
+ *
+ * TODO(forge): `ui/StatBar.astro` and `ui/TerminalCard.astro` follow
+ * rebuild-spec §3 and resolve once forge lands them.
+ */
+import { render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/ui/Icon.astro';
+import TerminalCard from '../components/ui/TerminalCard.astro';
+import StatBar from '../components/ui/StatBar.astro';
+import LayerDiagram from '../components/projects/LayerDiagram.astro';
+import { terminalFor } from '../components/projects/terminal';
+import { localizePath, useTranslations } from '../i18n/utils';
+import type { Locale } from '../i18n/config';
+import {
+  PROJECT_CATEGORIES,
+  PROJECT_STATUS_KEYS,
+  getProjectBySlug,
+  getProjectNeighbors,
+} from '../lib/projects';
+
+interface Props {
+  lang: Locale;
+  slug: string;
+}
+
+const { lang, slug } = Astro.props;
+const t = useTranslations(lang);
+
+const project = await getProjectBySlug(lang, slug);
+if (!project) {
+  throw new Error(`[works] Unknown project slug "${slug}" for locale "${lang}"`);
+}
+
+const neighbors = await getProjectNeighbors(lang, slug);
+const next = neighbors?.next ?? project;
+const { Content } = await render(project.entry);
+
+const terminal = terminalFor(project.slug, lang);
+const primaryCategory = PROJECT_CATEGORIES.find((category) => project.tags.includes(category));
+
+/** The tennis-ball robot reads better as a layered system than as a CLI. */
+const LAYERS: Record<Locale, { label: string; en: string; note: string }[]> = {
+  zh: [
+    { label: '硬件层', en: 'Hardware', note: '两轮差速底盘、滚筒式拾球机构、3D 打印结构。' },
+    { label: '行为抽象层', en: 'Behaviour', note: '把「找球 / 接近 / 拾起」拆成可组合的技能。' },
+    { label: '传输层', en: 'Transport', note: '嵌入式控制器与板载计算机之间的状态与指令。' },
+    { label: '应用层', en: 'Application', note: '决定下一步做什么，串起整个任务。' },
+    { label: '视图层', en: 'View', note: '把状态露出来，用于调试与演示。' },
+  ],
+  en: [
+    { label: 'Hardware', en: 'L1', note: 'Two-wheel differential chassis, roller pickup mechanism, 3D-printed structure.' },
+    { label: 'Behaviour', en: 'L2', note: '“Find the ball, approach, pick up” as composable skills.' },
+    { label: 'Transport', en: 'L3', note: 'State and commands between the embedded controller and the on-board computer.' },
+    { label: 'Application', en: 'L4', note: 'Decides what happens next and sequences the task.' },
+    { label: 'View', en: 'L5', note: 'Exposes state for debugging and demos.' },
+  ],
+};
+const layers = project.slug === 'tennis-ball-robot' ? LAYERS[lang] : null;
+const nextLabel = lang === 'zh' ? '下一个项目' : 'Next project';
+
+const hrefNext = localizePath(`/works/${next.slug}`, lang);
+const statusLabel = t(PROJECT_STATUS_KEYS[project.status]);
+const isCurrent = project.status === 'live' || project.status === 'in-progress';
+const typeLabel = primaryCategory ? t(`filter.${primaryCategory}` as never) : t('filter.tool');
+---
+
+<BaseLayout
+  lang={lang}
+  title={project.title}
+  description={project.description}
+  path={`/works/${project.slug}`}
+  wide
+>
+  <div class="wrap">
+    <!-- Back -->
+    <a
+      href={localizePath('/works', lang)}
+      class="group inline-flex min-h-11 items-center gap-2 text-[0.8125rem] text-muted transition-colors duration-200 hover:text-ink"
+    >
+      <Icon
+        name="arrow-left"
+        size={14}
+        class="transition duration-200 ease-[var(--ease-out)] group-hover:-translate-x-0.5"
+      />
+      {t('actions.backToWorks')}
+    </a>
+
+    <!-- Title block -->
+    <header class="mt-4 flex flex-col gap-5">
+      <p class="mono flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.6875rem] uppercase tracking-[0.12em] text-subtle">
+        <span>{project.year}</span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class:list={['size-1.5 rounded-full', isCurrent ? 'bg-accent' : 'bg-subtle']}></span>
+          {statusLabel}
+        </span>
+        <span>{typeLabel}</span>
+      </p>
+
+      <div class="flex flex-col gap-3">
+        <h1 class="display max-w-[18ch]">{project.title}</h1>
+        <p class="mono text-[0.8125rem] text-subtle">{project.slug}</p>
+      </div>
+
+      <p class="max-w-[52ch] text-pretty text-[1.25rem] leading-[1.6] text-muted">{project.tagline}</p>
+    </header>
+
+    <!-- Metadata -->
+    <dl class="mt-8 grid grid-cols-2 gap-x-6 gap-y-5 border-y border-line py-5 md:grid-cols-4">
+      <div class="flex flex-col gap-1">
+        <dt class="label">{t('works.role')}</dt>
+        <dd class="text-pretty text-[0.875rem] leading-snug text-ink">{project.role}</dd>
+      </div>
+      <div class="flex flex-col gap-1">
+        <dt class="label">{t('works.year')}</dt>
+        <dd class="mono text-[0.875rem] leading-snug text-ink">{project.year}</dd>
+      </div>
+      <div class="flex flex-col gap-1">
+        <dt class="label">{t('works.status')}</dt>
+        <dd class="text-[0.875rem] leading-snug text-ink">{statusLabel}</dd>
+      </div>
+      <div class="flex flex-col gap-1">
+        <dt class="label">{t('works.stack')}</dt>
+        <dd class="flex flex-wrap gap-1.5">
+          {project.stack.slice(0, 4).map((item) => <span class="chip">{item}</span>)}
+        </dd>
+      </div>
+    </dl>
+  </div>
+
+  <!-- Media + links, in the same centered reading column as the case study -->
+  <div class="measure mx-auto mt-10">
+    <div data-reveal>
+      {
+        terminal ? (
+          <TerminalCard
+            title={terminal.title}
+            caption={terminal.caption}
+            meta={terminal.meta}
+            lines={terminal.lines}
+            variant={terminal.variant}
+          />
+        ) : (
+          <LayerDiagram label={lang === 'zh' ? '系统架构' : 'System architecture'} title={project.slug} layers={layers ?? []} />
+        )
+      }
+    </div>
+
+    <!-- Actions -->
+    {
+      project.links?.repo && (
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          <a
+            href={project.links.repo}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="work-link min-h-11"
+          >
+            <Icon name="github" size={15} />
+            GitHub
+            <Icon name="external" size={12} class="opacity-60" />
+          </a>
+        </div>
+      )
+    }
+  </div>
+
+  <!-- Case study body -->
+  <div class="measure mx-auto mt-14" data-reveal>
+    <div class="prose">
+      <Content />
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- Metrics -->
+    {
+      project.metrics.length > 0 && (
+        <section class="mt-14" aria-label={t('works.overview')} data-reveal>
+          <StatBar stats={project.metrics.map((metric) => ({ value: metric.value, label: metric.label }))} />
+        </section>
+      )
+    }
+
+    <!-- Next project -->
+    <a
+      href={hrefNext}
+      class="group mt-16 flex flex-wrap items-end justify-between gap-4 border-t border-line pt-6"
+      data-reveal
+    >
+      <span class="flex flex-col gap-1">
+        <span class="label">{nextLabel}</span>
+        <span class="h3 transition-colors duration-200 group-hover:text-accent-deep">{next.title}</span>
+        <span class="mono text-[0.75rem] text-subtle">{next.slug}</span>
+      </span>
+      <span class="inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted transition-colors duration-200 group-hover:text-accent-deep">
+        {t('actions.viewProject')}
+        <Icon
+          name="arrow-right"
+          size={16}
+          class="transition duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5"
+        />
+      </span>
+    </a>
+  </div>
+</BaseLayout>
+
+<style>
+  .work-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    padding: 0.5rem 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--ink);
+    transition:
+      background-color var(--dur-1) ease-out,
+      border-color var(--dur-1) ease-out,
+      color var(--dur-1) ease-out;
+  }
+  .work-link:hover {
+    background: var(--ink-strong);
+    border-color: var(--ink-strong);
+    color: var(--canvas);
+  }
+</style>

@@ -1,8 +1,8 @@
 ---
 # Graduation project (2025-11 → 2026-05). Not open source; facts from the design report.
 title: 'Tennis-Ball Robot'
-tagline: 'A graduation project: a robot that picks up tennis balls — architecture first, hardware second.'
-description: 'A five-layer system design for a tennis-ball collection robot: two-wheel differential drive, a roller pickup mechanism, 3D-printed structure, and a ROS / embedded / vision plan sized for one student and one semester.'
+tagline: 'A graduation project: a robot that collects tennis balls — architecture first, hardware second.'
+description: 'A five-layer system design for a tennis-ball collection robot: two-wheel differential drive, a roller pickup mechanism, 3D-printed structure and a ROS / embedded / vision plan sized for one student and one semester.'
 year: 2026
 role: 'Design & development, solo'
 team: 'Solo thesis project'
@@ -22,23 +22,31 @@ featured: false
 order: 3
 ---
 
-Graduation projects are usually judged on a demo. I treated mine as an architecture exercise first, because a robot that picks up tennis balls on a court is a system problem long before it is a motor problem.
+Graduation projects are usually judged on a demo. I treated mine as an architecture exercise first: collecting tennis balls on a court is a system problem long before it becomes a motor problem.
 
 ## The problem
 
-A tennis court produces a trivial-sounding but constant chore: balls scatter after every drill, and collecting them by hand is slow and unglamorous. Commercial collectors exist, but they are expensive, heavy, and assume a flat, well-lit court. My brief was simpler and harder: design a small robot that can collect balls on a normal campus court, and design it so one student could build it over a semester.
+Balls scatter across the court after every drill, and picking them up by hand is slow and hard on your back. Commercial collectors exist, but they are expensive, heavy, and assume a flat, well-lit court. My brief was more specific: design a small robot that can collect balls on an ordinary campus court, and make it buildable by one student in one semester.
 
-## Five layers
+## What I built
 
-The core decision was a five-layer architecture: hardware, behaviour abstraction, transport, application and view.
+Architecture first, hardware second. Five layers: hardware, behaviour abstraction, transport, application and view.
 
-- **Hardware** is the chassis, two differential-drive wheels and a roller pickup mechanism, 3D-printed around off-the-shelf motors.
-- **Behaviour abstraction** turns "find a ball", "approach", "pick up" into composable skills.
-- **Transport** carries state and commands between the embedded controller and the on-board computer — and, during bench tests, a laptop.
-- **Application** decides what to do; **view** exposes state for debugging and demos.
+- Hardware: a two-wheel differential chassis with a roller pickup mechanism, 3D-printed around off-the-shelf motors.
+- Behaviour abstraction: turns "find a ball", "approach" and "pick up" into composable skills.
+- Transport: carries state and commands between the embedded controller and the on-board computer.
+- Application decides what to do; the view layer exposes state for debugging and demos.
 
-The point of the layers is substitutability. A behaviour should not know whether it runs against a simulated chassis or the real one, and the view should not care how the robot is built. That also produced a plan I could defend in a 3–4 month timeline: research and requirements, chassis and mechanism, control and ROS integration, vision, then integration and testing.
+The point of the layers is substitutability: a behaviour should not know whether it runs against a simulated chassis or the real one, and the view should not care how the robot is built.
 
-## What it taught me
+## Architecture notes
 
-Mechanism is a software constraint. The roller's geometry decided how fast the robot could drive, and no amount of control code fixes a bad pickup path. A layer diagram is only useful if it changes who owns a decision. And scope honesty matters: what I finished is a defensible system design with an honest prototype budget — not a polished product. The thesis is archived; the repository is not open source.
+The plan was scheduled in 16 weeks: research and requirements → chassis and mechanism → control and ROS integration → vision → integration and testing. That schedule forced an early question: if I could only do one thing well, which one? My answer was the mechanism — the roller's geometry decides how fast the robot can drive, and no amount of control code fixes a bad pickup path.
+
+Vision uses a camera to detect balls and hands a target to the behaviour layer. It is the easiest part to overestimate, so it stayed last.
+
+## What I learned
+
+First, mechanism is a software constraint; choosing the wrong hardware leaves software with very little room. Second, a layer diagram is only useful if it changes who owns a decision, otherwise it is decoration. Third, scope honesty matters: what I finished is a defensible system design with an honest prototype budget, not a polished product.
+
+The thesis is archived and the repository is not open source. Looking back, the project taught me less about ROS than about thinking the system through before touching hardware.

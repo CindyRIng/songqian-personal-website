@@ -1,0 +1,3 @@
+# Legacy routes from v1/v2 → v3 (Cloudflare Pages redirects).
+/projects/* /works/:splat 301
+/projects /works 301

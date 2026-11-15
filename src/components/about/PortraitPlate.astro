@@ -1,0 +1,77 @@
+---
+/**
+ * PortraitPlate — the About page portrait slot.
+ *
+ * Spec §6: if `public/images/portrait.{jpg,jpeg,webp,png}` exists, show a real
+ * photo with explicit dimensions (no CLS). Otherwise render a designed
+ * monogram plate so the layout never has an empty hole. Drop-in replacement:
+ * add the file and the next build picks it up.
+ */
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+interface Props {
+  name: string;
+  monogram: string;
+  alt: string;
+  caption?: string;
+  class?: string;
+}
+
+const { name, monogram, alt, caption, class: className = '' } = Astro.props;
+
+const candidates = ['portrait.webp', 'portrait.jpg', 'portrait.jpeg', 'portrait.png'];
+const portrait = candidates
+  .map((file) => ({ file, path: join(process.cwd(), 'public', 'images', file) }))
+  .find((candidate) => existsSync(candidate.path));
+const src = portrait ? `/images/${portrait.file}` : undefined;
+---
+
+<figure class:list={['relative overflow-hidden rounded-[6px] border border-line bg-[var(--paper)]', className]}>
+  {
+    src ? (
+      <img
+        src={src}
+        alt={alt}
+        width={1200}
+        height={1500}
+        loading="eager"
+        decoding="async"
+        class="aspect-[4/5] w-full object-cover"
+      />
+    ) : (
+      <div class="relative isolate aspect-[4/5] w-full overflow-hidden bg-[var(--paper)]" aria-label={`${name} — ${monogram}`} role="img">
+        {/* paper grain + hairline grid */}
+        <div
+          class="absolute inset-0"
+          aria-hidden="true"
+          style="background-image: repeating-linear-gradient(0deg, color-mix(in oklab, var(--ink) 6%, transparent) 0 1px, transparent 1px 32px), repeating-linear-gradient(90deg, color-mix(in oklab, var(--ink) 6%, transparent) 0 1px, transparent 1px 32px); mask-image: linear-gradient(180deg, black 0%, transparent 72%);"
+        >
+        </div>
+        {/* concentric engraving rings */}
+        <svg
+          class="absolute -right-10 -top-10 w-[78%] text-[var(--muted)] opacity-70"
+          viewBox="0 0 320 320"
+          fill="none"
+          aria-hidden="true"
+        >
+          <circle cx="232" cy="88" r="140" stroke="currentColor" stroke-width="1" opacity="0.35"></circle>
+          <circle cx="232" cy="88" r="94" stroke="currentColor" stroke-width="1" opacity="0.3"></circle>
+          <circle cx="232" cy="88" r="48" stroke="currentColor" stroke-width="1" opacity="0.25"></circle>
+          <circle cx="232" cy="88" r="2.5" fill="currentColor" opacity="0.55"></circle>
+        </svg>
+        {/* warm terra disc, the A+ art-plate motif */}
+        <div
+          class="absolute -bottom-12 -left-12 size-[62%] rounded-full opacity-[0.16]"
+          aria-hidden="true"
+          style="background: radial-gradient(circle at 40% 38%, var(--terra), transparent 68%);"
+        >
+        </div>
+        <span class="absolute inset-x-0 bottom-[22%] z-10 text-center font-serif text-[clamp(4rem,14vw,7rem)] font-[520] leading-none tracking-[-0.05em] text-ink-strong">
+          {monogram}
+        </span>
+        {caption && <span class="mono absolute inset-x-0 bottom-5 z-10 text-center text-[0.625rem] uppercase tracking-[0.18em] text-subtle">{caption}</span>}
+      </div>
+    )
+  }
+</figure>

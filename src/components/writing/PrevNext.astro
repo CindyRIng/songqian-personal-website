@@ -1,8 +1,7 @@
 ---
 /**
- * PrevNext — the previous / next essay cards at the foot of an article.
- * `older` / `newer` are by publication date; the grid keeps both heights even
- * when only one neighbour exists.
+ * PrevNext — previous / next essay links at the foot of an article.
+ * `older` is the previous essay in time, `newer` is the next one.
  */
 import Icon from '../ui/Icon.astro';
 import { formatDate, isoDate, localizePath, useTranslations } from '../../i18n/utils';
@@ -17,29 +16,30 @@ interface Props {
 
 const { lang, older, newer } = Astro.props;
 const t = useTranslations(lang);
-const both = Boolean(older && newer);
-const cardClass =
-  'card group flex flex-col gap-2 p-4 sm:p-5 hover:-translate-y-0.5 focus-visible:-translate-y-0.5';
-const eyebrowClass = 'eyebrow inline-flex items-center gap-1.5';
+const otherLocale: Locale = lang === 'zh' ? 'en' : 'zh';
 ---
 {
   (older || newer) && (
-    <nav
-      aria-label={t('common.continueReading')}
-      class:list={['grid grid-cols-1 gap-3', older && newer ? 'sm:grid-cols-2' : '']}
-    >
+    <nav aria-label={t('writing.related')} class="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2">
       {older && (
-        <a href={localizePath(older.path, lang)} class={cardClass} rel="prev">
-          <span class={eyebrowClass}>
+        <a
+          href={localizePath(older.path, lang)}
+          rel="prev"
+          class="group flex flex-col gap-2 rounded-xl border border-line bg-canvas p-5 transition-colors duration-200 hover:border-line-strong hover:bg-elevated sm:p-6"
+        >
+          <span class="flex items-center gap-1.5 font-sans text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-subtle">
             <Icon name="arrow-left" size={12} />
-            {t('common.prev')}
+            {t('writing.prev')}
           </span>
-          <span class="font-serif text-[1.0625rem] font-[550] leading-snug tracking-[-0.012em] text-ink-strong text-balance">
+          <span class="font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.012em] text-ink-strong text-balance transition-colors group-hover:text-accent-strong">
             {older.title}
+          </span>
+          <span class="display-latin text-[0.9375rem] text-muted">
+            {older.titleByLocale[otherLocale]}
           </span>
           <time
             datetime={isoDate(older.date)}
-            class="mt-auto pt-1 font-sans text-[0.6875rem] tabular text-subtle"
+            class="mt-auto pt-1 font-mono text-[0.6875rem] tabular text-subtle"
           >
             {formatDate(older.date, lang, 'short')}
           </time>
@@ -49,19 +49,22 @@ const eyebrowClass = 'eyebrow inline-flex items-center gap-1.5';
       {newer && (
         <a
           href={localizePath(newer.path, lang)}
-          class:list={[cardClass, both ? 'sm:items-end sm:text-right' : '']}
           rel="next"
+          class="group flex flex-col gap-2 rounded-xl border border-line bg-canvas p-5 transition-colors duration-200 hover:border-line-strong hover:bg-elevated sm:items-end sm:p-6 sm:text-right"
         >
-          <span class={eyebrowClass}>
-            {t('common.next')}
+          <span class="flex items-center gap-1.5 font-sans text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-subtle">
+            {t('writing.next')}
             <Icon name="arrow-right" size={12} />
           </span>
-          <span class="font-serif text-[1.0625rem] font-[550] leading-snug tracking-[-0.012em] text-ink-strong text-balance">
+          <span class="font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.012em] text-ink-strong text-balance transition-colors group-hover:text-accent-strong">
             {newer.title}
+          </span>
+          <span class="display-latin text-[0.9375rem] text-muted">
+            {newer.titleByLocale[otherLocale]}
           </span>
           <time
             datetime={isoDate(newer.date)}
-            class="mt-auto pt-1 font-sans text-[0.6875rem] tabular text-subtle"
+            class="mt-auto pt-1 font-mono text-[0.6875rem] tabular text-subtle"
           >
             {formatDate(newer.date, lang, 'short')}
           </time>

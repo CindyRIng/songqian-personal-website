@@ -1,103 +1,448 @@
 ---
 /**
- * SiteFooter — very quiet, handcrafted.
+ * SiteFooter — the global "contact + colophon" close for every page.
  *
- * A hairline, one line of small-print (handcrafted + dynamic age + contact),
- * a right cluster with RSS, the language switcher and back-to-top (a plain
- * anchor — the browser's smooth scrolling needs no JS), then copyright.
+ * Left: a human-sized CTA (有事写信。), one honest paragraph and the personal
+ * tagline. Right: contact rows (email / phone / wechat QR when configured /
+ * GitHub / RSS) and the availability pill. Under it, a narrow bar carries the
+ * copyright, the email CTA and quiet utility links.
+ *
+ * Optional channels are hidden when absent: `profile.contact.phone` is blank
+ * until a number is public, and the WeChat QR only appears when the image has
+ * been dropped into `public/images/`.
  */
-import Icon from '../ui/Icon.astro';
-import LanguageSwitcher from './LanguageSwitcher.astro';
-import { useTranslations, localizePath, stripLocale } from '../../i18n/utils';
-import { SITE, type Locale } from '../../i18n/config';
+import { existsSync } from 'node:fs';
+import { copy, c, pair } from '../../data/copy';
 import { profile, lt } from '../../data/profile';
-import type { TranslationKey } from '../../i18n/ui';
-import { formatNumber, siteAge } from '../../lib/format';
+import type { Locale } from '../../i18n/config';
+import { localizePath, useTranslations } from '../../i18n/utils';
 
 interface Props {
   lang: Locale;
+  /** Locale-free current path (passed by BaseLayout). */
+  path?: string;
 }
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 
-const currentPath = stripLocale(Astro.url.pathname).path;
-const rssHref = localizePath('/rss.xml', lang);
-const name = lt(profile.name, lang) || profile.latinName;
-
-/* "Handcrafted by Song Qian for 10 months" — the age is computed at build time.
- * The two copy keys are optional: when the dictionary has not caught up yet we
- * quietly fall back to a © line so the footer never shows a raw key. */
-const age = siteAge(SITE.siteLaunch);
-const ageKey = (`footer.${age.unit}`) as TranslationKey;
-const ageTemplate = t(ageKey);
-const hasAgeCopy = ageTemplate !== ageKey;
-const ageLabel = hasAgeCopy
-  ? t(ageKey, { n: formatNumber(age.value, lang, age.unit === 'years' ? 2 : 0) })
-  : '';
-
 const year = new Date().getFullYear();
-const panelPath = currentPath;
+const heading = c(copy.contact.heading, lang);
+const contactLabel = pair(copy.sections.contact.title, lang);
+const shortCta = c(copy.sections.contact.lede, lang);
+const body = c(copy.contact.body, lang);
+const tagline = lt(profile.tagline, lang);
+const availability = c(copy.home.availability, lang);
+
+const email = profile.contact.email;
+const phone = profile.contact.phone?.trim() || '';
+const github = profile.socials.find((social) => social.label === 'GitHub');
+const rssHref = localizePath('/rss.xml', lang);
+const homeHref = localizePath('/', lang);
+
+const qrCandidates = [
+  'public/images/wechat-qr.png',
+  'public/images/wechat-qr.webp',
+  'public/images/wechat-qr.jpg',
+];
+const qrSrc = qrCandidates.find((candidate) => existsSync(candidate));
+const qrUrl = qrSrc ? `/${qrSrc.replace(/^public\//, '')}` : '';
+
+const contactRows = [
+  { label: c(copy.contact.emailLabel, lang), value: email, href: `mailto:${email}`, mono: true },
+  ...(phone
+    ? [{ label: c(copy.contact.phoneLabel, lang), value: phone, href: `tel:${phone}`, mono: true }]
+    : []),
+  ...(github
+    ? [
+        {
+          label: c(copy.contact.githubLabel, lang),
+          value: github.href.replace(/^https?:\/\//, ''),
+          href: github.href,
+          mono: true,
+        },
+      ]
+    : []),
+  {
+    label: c(copy.contact.rssLabel, lang),
+    value: 'RSS',
+    href: rssHref,
+    mono: true,
+  },
+];
 ---
 
-<footer
-  class="relative z-10 mx-auto w-full max-w-[calc(var(--content)+3rem)] px-6 pb-[max(2rem,env(safe-area-inset-bottom,0px))] sm:px-8"
->
-  <div class="border-t border-line pt-8">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
-      <p class="font-sans text-[0.75rem] leading-relaxed text-subtle">
-        <span>{t('footer.handcrafted')}</span>
-        {ageLabel && <span>{' '}{ageLabel}</span>}
-        <span aria-hidden="true" class="px-1.5 text-faint">·</span>
-        <a
-          href={`mailto:${profile.email}`}
-          class="draw-underline transition-colors duration-200 hover:text-ink"
-        >{t('footer.contact')}</a>
-      </p>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="contact-block">
+      <div class="contact-lead">
+        <p class="footer-label">
+          <span class="footer-number" aria-hidden="true">◎</span>
+          {contactLabel.title} / {contactLabel.secondary}
+        </p>
+        <h2 class="contact-heading">{heading}</h2>
+        <p class="contact-body">{body}</p>
+        <p class="contact-tagline">“{tagline}”</p>
+      </div>
 
-      <div class="flex items-center gap-4 font-sans text-[0.75rem] text-subtle">
-        <a
-          href={rssHref}
-          class="group/rss inline-flex items-center gap-1.5 transition-colors duration-200 hover:text-ink"
-        >
-          <Icon
-            name="rss"
-            size={12}
-            class="text-faint transition-colors duration-200 group-hover/rss:text-accent"
-          />
-          <span class="draw-underline">{t('home.rss')}</span>
-        </a>
+      <div class="contact-side">
+        <dl class="contact-rows">
+          {
+            contactRows.map((row) => (
+              <div class="contact-row">
+                <dt>{row.label}</dt>
+                <dd>
+                  <a
+                    href={row.href}
+                    class:list={[row.mono && 'is-mono']}
+                    {...row.href.startsWith('http')
+                      ? { target: '_blank', rel: 'noreferrer noopener' }
+                      : {}}
+                  >
+                    {row.value}
+                  </a>
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
 
-        <a
-          href="#"
-          class="group/top inline-flex items-center gap-1.5 rounded-full py-1 transition-colors duration-200 hover:text-ink"
-          aria-label={t('footer.top')}
-          title={t('footer.top')}
-        >
-          <span class="draw-underline">{t('footer.top')}</span>
-          <Icon
-            name="arrow-up"
-            size={12}
-            class="text-faint transition-transform duration-200 ease-out motion-safe:group-hover/top:-translate-y-0.5"
-          />
-        </a>
+        {
+          qrUrl && (
+            <figure class="wechat-block">
+              <img
+                src={qrUrl}
+                alt={c(copy.contact.wechatLabel, lang)}
+                width="132"
+                height="132"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>{c(copy.contact.wechatHint, lang)}</figcaption>
+            </figure>
+          )
+        }
+
+        <p class="contact-status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>{availability}</span>
+        </p>
       </div>
     </div>
 
-    <div
-      class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line/60 pt-3.5"
-    >
-      <p
-        class="flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-[0.75rem] leading-relaxed text-subtle"
-      >
-        <span>© {year} {name}</span>
-        <span aria-hidden="true" class="text-faint">·</span>
-        <span>{t('footer.rights')}</span>
-        <span aria-hidden="true" class="text-faint">·</span>
-        <span>{t('footer.built')}</span>
+    <div class="footer-bar">
+      <p class="footer-copy">
+        {t('footer.copyright', { year })}
+        <span class="footer-sep" aria-hidden="true">·</span>
+        <span class="footer-muted">{t('footer.builtWith')}</span>
       </p>
 
-      <LanguageSwitcher lang={lang} path={panelPath} variant="footer" />
+      <div class="footer-email">
+        <span class="footer-email-label">{shortCta}</span>
+        <a href={`mailto:${email}`}>{email}</a>
+      </div>
+
+      <nav class="footer-links" aria-label={t('nav.about')}>
+        {github && <a href={github.href} target="_blank" rel="noreferrer noopener">GitHub</a>}
+        <a href={rssHref}>{t('footer.rss')}</a>
+        <a href={homeHref} aria-label={t('footer.top')}>{t('footer.top')} ↑</a>
+      </nav>
     </div>
   </div>
 </footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    z-index: 10;
+    margin-top: clamp(3.5rem, 5.5vw, 5rem);
+    border-top: 2px solid var(--ink);
+    background: var(--canvas);
+  }
+
+  .contact-block {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 27rem);
+    gap: clamp(2.5rem, 6vw, 5.25rem);
+    padding-top: clamp(2rem, 4vw, 2.75rem);
+    align-items: start;
+  }
+
+  .footer-label {
+    display: flex;
+    align-items: baseline;
+    gap: 0.625rem;
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .footer-number {
+    font-family: var(--font-mono);
+    color: var(--accent);
+  }
+
+  .contact-heading {
+    margin-top: 1.125rem;
+    font-family: var(--font-serif);
+    font-size: clamp(2.25rem, 3.4vw, 2.875rem);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    color: var(--ink-strong);
+  }
+
+  .contact-body {
+    margin-top: 1.125rem;
+    max-width: 34rem;
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.78;
+    color: var(--muted);
+  }
+
+  .contact-tagline {
+    margin-top: 1.625rem;
+    padding-top: 1.125rem;
+    border-top: 1px solid var(--line);
+    max-width: 34rem;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--subtle);
+  }
+
+  .contact-side {
+    padding-top: 0.25rem;
+  }
+
+  .contact-rows {
+    border-top: 1px solid var(--line);
+  }
+
+  .contact-row {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 0.875rem;
+    align-items: baseline;
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .contact-row dt {
+    font-family: var(--font-mono);
+    font-size: 0.5938rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+
+  .contact-row dd {
+    font-family: var(--font-sans);
+    font-size: 0.8438rem;
+    line-height: 1.6;
+    color: var(--ink);
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .contact-row dd a {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1px;
+    transition:
+      color var(--dur-1, 120ms) ease-out,
+      border-color var(--dur-1, 120ms) ease-out;
+  }
+
+  .contact-row dd a:hover {
+    color: var(--accent-strong);
+    border-color: var(--accent);
+  }
+
+  .contact-row dd a.is-mono {
+    font-family: var(--font-mono);
+    font-size: 0.7813rem;
+    letter-spacing: 0.01em;
+  }
+
+  .wechat-block {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+
+  .wechat-block img {
+    display: block;
+    width: 132px;
+    height: 132px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper, var(--canvas));
+  }
+
+  .wechat-block figcaption {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--subtle);
+  }
+
+  .contact-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    padding: 0.375rem 0.8125rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-family: var(--font-sans);
+    font-size: 0.6563rem;
+    letter-spacing: 0.03em;
+    color: var(--ink);
+  }
+
+  .status-dot {
+    position: relative;
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex: 0 0 auto;
+  }
+
+  .status-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    opacity: 0;
+    animation: footer-breathe 3s var(--ease-out, cubic-bezier(0.22, 0.61, 0.36, 1)) infinite;
+  }
+
+  @keyframes footer-breathe {
+    0% {
+      opacity: 0.5;
+      transform: scale(0.9);
+    }
+    70%,
+    100% {
+      opacity: 0;
+      transform: scale(1.5);
+    }
+  }
+
+  /* --- narrow bar -------------------------------------------------------- */
+  .footer-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    padding-block: 1.125rem max(1.75rem, env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.5938rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+
+  .footer-copy {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .footer-sep {
+    color: var(--faint);
+  }
+
+  .footer-muted {
+    color: var(--subtle);
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+
+  .footer-email {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.625rem;
+  }
+
+  .footer-email-label {
+    color: var(--faint);
+  }
+
+  .footer-email a {
+    font-family: var(--font-serif);
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1px;
+    transition:
+      color var(--dur-1, 120ms) ease-out,
+      border-color var(--dur-1, 120ms) ease-out;
+  }
+
+  .footer-email a:hover {
+    color: var(--accent-strong);
+    border-color: var(--accent);
+  }
+
+  .footer-links {
+    display: flex;
+    align-items: baseline;
+    gap: 1.375rem;
+  }
+
+  .footer-links a {
+    color: var(--muted);
+    transition: color var(--dur-1, 120ms) ease-out;
+  }
+
+  .footer-links a:hover {
+    color: var(--accent-strong);
+  }
+
+  @media (max-width: 900px) {
+    .contact-block {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .contact-side {
+      padding-top: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .contact-heading {
+      font-size: 2.5rem;
+    }
+
+    .footer-bar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.875rem;
+    }
+
+    .footer-links {
+      gap: 1.25rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .status-dot::after {
+      animation: none;
+    }
+  }
+</style>

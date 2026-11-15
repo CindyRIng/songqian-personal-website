@@ -1,66 +1,94 @@
 ---
 title: 'Tennis training through the lens of a neural network'
-description: 'Treat every swing as a parameter update and every match as a test set. Thinking about overfitting, generalisation and learning rate changed how I practise.'
+description: 'Treat every swing as a parameter update and every match as a test set. It did not make me a better player, but it made practice much less likely to wreck my mood.'
 date: 2026-07-12
 tags: ['tennis', 'learning', 'neural-networks', 'practice']
 category: life
 featured: false
 cover: '/images/posts/tennis-as-neural-training.webp'
-coverAlt: 'Abstract cover: a fine line grid and concentric circles on warm paper'
+coverAlt: 'Abstract cover: a fine line grid and concentric circles'
 ---
 
-For a while, every session ended with the same feeling: I mishit that ball again, maybe I am just not built for tennis.
+For a while, every session ended the same way. In feeding drills I looked fine. In a match I fell apart: the movement broke down, the ball went everywhere.
 
-That way of judging myself feels natural, but it offers no next step. Later I started looking at my training from another angle — treating the player as a system being trained, and every shot as one parameter update. It did not make my technique better overnight, but it took a large emotional weight off my shoulders and told me what to change next time.
+I assumed it was mental. Later I decided it was not my head. It was how I practised.
 
-## You are not a saint, you are a function
+## Feeding drills are great; matches fall apart
 
-Start with a minimal abstraction: at any moment you are in some state S, and your brain outputs an action A. The mapping can be written A = π(S), where π is your policy, determined by a large set of internal parameters.
+A coach feeds from the other side. The placement is fixed, the rhythm is fixed, the spin is fixed. I hit eight out of ten.
 
-S is the state: the incoming ball's position, speed and spin, your stance and balance, the opponent's habits, the score, and how your body feels right now. A is the action: when you start moving, your footwork, the swing path, racket face angle, how force is distributed and where you aim. The parameters of π are your movement habits, coordination patterns and priorities.
+A match is a different thing. Some balls are deep, some are short. Some spin, some do not. The rhythm keeps changing. I was still playing the movement I had trained, so I made errors.
 
-Training, then, is adjusting those parameters. A coach correcting your movement is giving you a loss signal. Repetition is letting the parameters take a few more steps in the same direction. The day a movement suddenly clicks is a local convergence.
+In machine learning this is called overfitting: good on the training set, bad on the test set. Feeding drills are the training set. Matches are the test set.
 
-What I find most useful about this abstraction is that it turns "I played badly" into "my system's output in a certain state was not good enough." The first judges me as a person. The second judges a function that can be edited.
+The fix is not more feeding. It is variety. First fix the placement and get the movement right; then slowly add different spin, depth and pace. My coach already did this. He just did not have the word for it.
 
-## Overfitting: why you look great in feeding drills and fall apart in matches
+The clearest example was a university match in second year. In practice I could rally for twenty shots. In the match I was broken in the first service game. After four games I sat by the court thinking: what exactly have I been practising?
 
-If I had to explain the difference between a beginner and someone further along with one word, I would choose overfitting.
+## Movement is a parameter
 
-Feeding drills are a training set: stable placement, fixed rhythm, one kind of spin. You can drive the loss very low on that set — the drill looks smooth and your movement looks clean. But as soon as you play a match, the ball starts varying: spin, depth, pace. Your performance drops sharply. In machine learning this is low training loss and high test loss, otherwise known as overfitting.
+Picture a person as a function: it sees a ball, it produces a movement. The mapping in between is your parameters.
 
-The fix is not to abandon feeding drills but to stage them.
+Practice is parameter tuning. A coach correcting your movement is giving you a signal that something is wrong. Repetition takes the right movement a few more steps. The day it suddenly clicks, the parameters have landed somewhere useful.
 
-Use stable feeding first to build a movement template — supervised learning with a clear correct answer. Then introduce variety: different spin, depth, rhythm and score pressure, so the movement starts to generalise. In matches, stop chasing the optimal shot on every ball. The point is that trained movement still works in states you have not seen.
+The useful part of this framing is that it turns "I played badly today" into "I handled this ball badly." The first is an attack on myself. The second is a search for the problem.
 
-The interesting part is that the best players are usually not the ones with the most perfect training-set performance. They are the ones with the best generalisation: change the court, the opponent, the balls, and they still produce a stable level.
+It sounds cold, but it cut down a lot of self-flagellation. Before, one mishit could keep me awake. Now I ask: was it a bad read, or did the movement not follow?
 
-## Turn the learning rate down: one variable at a time
+> The most useless sentence in tennis is "I didn't have it today." It explains everything and says nothing.
 
-Another common mistake is a learning rate that is too high.
+## One variable at a time
 
-A high learning rate means trying to change too many things at once: grip today, backswing tomorrow, force production the day after, starting over every time. The parameters oscillate and nothing converges.
+I used to be greedy in practice. Fix the forehand today, the serve tomorrow, the net game the day after. I tried to fix everything at once and half-fixed all of it.
 
-My rule now is simple: one main variable per session. This week only the contact point. Next week only the weight transfer. Everything else can look ugly, because I know what I am training.
+Now I have one rule: one variable per session. This week only the contact point. Next week only the weight transfer. Everything else can look ugly. It feels slow, but at the end of every session I know what I changed.
 
-I also track "loss" on three layers:
+Learning rate works the same way. Change too much at once and the parameters swing back and forth and nothing converges.
 
-- Result: did I win the point, lose it, or make an unforced error.
-- Action: the technical quality of the shot, scored one to five, ignoring the scoreboard.
-- Sensation: did the shot feel light or forced, was I attacking or just surviving.
+## How to use it in a match
 
-Looking at all three together is what stops one lost match from invalidating a whole training block. Sometimes the score is bad while action quality is rising. Sometimes you win because the opponent gifts you points, and your own loss has not actually gone down.
+Thinking about parameters is fine in practice. In a match there is no time.
 
-Keeping the record light matters too. I write four things: what I trained, which variable I was watching, the best and worst shot of the session, and what I want to test next time. It takes five minutes and gives the next session a clear starting point instead of another vague feeling that nothing much happened.
+In matches I do one thing: between points, decide how to play the next one. Where to serve, which side to attack, whether the opponent's backhand or forehand is weaker. One thought. More than that and I get confused.
 
-> Your system's output in this state was not good enough. That does not mean you are not good enough. All you have to do is adjust a few parameters so the next similar state goes better.
+After losing a few points I stand behind the baseline and breathe twice. That trick came from my notes — I noticed that when I lost several points in a row, I was usually still thinking about the last mistake.
 
-## Theory is a background operating system, not a burden
+## Tracking three things
 
-I do not think about equations while playing. On court there are only one or two things in my head: watch the ball, weight, contact point.
+If you do not write it down, it did not happen. After each session I note three things:
 
-But after training the framework helps me review. I ask: in which state was my output worst today? Was it a movement problem, or did I simply not perceive that state? Which parameter should I change, and how will I test it next session?
+- Result: how many games won, how many lost, how many unforced errors.
+- Movement: how I would score the one thing I practised today, one to five.
+- Feel: was it light or forced, was I attacking or just surviving.
 
-The biggest benefit of treating training as parameter tuning is that it replaces self-evaluation with process evaluation. You no longer have to answer "am I good enough" every day. You only have to answer "what do I adjust next." The first drains emotion; the second produces movement.
+Keeping them separate stops one lost match from invalidating the whole practice block. Sometimes the score is bad and the movement is right. Sometimes you win because the opponent gifted you points.
 
-That is roughly what training means to me now: not proving myself every day, but updating a few parameters every day.
+It does not need to be formal. A few lines on my phone take five minutes. A month later I can see which phase I was stuck in.
+
+Last month I noticed that I make far more errors when the opponent's return is deep. Before, I would have called it "bad hands today." Now I know which ball causes it, so practice has a target.
+
+## The side effect
+
+There is a cost to seeing everything as tuning.
+
+Once, in a match, I stood at the baseline thinking: which set of parameters should I use here? The ball arrived while I was still thinking, and I got passed.
+
+I learned that you can tune in practice, not in a match. In a match, one or two thoughts: watch the ball, weight. Any more and the movement slows down.
+
+So theory is for off-court. On court, simpler is better.
+
+## Not just tennis
+
+Later I noticed the same approach works elsewhere.
+
+When code gets stuck: is the input wrong, or is my processing wrong? When a customer conversation goes badly: was the script wrong, or did I not understand the actual problem?
+
+Breaking "I'm bad at this" into "which step is failing" is probably the most useful habit I picked up in these years. It does not guarantee a solution, but it tells you where to look. I now ask "which step" whenever something blocks me — code, customers, writing.
+
+This framework has not made me a good player. I still get run around the court.
+
+But it changed one thing: after losing, I no longer wonder whether I am built for this. I wonder which parameter was off and what to change next time.
+
+One consumes emotion. The other produces movement. That might be the most useful thing tennis has taught me.
+
+The framework is not magic. Some balls are just bad. Accepting that is part of training too. My goal now is simple: play twice a week, do not get injured, improve slowly.

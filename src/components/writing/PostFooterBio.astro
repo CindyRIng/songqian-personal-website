@@ -1,7 +1,7 @@
 ---
 /**
  * PostFooterBio — the author card that closes every essay.
- * Content comes from src/data/profile.ts, so it stays in sync with the About page.
+ * Short identity lines from profile.ts; no long biography.
  */
 import Icon from '../ui/Icon.astro';
 import { localizePath, useTranslations } from '../../i18n/utils';
@@ -18,53 +18,63 @@ const t = useTranslations(lang);
 
 const name = lt(profile.name, lang) || profile.latinName;
 const role = lt(profile.role, lang);
-const bio = lt(profile.aboutBio[0], lang);
-
-const socials = profile.socials.filter((social) =>
-  ['GitHub', 'X / Twitter', 'LinkedIn'].includes(social.label)
-);
+const tagline = lt(profile.tagline, lang);
+const github = profile.socials.find((social) => social.label === 'GitHub');
 ---
-<aside class:list={['rounded-xl border border-line bg-surface p-5 sm:p-6', className]}>
-  <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
-    <span
-      aria-hidden="true"
-      class="grid size-12 shrink-0 place-items-center rounded-full bg-accent-soft font-serif text-[0.9375rem] font-[550] tracking-[0.02em] text-accent ring-1 ring-line"
-    >
-      {profile.monogram}
-    </span>
-
-    <div class="flex min-w-0 flex-col gap-2">
-      <p class="eyebrow">{t('common.writtenBy')}</p>
-      <p class="font-serif text-[1.0625rem] font-[550] leading-none tracking-[-0.01em] text-ink-strong">
-        {name}
-      </p>
-      <p class="font-sans text-[0.75rem] leading-none text-subtle">{role}</p>
-      <p class="max-w-[28rem] font-serif text-[0.9375rem] leading-[1.6] text-muted text-pretty">
-        {bio}
-      </p>
-
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1 font-sans text-[0.75rem]">
-        <a
-          href={localizePath('/about', lang)}
-          class="link inline-flex items-center gap-1"
+<aside class:list={['mt-16 border-t border-line pt-8', className]}>
+  <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+    <div class="flex items-start gap-4">
+      <span
+        aria-hidden="true"
+        class="grid size-11 shrink-0 place-items-center rounded-full bg-sage-tint font-serif text-[0.875rem] font-[560] tracking-[0.02em] text-accent ring-1 ring-line"
+      >
+        {profile.monogram}
+      </span>
+      <div class="flex min-w-0 flex-col gap-1.5">
+        <p class="font-sans text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-subtle">
+          {t('writing.author')}
+        </p>
+        <p
+          class="font-serif text-[1.125rem] font-[560] leading-none tracking-[-0.01em] text-ink-strong"
         >
-          {t('about.title')}
-          <Icon name="arrow-right" size={12} />
-        </a>
-        {
-          socials.map((social) => (
-            <a
-              href={social.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-1.5 text-subtle transition-colors duration-200 hover:text-ink"
-            >
-              {social.label}
-              <span class="sr-only">{t('a11y.external')}</span>
-            </a>
-          ))
-        }
+          {name}
+        </p>
+        <p class="font-sans text-[0.8125rem] leading-relaxed text-subtle">{role}</p>
+        <p class="mt-1 max-w-[26rem] font-serif text-[0.9375rem] leading-[1.6] text-muted">
+          {tagline}
+        </p>
       </div>
+    </div>
+
+    <div
+      class="flex flex-wrap items-center gap-x-5 gap-y-2 font-sans text-[0.8125rem] sm:flex-col sm:items-end sm:gap-2 sm:text-right"
+    >
+      <a
+        href={localizePath('/about', lang)}
+        class="inline-flex items-center gap-1.5 text-ink transition-colors hover:text-accent"
+      >
+        {t('nav.about')}
+        <Icon name="arrow-right" size={13} />
+      </a>
+      {
+        github && (
+          <a
+            href={github.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-ink"
+          >
+            GitHub
+            <span class="sr-only">{t('a11y.external')}</span>
+          </a>
+        )
+      }
+      <a
+        href={`mailto:${profile.email}`}
+        class="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-ink"
+      >
+        {profile.email}
+      </a>
     </div>
   </div>
 </aside>

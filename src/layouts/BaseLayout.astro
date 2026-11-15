@@ -1,38 +1,39 @@
 ---
 /**
- * BaseLayout — the single page shell.
+ * BaseLayout — the v3 page shell (A+ paper-and-ink direction).
  *
- * CONTRACT (do not change without telling the team):
+ * CONTRACT (stable for page owners):
  *   <BaseLayout lang={lang} title? description? image? type? noindex? path? wide? head?>
  *     ...page sections...
- *     <Fragment slot="scripts">...</Fragment>   (optional page scripts)
+ *     <Fragment slot="scripts">...</Fragment>
  *   </BaseLayout>
  *
- * It owns: <html>/<head> metadata, theme bootstrapping, skip link, floating
- * navigation, main landmark + content column, footer, scroll-reveal observer.
+ * It owns: <head> metadata (canonical / hreflang / OG / JSON-LD), the theme
+ * bootstrap, the paper masthead, main landmark + width, the footer, and the
+ * page-aware boot logic (reveal, reading progress, theme, intent prefetch).
+ * Page copy comes from `src/data/copy.ts`; chrome labels from `src/i18n/ui.ts`.
  */
 import '../styles/global.css';
 
-import SiteNav from '../components/chrome/SiteNav.astro';
+import { ClientRouter } from 'astro:transitions';
+import Masthead from '../components/chrome/Masthead.astro';
 import SiteFooter from '../components/chrome/SiteFooter.astro';
 import ReadingEnhancements from '../components/writing/ReadingEnhancements.astro';
-import { SITE } from '../i18n/config';
-import { defaultLocale, localeMeta, type Locale } from '../i18n/config';
-import { getAlternates, useTranslations, localizePath, stripLocale } from '../i18n/utils';
+import { defaultLocale, localeMeta, SITE, type Locale } from '../i18n/config';
+import { getAlternates, localizePath, stripLocale, useTranslations } from '../i18n/utils';
+import { copy, c } from '../data/copy';
 import { profile, lt } from '../data/profile';
-import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   lang: Locale;
-  /** Page title without the site suffix. Home can omit it to use the full SEO title. */
   title?: string;
   description?: string;
   image?: string;
   type?: 'website' | 'article';
   noindex?: boolean;
-  /** Locale-free pathname, e.g. "/about". Defaults to current URL. */
+  /** Locale-free pathname, e.g. "/works". Defaults to the current URL. */
   path?: string;
-  /** Wide column for special pages (project grids, galleries). */
+  /** Full-width editorial page (home, works, about) instead of the reading measure. */
   wide?: boolean;
 }
 
@@ -48,33 +49,19 @@ const {
 
 const t = useTranslations(lang);
 const meta = localeMeta[lang];
+const siteName = lang === 'zh' ? '宋谦' : 'Song Qian';
 
-// Pages may pass a locale-free `path`; otherwise derive it from the URL and
-// strip any locale prefix so `localizePath()` never doubles it (/de/de/writing).
 const rawPath = Astro.props.path ?? Astro.url.pathname;
 const { path: localeFreePath } = stripLocale(rawPath);
 const currentPath = localeFreePath === '' ? '/' : localeFreePath.replace(/\/$/, '') || '/';
-const alternates = getAlternates(currentPath);
 
+const alternates = getAlternates(currentPath);
 const siteUrl = Astro.site ?? new URL(SITE.url);
 const canonical = new URL(localizePath(currentPath, lang), siteUrl).href;
 
-const siteName = lt(profile.name, lang) || profile.latinName;
-const role = lt(profile.role, lang);
-
-/**
- * Title rules:
- *  - no title        -> "<Name> — <Role>" (localized home title)
- *  - title === name   -> "<Name> — <Role>"
- *  - title has the brand name already -> keep as-is (never duplicate)
- *  - otherwise        -> "<Title> — Song Qian"
- */
-const fullTitle = (() => {
-  if (!title || title === siteName || title === profile.latinName) {
-    return `${siteName} — ${role}`;
-  }
-  return title.includes(profile.latinName) ? title : `${title} — ${profile.latinName}`;
-})();
+const fullTitle = title
+  ? `${title} — ${siteName}`
+  : c(copy.meta.homeTitle, lang);
 
 const desc = description ?? lt(profile.seo.description, lang);
 const ogImage = new URL(image, siteUrl).href;
@@ -86,7 +73,7 @@ const jsonLdPerson = {
   alternateName: profile.latinName,
   url: siteUrl.href,
   jobTitle: lt(profile.role, lang),
-  email: `mailto:${profile.email}`,
+  email: `mailto:${profile.contact.email}`,
   address: { '@type': 'PostalAddress', addressLocality: lt(profile.location, lang) },
   sameAs: profile.socials.filter((s) => s.href.startsWith('http')).map((s) => s.href),
 };
@@ -109,7 +96,6 @@ const jsonLdPerson = {
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={canonical} />
 
-    <!-- Client-side routing + view transitions (SPA-grade navigation) -->
     <ClientRouter />
 
     <!-- Theme bootstrap: runs before paint to avoid a flash of the wrong theme. -->
@@ -123,11 +109,8 @@ const jsonLdPerson = {
           document.documentElement.dataset.theme = dark ? 'dark' : 'light';
         } catch (e) {}
       })();
-    </script>
 
-    <script is:inline>
-      // ClientRouter: re-apply the persisted theme before the swapped page
-      // paints, so client-side navigation never flashes the wrong theme.
+      // ClientRouter: re-apply the persisted theme before the swapped page paints.
       document.addEventListener('astro:after-swap', function () {
         try {
           var stored = localStorage.getItem('theme');
@@ -138,41 +121,33 @@ const jsonLdPerson = {
       });
     </script>
 
-    <meta
-      name="theme-color"
-      media="(prefers-color-scheme: light)"
-      content="#f7f2ed"
-    />
-    <meta
-      name="theme-color"
-      media="(prefers-color-scheme: dark)"
-      content="#0e1611"
-    />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f2ed" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f1712" />
     <meta name="color-scheme" content="light dark" />
 
-    <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="apple-mobile-web-app-title" content={profile.latinName} />
 
-    <!-- Feeds -->
     <link
       rel="alternate"
       type="application/rss+xml"
-      title={lang === 'en' ? 'Song Qian — RSS' : `${siteName} — RSS`}
+      title={t('rss.title')}
       href={localizePath('/rss.xml', lang)}
     />
 
-    <!-- Language alternates -->
     {alternates.map((alt) => (
-      <link rel="alternate" hreflang={localeMeta[alt.lang].htmlLang} href={new URL(alt.href, siteUrl).href} />
+      <link
+        rel="alternate"
+        hreflang={localeMeta[alt.lang].htmlLang}
+        href={new URL(alt.href, siteUrl).href}
+      />
     ))}
-    <link rel="alternate" hreflang="x-default" href={new URL(alternates[0].href, siteUrl).href} />
+    <link rel="alternate" hreflang="x-default" href={new URL(localizePath(currentPath, 'zh'), siteUrl).href} />
 
-    <!-- Social -->
     <meta property="og:type" content={type} />
-    <meta property="og:site_name" content={profile.latinName} />
+    <meta property="og:site_name" content={siteName} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonical} />
@@ -205,40 +180,39 @@ const jsonLdPerson = {
       {t('a11y.skip')}
     </a>
 
-    <SiteNav lang={lang} />
+    <Masthead lang={lang} path={currentPath} />
 
     <main
       id="main"
       tabindex="-1"
       transition:name="page-main"
       class:list={[
-        'relative z-10 mx-auto w-full px-6 pb-16 pt-24 sm:px-8 sm:pb-24 sm:pt-32',
-        wide ? 'max-w-3xl' : 'max-w-[calc(var(--content)+3rem)]',
+        'relative z-10 w-full pt-28 pb-16 sm:pt-36 sm:pb-24',
+        wide ? '' : 'measure-wrap',
       ]}
     >
       <slot />
     </main>
 
-    <SiteFooter lang={lang} />
+    <SiteFooter lang={lang} path={currentPath} />
 
     {type === 'article' && <ReadingEnhancements lang={lang} />}
 
     <script>
       /* ------------------------------------------------------------------
-       * All client behaviour is page-aware: with <ClientRouter />, bundled
-       * module scripts execute only once, so every per-page effect is
-       * (re)initialised on `astro:page-load`. A one-time `load` fallback keeps
-       * the site working even if the router itself fails to boot.
+       * Page-aware boot. With <ClientRouter />, bundled module scripts run
+       * once — every per-page effect is (re)initialised on `astro:page-load`.
+       * The guard tracks the <body> node (not the pathname), so same-URL
+       * navigations re-init too.
        * ------------------------------------------------------------------ */
-
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      /* --- Scroll reveal --------------------------------------------------- */
+      /* Scroll reveal ------------------------------------------------------ */
       let revealObserver: IntersectionObserver | null = null;
 
       function initReveal() {
         revealObserver?.disconnect();
-        const targets = document.querySelectorAll<HTMLElement>('[data-reveal]');
+        const targets = document.querySelectorAll<HTMLElement>('[data-reveal], [data-hero-step]');
         if (reducedMotion || !('IntersectionObserver' in window)) {
           targets.forEach((el) => el.classList.add('is-revealed'));
           return;
@@ -248,16 +222,15 @@ const jsonLdPerson = {
             for (const entry of entries) {
               if (!entry.isIntersecting) continue;
               entry.target.classList.add('is-revealed');
-              (entry.target as HTMLElement).style.willChange = 'auto';
               revealObserver?.unobserve(entry.target);
             }
           },
-          { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
+          { rootMargin: '0px 0px -6% 0px', threshold: 0.05 }
         );
         targets.forEach((el) => revealObserver!.observe(el));
       }
 
-      /* --- Reading progress ------------------------------------------------ */
+      /* Reading progress --------------------------------------------------- */
       let progressEl: HTMLElement | null = null;
 
       function updateProgress() {
@@ -275,7 +248,7 @@ const jsonLdPerson = {
       addEventListener('scroll', updateProgress, { passive: true });
       addEventListener('resize', updateProgress, { passive: true });
 
-      /* --- Theme toggle with radial reveal from the click point -------------- */
+      /* Theme -------------------------------------------------------------- */
       function applyTheme(next: 'light' | 'dark') {
         const root = document.documentElement;
         root.classList.toggle('dark', next === 'dark');
@@ -300,7 +273,9 @@ const jsonLdPerson = {
         if (!trigger) return;
         const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
         const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const doc = document as Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void> } };
+        const doc = document as Document & {
+          startViewTransition?: (cb: () => void) => { ready: Promise<void> };
+        };
 
         if (!doc.startViewTransition || prefersReduced) {
           applyTheme(next);
@@ -331,11 +306,9 @@ const jsonLdPerson = {
         });
       });
 
-      /* --- Intent prefetch -------------------------------------------------
-       * The router fetches the next document when a link is clicked; warming the
-       * cache on hover / focus / touch means that fetch is usually already done
-       * by the time the view transition starts, which is what makes client-side
-       * navigation feel instant rather than merely animated.
+      /* Intent prefetch ------------------------------------------------------
+       * Warm the next document on hover / focus / touch (and the masthead
+       * destinations while idle) so client-side navigation feels instant.
        * -------------------------------------------------------------------- */
       const prefetched = new Set<string>();
 
@@ -351,7 +324,6 @@ const jsonLdPerson = {
         }
         if (url.origin !== location.origin) return;
         if (url.pathname === location.pathname && url.search === location.search) return;
-        // Never prefetch files (feeds, images, downloads) — only page documents.
         if (/\.[a-z0-9]+$/i.test(url.pathname)) return;
 
         const key = url.pathname + url.search;
@@ -365,7 +337,7 @@ const jsonLdPerson = {
             headers: { 'X-Prefetch': '1' },
           }).catch(() => {});
         } catch {
-          /* prefetch is an optimisation — never let it break navigation */
+          /* prefetch is an optimisation — never break navigation for it */
         }
       }
 
@@ -390,12 +362,7 @@ const jsonLdPerson = {
         if (anchor) prefetchLink(anchor);
       }, { passive: true });
 
-      /* --- Boot / re-boot on every client-side navigation -------------------
-       * Guard on the <body> node rather than the pathname: a navigation to the
-       * same URL (e.g. re-selecting the current language) still swaps the body,
-       * so its scripts must be re-initialised. A stable body means the initial
-       * load double-event (page-load + load) is only booted once.
-       * -------------------------------------------------------------------- */
+      /* Boot / re-boot ------------------------------------------------------ */
       let lastBootedBody: HTMLElement | null = null;
 
       function bootPage() {
@@ -405,29 +372,27 @@ const jsonLdPerson = {
         initReveal();
         initProgress();
         syncThemeToggles();
-        document.documentElement.classList.add('js');
-
-        // Warm the nav destinations while the reader is still reading.
-        const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-        if (!connection?.saveData) {
-          const idle = window.requestIdleCallback ?? ((cb: IdleRequestCallback) => window.setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 } as IdleDeadline), 1200));
-          idle(() => {
-            document
-              .querySelectorAll<HTMLAnchorElement>('nav a[href]:not([hreflang])')
-              .forEach((anchor) => prefetchLink(anchor));
-          });
-        }
 
         const root = document.documentElement;
         if (root.hasAttribute('data-initial')) {
-          // The initial-load entrance is a one-shot: remove the flag once the
-          // chrome has settled so navigations use the view transition only.
-          window.setTimeout(() => root.removeAttribute('data-initial'), 520);
+          window.setTimeout(() => root.removeAttribute('data-initial'), 560);
+        }
+
+        const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+        if (!connection?.saveData) {
+          const idle =
+            window.requestIdleCallback ??
+            ((cb: IdleRequestCallback) =>
+              window.setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 } as IdleDeadline), 1200));
+          idle(() => {
+            document
+              .querySelectorAll<HTMLAnchorElement>('header nav a[href]:not([hreflang])')
+              .forEach((anchor) => prefetchLink(anchor));
+          });
         }
       }
 
       document.addEventListener('astro:page-load', bootPage);
-      // Fallback: if the router never boots, the first load still works.
       window.addEventListener('load', bootPage);
     </script>
 

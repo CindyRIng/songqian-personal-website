@@ -1,92 +1,108 @@
 ---
 title: 'How I manage my knowledge'
-description: 'Eight folders, one naming rule, five-minute diaries, four kinds of knowledge atoms, and why I insist on plain text plus backlinks. A personal system, still being revised.'
+description: 'After my own notes failed me, I spent a year building a system: eight folders, one naming rule, a five-minute diary, and four kinds of knowledge.'
 date: 2026-09-14
-tags: ['knowledge-management', 'obsidian', 'notes', 'methodology']
+tags: ['knowledge-management', 'obsidian', 'notes', 'method']
 category: engineering
 featured: false
 cover: '/images/posts/personal-knowledge-management.webp'
-coverAlt: 'Abstract cover: layered folder structure on warm paper'
+coverAlt: 'Abstract cover: a layered folder structure on warm paper'
 ---
 
-I got serious about knowledge management because my own notes let me down.
+I got serious about organising notes because my own notes failed me once.
 
-I was writing a proposal and I knew I had recorded one crucial number somewhere. I searched for half an hour: bookmarks, chat history, several documents. I finally found it in a file named "New Document (3)". That was the moment I understood: having written something down is not the same as owning it.
+I was writing a proposal and I was certain I had recorded a key set of numbers somewhere. I searched for half an hour: bookmarks, chat history, several documents. Eventually I found it in a file called "New Document (3)".
 
-So I spent a while designing a system with one goal: to make sure my future self can actually take things out when needed. Here is what the system looks like today.
+That was the moment I understood: having written it down is not the same as owning it.
 
-## Eight folders: decide where things live first
+## Decide where things go first
 
-Almost all note chaos starts with "where should this go". So the first step is not writing notes, it is fixing the folders.
+Most note chaos starts with "where should this go". So the first step is not writing, it is fixing the folders.
 
-- Diary: the raw data layer, a record of what happens each day, the source of everything else.
-- Note: the knowledge layer, structured concepts, technical points, definitions.
-- Essay: the experience layer, methods, reviews, solutions to problems.
-- Project: the delivery layer, documents and outputs for active and finished projects.
-- Index: the retrieval layer, gathering related items scattered across folders.
-- Principle: the decision layer, rules of conduct, criteria, values.
-- Resource: the reference layer, third-party material, tools, external content.
-- Archive: finished items that no longer need to occupy active retrieval space.
+I settled on eight:
 
-There is only one rule: the same kind of content does not live in two folders. Before creating anything, decide which layer it belongs to. It takes ten seconds, and it decides whether your knowledge base is a mess or a searchable structure three years from now.
+- Diary: what happens each day, the raw data.
+- Note: structured knowledge points.
+- Essay: experience, methods, reviews.
+- Project: documents for work in progress and finished.
+- Index: gathers related items scattered elsewhere.
+- Principle: criteria and rules for decisions.
+- Resource: external material and tools.
+- Archive: finished things, moved out of the way.
 
-## Naming: know what a file is without opening it
+One rule: the same kind of content does not live in two folders. Before creating a file, spend one second deciding where it goes. It saves half an hour of reorganising later.
 
-Folders solve location; naming solves recognition. All my files follow one structure:
+## The filename is the index
 
-`[prefix][YYMMDD][index] Title.md`
+My filenames look like this: `[prefix][date][number] Title.md`.
 
-The prefix maps to content type: ND for a daily diary, N for a knowledge point, E for essays and methods, PJ for project documents, I for indexes, P for principles. The date is two digits each for year, month and day, and the index is the order of same-type files that day.
+The prefix marks the type: ND for a diary, N for a knowledge point, E for experience, PJ for a project, P for a principle. The date is six digits; the number is the order of same-type files that day.
 
-For example, the third essay of 13 April 2026 is called E2604133 Personal Knowledge Management Methodology Summary.
+For example, the third essay of 13 April 2026 is `E2604133 Personal Knowledge Management Methodology`.
 
-The benefits are practical: sorting by filename is sorting by time; same-day files do not collide; one glance tells you whether to open something. More importantly, backlinks get stable anchors — renaming a title does not break the links.
+The diary is simpler: one file per day, `ND260413`, no number. Messages in group chats, meeting notes, random thoughts — all go into that day's diary first, and get sorted at the weekend.
 
-## Five-minute granularity: the diary is raw data
+The benefits are practical. Sorting by filename is sorting by time. You can tell what a file is without opening it. And backlinks do not break when a title changes.
 
-My diary is not a mood journal. It is closer to a data log.
+## A diary at five-minute resolution
 
-Each event is one line: event name, place, time span, energy rating, followed by an objective description. Times are rounded to five minutes — 12:21 becomes 12:20, 12:27 becomes 12:25. Words like "around" are not allowed.
+My diary is not a mood journal. It is more like a log.
 
-The rule sounds obsessive, but it solves a real problem: memory lies. Record within 24 hours and the details survive. Fill it in three days later and what you write is your interpretation, not the fact.
+Each event is one line: place, time, what I did, an energy score, and one objective sentence. Times round to five minutes — 12:21 becomes 12:20. No "around" or "approximately".
 
-The value of the diary is not the day itself. It is the source of everything else. A review, a principle, an essay should all be traceable back to the afternoon when it first happened.
+It sounds obsessive. But when you fill it in later, the details are gone and what you write is interpretation. Filling it in the same day at least keeps the facts.
 
-## Four kinds of knowledge atoms: C/P/M/E
+The log is the raw material for everything else. A review, a principle, an essay — each can be traced back to the afternoon it happened.
 
-When distilling knowledge, I distinguish four kinds of content and mark them with four letters.
+An example. The diary entry says: "📌 customer visit 📍 factory ⏱ 14:00–16:30 🌊 6; customer asked about lead time three times, did not move on price." If I later write an essay about sales reviews, I start from there instead of inventing from memory.
 
-C is concept: what it is, where its boundary lies, how it differs from similar concepts.
-P is principle: what to judge by when this kind of choice appears. It comes from a concrete event but must be usable without that event.
-M is method: how to do it. Steps, commands, templates, checklists — the more executable the better.
-E is evidence: concrete cases, data and results that show the method or principle actually works.
+## Four kinds of knowledge
 
-Separating them produces an immediate benefit: within one topic I can see which kind is missing. Lots of concepts but no principles means I have been learning without judging. Lots of methods but no evidence means those methods may never have been verified.
+When distilling, I tag each item with one of four letters.
 
-> Knowledge that cannot be called into production is just a collection.
+C is concept: what it is, where its boundary is.
+P is principle: when this kind of choice appears, what to decide by.
+M is method: how to do it — steps, commands, templates.
+E is evidence: the concrete case that proves it works.
 
-## Why plain text plus backlinks
+Splitting them has an immediate benefit: within one topic I can see which kind is missing. Lots of concepts and no principles means I have been learning without using. Lots of methods and no evidence means the methods may never have been verified.
 
-People have asked why I do not use a prettier tool. The reason is simple: I want this to survive more than ten years.
+Now, whenever I finish a note, I try to tag it. If I cannot tag it, I have not thought it through yet.
 
-Plain text has almost no dependencies. It will still open a decade from now, it can be read by any editor, diffed, searched, and fed directly to an AI. Screenshots and PDFs cannot do that, and they are exactly where information dies most easily.
+> Having written it down is not the same as owning it.
 
-Backlinks solve a different problem: folders are trees, knowledge is a network. A link from a diary to a principle, from a principle to a project, stops content from being chopped up by folders. From any node you can return to the original event, or move forward to where the idea was later used.
+## Why not a fancier tool
 
-Add a layer of indexes that gather scattered items in the same domain, and retrieval no longer depends on memory.
+I use Obsidian, plain text, plus backlinks.
 
-## Maintenance: keep the system alive
+The reason is simple: I want this to survive ten years. Plain text opens a decade from now, any editor can read it, and I can feed it straight to an AI. Screenshots and PDFs cannot do that.
 
-A system is not finished once it is built. I have four fixed routines: daily entry, weekly consolidation, monthly archiving, quarterly review of principles.
+Backlinks solve another problem: folders are trees, knowledge is a network. A link from a diary to a principle, from a principle to a project, stops folders from chopping content apart.
 
-Every day I record events and link related notes. Every week I distil reusable material from the diary into notes or essays and update the indexes. Every month I move finished projects and goals into the archive and clean out expired content. Every quarter I review the principle library, delete outdated rules, add new ones and recalibrate the criteria.
+When I write an essay about quotes, for example, I link it to the relevant principles, a few concrete customer cases, and the process notes I wrote before. Three months later, two clicks get me back to that context instead of relying on memory.
 
-None of this is complicated, but it needs a fixed rhythm. The biggest enemy of knowledge management is not a lack of tools; it is "I will organise it when I have time." That time usually never comes.
+There is a migration cost to this, so I basically stopped changing tools. I used to look for the perfect app. Now I know a familiar broken tool beats an unfamiliar perfect one.
 
-## In the end
+## Maintenance
 
-My understanding of knowledge management is now simple: it is not collection, it is retrieval.
+A system is not finished when it is built. My rhythm: daily entries, a weekly tidy, a monthly archive, a quarterly look at the principles.
 
-A good knowledge system should actually be opened when you write a proposal, make a judgement, or review a project — and actually save you time. If it cannot do that, no matter how tidy it is, it is just a very pretty collection folder.
+I do the weekly tidy on Wednesday afternoons. Go through the week's diary, turn what can be distilled into notes, leave the rest. It takes about half an hour a week.
 
-The system will keep evolving. Rather than chasing a perfect method, I care more about whether it is still being used.
+The hard part is not the operation. It is "I'll organise it when I have time." That time never comes.
+
+## Mistakes I made
+
+The first mistake was folders that were too fine-grained. For a while I made subfolders for every field; each ended up with two or three items and finding things got slower. I learned: keep folders coarse, put the detail in tags and indexes.
+
+The second was changing tools too often. Each migration took a week, and in the end the content grew very little while the time went into moving and redecorating.
+
+The third was collecting without distilling. Saving good articles and never opening them again. Now I have a rule: anything saved needs one sentence within a week explaining why it is worth keeping. If I cannot write that sentence, I delete it.
+
+## Last
+
+My knowledge base still has plenty of unfiled cards. It is not perfect, but at least finding things does not depend on luck anymore.
+
+Knowledge management sounds abstract. In the end it is one sentence: next time you need it, you can find it.
+
+If I ever stop using this system, that will probably mean I found something simpler that suits who I am at that point.

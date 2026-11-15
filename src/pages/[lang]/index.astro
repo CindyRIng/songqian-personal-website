@@ -1,11 +1,11 @@
 ---
 /**
- * Localized home pages: /zh, /ja, /es, /fr, /de.
+ * English home page — the only secondary locale: /en/
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import HomeView from '../../views/HomeView.astro';
 import { secondaryLocales, type Locale } from '../../i18n/config';
-import { profile, lt } from '../../data/profile';
+import { copy, c } from '../../data/copy';
 
 export function getStaticPaths() {
   return secondaryLocales.map((lang) => ({ params: { lang } }));
@@ -17,8 +17,8 @@ const lang = Astro.params.lang as Locale;
 <BaseLayout
   lang={lang}
   path="/"
-  title={lt(profile.name, lang) || profile.latinName}
-  description={lt(profile.tagline, lang)}
+  wide={true}
+  description={c(copy.meta.homeDescription, lang)}
 >
   <HomeView lang={lang} />
 </BaseLayout>

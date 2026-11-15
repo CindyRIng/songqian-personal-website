@@ -9,18 +9,16 @@ import type { APIContext } from 'astro';
 import { getAllPosts } from '../lib/posts';
 import { defaultLocale, localeMeta, SITE } from '../i18n/config';
 import { localizePath, useTranslations } from '../i18n/utils';
-import { lt, profile } from '../data/profile';
 
 export async function GET(context: APIContext) {
   const lang = defaultLocale;
   const t = useTranslations(lang);
   const site = context.site ?? new URL(SITE.url);
-  const authorName = lt(profile.name, lang) || profile.latinName;
   const posts = await getAllPosts(lang);
 
   return rss({
-    title: `${authorName} — ${t('writing.title')}`,
-    description: t('writing.subtitle'),
+    title: t('rss.title'),
+    description: t('rss.description'),
     site,
     items: posts.map((post) => ({
       title: post.title,

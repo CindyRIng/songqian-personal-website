@@ -1,6 +1,6 @@
 ---
 title: 'AI after the internet: a bigger kind of outsourcing'
-description: 'Economic history is a history of outsourcing labour: muscle to machines, process to software — and AI closes the loop on thinking. What fits AI, and why implementation beats models.'
+description: 'When the internet appeared, nobody knew food delivery or e-commerce would exist. AI sits in roughly the same place now.'
 date: 2026-10-21
 tags: ['ai', 'internet', 'labour', 'technology']
 category: notes
@@ -9,61 +9,81 @@ cover: '/images/posts/ai-after-the-internet.webp'
 coverAlt: 'Abstract cover: orbital lines on warm paper'
 ---
 
-I was talking with someone recently about what the internet looked like when it first appeared.
+During the Canton Fair I spent a few days at a booth receiving customers. Almost everyone who sat down eventually asked: can you do this with AI?
 
-No mobile payments, no food delivery, no e-commerce, no short video. People looking at the internet then probably could not explain how it would change daily life. Today, a life without those things is impossible to imagine.
+I usually asked what problem they were trying to solve first. Most of the time what they wanted was not AI. It was two fewer hires, or a quotation that comes out faster.
 
-I keep feeling that AI is standing in the same place right now: the models exist, the frameworks exist, but nobody can really see what "e-commerce on top of AI" or "food delivery on top of AI" will be.
+Afterwards I kept thinking about what AI will change, and what it will not.
 
 ## A history of outsourcing
 
-If I had to compress economic history into one word, I would choose outsourcing.
+Compress economic history and it looks like a history of outsourcing.
 
-Before the industrial revolution, almost all value came from muscle. Then humans outsourced muscle to machines, stepped behind them, and used their brains to design and maintain the machines. Productivity grew exponentially for the first time.
+Before the industrial revolution, value came from muscle. Then humans outsourced muscle to machines and stepped behind them to design the machines. The information revolution outsourced process to software: people wrote code, code ran the process, process directed the machines.
 
-The information revolution outsourced the next layer: humans wrote business processes and organisational management into software, let code execute the processes, and let the processes direct the machines. We stopped moving information ourselves and started writing rules for systems to move it.
+What AI is doing now is outsourcing the last layer — judgement, writing, analysis. These used to require a person. Now a model can produce a first version and a person edits it.
 
-Along this line, AI is just another layer of outsourcing — but it covers the last piece, thinking itself. We used to outsource hands and processes; now we are starting to outsource judgement, writing and analysis, the parts that used to require a person.
+So I do not think "will AI replace people" is a good question. Every previous round of outsourcing replaced one layer of labour and pushed people up a layer. The real question is: what does the layer above require, and do I have it?
 
-That is why I think "will AI replace people" is a badly posed question. Every previous round of outsourcing replaced one layer of labour and pushed people up a layer. The real uncertainty is not whether you will be replaced, but what the new layer requires and who gets there first.
+From an individual's point of view there is another pattern: what gets outsourced is the repeatable, standardisable part. What stays is judgement, communication, and carrying the consequences.
 
-## What year of the internet is AI in?
+## What year of the internet is this
 
-Nobody can answer that precisely, but there is a useful test.
+Hard to say. But there is a useful test: find a direction where, in the future, not having it would feel like not having e-commerce today.
 
-The people who judged internet directions back then used a similar idea: find a direction such that, in the future, not having it would be as unimaginable as not having e-commerce today. Judging AI today works the same way — do not ask "which industry will AI change", ask "what will become infrastructure that most people have not noticed yet".
+When the internet appeared, nobody imagined food delivery or online shopping. In 1995 people used it to read news. They probably did not picture buying groceries, hailing taxis or arguing with strangers on it ten years later.
 
-That test has a precondition: you have to go deep enough in a vertical to see what is missing. From outside you see excitement; from inside you see exactly where the problem gets stuck.
+AI today is in the same position. The models exist, but nobody can see clearly what "e-commerce on top of AI" will be.
 
-A few likely directions are already happening, they just have not grown into infrastructure yet: assistance across the whole sales follow-up process, screening and communication inside hiring, turning unstructured documents into an answerable knowledge base. Today each of them is a scattered tool. It is not hard to imagine that in five years a company without them will compete the way a retailer without e-commerce competes today.
+The test has a precondition: you have to be deep enough in an industry to see what is missing. From outside you only see the noise.
 
-## What fits AI
+I spent some time working around recruiting, so when I look at AI tools for hiring I can usually tell which ones solve one concrete step and which ones are just an old feature with a new name. That kind of judgement only comes from being inside.
 
-My judgement is fairly conservative. The scenarios that fit AI usually share a few traits.
+## What work fits AI
 
-- The work is repetitive and has a clear feedback signal, so a new version of the model can be judged as better or worse.
-- The data can be structured and retrieved, rather than scattered across chat logs and screenshots.
-- Mistakes can be verified and rolled back, so one bad output does not cause irreversible damage.
-- People still make the judgement at key points; the model prepares material and candidates.
+My view is fairly conservative. Work that fits AI usually shares a few traits.
 
-Conversely, scenarios with slow feedback, dirty data, very expensive errors, or responsibility that cannot be transferred will adopt AI much more slowly — and are more likely to become demos than production systems.
+- It is repetitive, with a clear feedback signal — change one thing and you can tell whether it got better.
+- The data is structured, not scattered across chat logs and screenshots.
+- Mistakes can be verified and rolled back, so one bad output is not irreversible.
+- People still make the key decisions; the model prepares material.
 
-> The model sets the ceiling; implementation sets the floor. Most projects fail not because the model is too weak, but because the process was never changed.
+Conversely, scenarios with slow feedback, dirty data or expensive errors will adopt AI slowly, and often end up as demos rather than systems.
 
-## Why implementation beats models
+My latest test is simpler: could an intern learn this in a week? If yes, it probably fits AI. If no, AI probably will not manage either.
 
-In my last internship I worked on AI implementation, and the biggest takeaway was this: the model is the most standardised part of the whole system.
+## Implementation is harder than the model
 
-The real difficulty is elsewhere. Which system does the data come from, how are permissions controlled, who reviews the output, what happens to colleagues who are used to the old process, how do you roll back when it fails. None of it sounds exciting, but it decides whether AI moves from a demo to something used every day.
+In my last internship I worked on AI implementation. The biggest takeaway: the model is the most standardised part of the whole system.
 
-A concrete example. A sales team wants AI to help write follow-up emails, and the model can already do that. But to actually use it, someone has to answer: where does customer information come from, how do we show the model past emails, who reviews the generated mail, how do we measure whether it worked. The answers to those questions decide whether the AI gets opened once a week or used twenty times a day.
+The difficulty is elsewhere. Which system does the data come from, how are permissions handled, who reviews the output, what happens to colleagues used to the old process, how do you roll back when it fails. None of it is cool. All of it decides whether AI moves from a demo to something used daily.
 
-A ten percent better model might improve the final result only slightly. Sorting out the process, connecting the right data and changing people's habits might double the effect. That is why I think the scarce people in the next few years are not the ones who can tune models, but the ones who can connect AI to real work.
+A concrete case: a customer wants AI to generate quotations. The model can write. But a quotation needs the company price list, customer discounts, exchange rates, lead times. That data is not in one system; some of it is in Excel. Just connecting the data takes longer than tuning the model.
 
-## In the end
+A ten percent better model might improve the final result slightly. Cleaning up the process, connecting the right data and changing people's habits might double it.
 
-Humans have always been outsourcing labour, and AI is a larger round in that long process. Its impact will leave the tech bubble and land on every concrete job.
+## What I learned in an internship
 
-For an individual, rather than being anxious about replacement, it is better to answer two questions early: in my field, which work can be outsourced to AI; and after that outsourcing, what capabilities does the remaining part require?
+In my last internship I did two things: help customers choose AI tools, and connect those tools to their existing processes.
 
-The answer is not necessarily comforting, but at least it is concrete. The people who benefit most from a wave of outsourcing are rarely the ones who fight it; they are the ones who learn to stand on the side that is doing the outsourcing.
+Choosing tools was not hard. The second part was. The customer's old process had accumulated over ten years: Excel, group chats, paper forms. To put AI in, you first have to untangle all that, then decide which steps to hand to the model.
+
+The most memorable case was a request that looked small and ended up changing how a whole department worked together. That was when I understood: the hardest part of an AI project is people, not technology.
+
+> Most companies do not lack models. They lack someone who can wire a model into the business process.
+
+## My own position
+
+I am not worried about being replaced by AI. I am worried about the moment a customer asks "can you do this with AI?" and I cannot answer.
+
+So I am doing two things now. One: understanding the processes in front of me, so I know which step can be automated. Two: building tools myself, even ugly ones.
+
+Building tools is harder than I expected. Getting a script to run reliably means handling all kinds of strange inputs. But once it works, the time saved every day is real.
+
+Being on the side that uses AI is not the same as being able to use it. You have to break a few tools first. I am, roughly, a beginner.
+
+AI is a bigger round of outsourcing. What I can do is stand on the side that knows how to use it.
+
+I do not know where this road leads. But every tool I finish makes my understanding of it a little more concrete.
+
+That is also what I am catching up on lately: fewer launch events, more things built by hand. Using a tool takes an afternoon. Wiring it into a business takes months of dirty data and uncooperative process. Those are different skills.
