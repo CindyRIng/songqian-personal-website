@@ -75,6 +75,7 @@ const location = lt(profile.location, lang);
                 href={localizePath(item.href, lang)}
                 class:list={['mast-nav-item', active && 'is-active']}
                 aria-current={active ? 'page' : undefined}
+                style={active ? 'view-transition-name: nav-active' : undefined}
               >
                 <i aria-hidden="true">{item.number}</i>
                 <span>{item.label}</span>
@@ -144,11 +145,19 @@ const location = lt(profile.location, lang);
     </nav>
   </div>
 
+  <!-- Scrim behind the full-screen menu; click closes, keyboard users have Esc. -->
+  <button
+    type="button"
+    class="menu-scrim"
+    data-menu-scrim
+    aria-label={t('a11y.close')}
+    tabindex="-1"></button>
+
   <!-- Full-screen paper menu (JS only). -->
   <div id="mobile-menu" class="mast-menu" data-menu-panel hidden>
     <div class="wrap mast-menu-in">
       <div class="mast-menu-top">
-        <span class="mast-menu-wordmark">{lt(profile.name, lang)} / {profile.latinName}</span>
+        <span class="mast-menu-wordmark">宋谦 / {profile.latinName}</span>
         <button
           type="button"
           class="menu-button is-close"
@@ -215,6 +224,14 @@ const location = lt(profile.location, lang);
     const scrim = root.querySelector<HTMLButtonElement>('[data-menu-scrim]');
     if (!toggle || !panel) return;
 
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* Sticky masthead scrolled state (>24px → shadow, stronger paper). */
+    const onScroll = () => root.toggleAttribute('data-scrolled', window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    cleanups.push(() => window.removeEventListener('scroll', onScroll));
+
     const focusables = () =>
       Array.from(
         panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')
@@ -222,23 +239,52 @@ const location = lt(profile.location, lang);
 
     let lastFocus: HTMLElement | null = null;
 
+    let closeTimer = 0;
+    let savedScroll = 0;
+
     const open = () => {
+      window.clearTimeout(closeTimer);
+      savedScroll = window.scrollY;
       lastFocus = document.activeElement as HTMLElement | null;
       panel.hidden = false;
       scrim?.setAttribute('data-visible', '');
       toggle.setAttribute('aria-expanded', 'true');
       document.documentElement.classList.add('menu-open');
       requestAnimationFrame(() => panel.classList.add('is-open'));
-      window.setTimeout(() => focusables()[0]?.focus(), 40);
+      window.setTimeout(() => focusables()[0]?.focus({ preventScroll: true }), 40);
+    };
+
+    const finishClose = () => {
+      panel.hidden = true;
+      panel.classList.remove('is-open');
+      delete panel.dataset.closing;
+      scrim?.removeAttribute('data-visible');
+      // Locking <html> with overflow:hidden parks the sticky masthead at its
+      // document position, so restoring focus can yank the page to the top.
+      // Put the reader back exactly where they were, without animation.
+      if (Math.abs(window.scrollY - savedScroll) > 2) {
+        window.scrollTo({ top: savedScroll, behavior: 'instant' });
+      }
     };
 
     const close = (restoreFocus = true) => {
-      panel.hidden = true;
+      if (panel.hidden) return;
       panel.classList.remove('is-open');
       scrim?.removeAttribute('data-visible');
       toggle.setAttribute('aria-expanded', 'false');
       document.documentElement.classList.remove('menu-open');
-      if (restoreFocus) (lastFocus ?? toggle)?.focus();
+      panel.dataset.closing = '';
+      if (reducedMotion) {
+        finishClose();
+      } else {
+        window.clearTimeout(closeTimer);
+        closeTimer = window.setTimeout(finishClose, 240);
+      }
+      if (restoreFocus) {
+        const target =
+          lastFocus && lastFocus !== document.body && lastFocus.isConnected ? lastFocus : toggle;
+        target.focus({ preventScroll: true });
+      }
       lastFocus = null;
     };
 
@@ -248,8 +294,7 @@ const location = lt(profile.location, lang);
     scrim?.addEventListener('click', () => close());
     cleanups.push(() => {
       toggle.removeEventListener('click', onToggle);
-      closeBtn?.removeEventListener('click', () => close());
-      scrim?.removeEventListener('click', () => close());
+      window.clearTimeout(closeTimer);
     });
 
     const onKeydown = (event: KeyboardEvent) => {
@@ -294,9 +339,24 @@ const location = lt(profile.location, lang);
 
 <style>
   .masthead-wrap {
-    position: relative;
+    /* Sticky wrapper, offset by the dateline height so the dateline scrolls
+       away first and the nav then pins to the top of the viewport. */
+    position: sticky;
+    top: calc(-1 * var(--dateline-h, 2.4578rem));
     z-index: 50;
     background: var(--canvas);
+  }
+
+  /* The nav itself is just the visible bar inside the sticky wrapper. */
+  .masthead-wrap .masthead {
+    position: relative;
+    top: auto;
+  }
+
+  @media (max-width: 767px) {
+    .masthead-wrap {
+      top: 0;
+    }
   }
 
   /* --- dateline ---------------------------------------------------------- */
@@ -329,13 +389,26 @@ const location = lt(profile.location, lang);
 
   /* --- masthead ---------------------------------------------------------- */
   .masthead {
-    position: sticky;
-    top: 0;
     z-index: 50;
     background: color-mix(in oklab, var(--paper, var(--canvas)) 82%, transparent);
     -webkit-backdrop-filter: blur(18px) saturate(1.4);
     backdrop-filter: blur(18px) saturate(1.4);
     border-bottom: 1.5px solid var(--ink);
+    transition:
+      background-color var(--dur-2, 200ms) var(--ease-out, ease-out),
+      box-shadow var(--dur-2, 200ms) var(--ease-out, ease-out),
+      border-color var(--dur-2, 200ms) var(--ease-out, ease-out);
+  }
+
+  /* Scrolled state: the bar lifts off the paper with a hairline shadow and a
+     denser glass. The dateline (non-sticky) has already scrolled away; the
+     header itself only changes surface, never geometry. */
+  [data-masthead][data-scrolled] .masthead {
+    background: color-mix(in oklab, var(--paper, var(--canvas)) 94%, transparent);
+    border-bottom-color: var(--line-strong);
+    box-shadow:
+      0 1px 0 var(--line),
+      0 18px 40px -34px color-mix(in oklab, var(--ink) 55%, transparent);
   }
 
   .masthead-in {
@@ -352,7 +425,14 @@ const location = lt(profile.location, lang);
     gap: 0.8125rem;
     justify-self: start;
     min-width: 0;
+    min-height: 2.75rem;
+    margin-block: -0.4375rem;
+    padding-block: 0.4375rem;
     white-space: nowrap;
+    touch-action: manipulation;
+    transition:
+      color var(--dur-1, 120ms) ease-out,
+      opacity var(--dur-1, 120ms) ease-out;
   }
 
   .wordmark-zh {
@@ -397,13 +477,22 @@ const location = lt(profile.location, lang);
     display: inline-flex;
     align-items: baseline;
     gap: 0.4375rem;
-    padding-block: 0.25rem 0.375rem;
+    min-height: 2.75rem;
+    margin-block: -0.4375rem;
+    padding-block: 0.4375rem;
     font-family: var(--font-sans);
     font-size: 0.7813rem;
     letter-spacing: 0.03em;
     color: var(--ink);
     text-decoration: none;
-    transition: color var(--dur-1, 120ms) ease-out;
+    touch-action: manipulation;
+    transition:
+      color var(--dur-1, 120ms) ease-out,
+      transform 110ms var(--ease-out, ease-out);
+  }
+
+  .mast-nav-item:active {
+    transform: translateY(1px);
   }
 
   .mast-nav-item i {
@@ -427,13 +516,11 @@ const location = lt(profile.location, lang);
     transition: transform 220ms var(--ease-out, cubic-bezier(0.22, 0.61, 0.36, 1));
   }
 
-  .mast-nav-item:hover::after,
   .mast-nav-item:focus-visible::after,
   .mast-nav-item.is-active::after {
     transform: scaleX(1);
   }
 
-  .mast-nav-item:hover,
   .mast-nav-item.is-active {
     color: var(--accent-strong);
   }
@@ -461,22 +548,30 @@ const location = lt(profile.location, lang);
   }
 
   .lang-option {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-block: -0.5625rem;
+    padding-block: 0.5625rem;
+    margin-inline: -0.375rem;
+    padding-inline: 0.375rem;
     color: var(--subtle);
     text-decoration: none;
     padding-bottom: 2px;
     border-bottom: 1px solid transparent;
+    touch-action: manipulation;
     transition:
       color var(--dur-1, 120ms) ease-out,
       border-color var(--dur-1, 120ms) ease-out;
   }
 
-  .lang-option:hover {
-    color: var(--ink);
-  }
-
   .lang-option.is-active {
     color: var(--ink);
     border-bottom-color: var(--accent);
+  }
+
+  .lang-option:active {
+    transform: translateY(1px);
   }
 
   .lang-switch .lang-option + .lang-option::before {
@@ -489,21 +584,23 @@ const location = lt(profile.location, lang);
     position: relative;
     display: grid;
     place-items: center;
-    width: 1.875rem;
-    height: 1.875rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: -0.4375rem;
     border: 1px solid var(--line);
     border-radius: 999px;
     background: transparent;
     color: var(--muted);
     cursor: pointer;
+    touch-action: manipulation;
     transition:
       color var(--dur-1, 120ms) ease-out,
-      border-color var(--dur-1, 120ms) ease-out;
+      border-color var(--dur-1, 120ms) ease-out,
+      transform 110ms var(--ease-out, ease-out);
   }
 
-  .theme-toggle:hover {
-    color: var(--ink);
-    border-color: var(--line-strong);
+  .theme-toggle:active {
+    transform: scale(0.94);
   }
 
   .theme-icon {
@@ -511,8 +608,8 @@ const location = lt(profile.location, lang);
     display: grid;
     place-items: center;
     transition:
-      opacity var(--dur-3, 320ms) var(--ease-out, ease-out),
-      transform var(--dur-3, 320ms) var(--ease-out, ease-out);
+      opacity 200ms var(--ease-out, ease-out),
+      transform 200ms var(--ease-out, ease-out);
   }
 
   .theme-icon--moon {
@@ -534,6 +631,8 @@ const location = lt(profile.location, lang);
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    min-height: 2.75rem;
+    margin-block: -0.375rem;
     padding: 0.375rem 0.75rem;
     border: 1px solid var(--line);
     border-radius: 999px;
@@ -543,14 +642,10 @@ const location = lt(profile.location, lang);
     color: var(--ink);
     text-decoration: none;
     white-space: nowrap;
+    touch-action: manipulation;
     transition:
       border-color var(--dur-1, 120ms) ease-out,
       background-color var(--dur-1, 120ms) ease-out;
-  }
-
-  .status-pill:hover {
-    border-color: var(--line-strong);
-    background: var(--hover);
   }
 
   .status-dot {
@@ -602,6 +697,14 @@ const location = lt(profile.location, lang);
     background: transparent;
     color: var(--ink);
     cursor: pointer;
+    touch-action: manipulation;
+    transition:
+      background-color var(--dur-1, 120ms) ease-out,
+      transform 110ms var(--ease-out, ease-out);
+  }
+
+  .menu-button:active {
+    transform: scale(0.94);
   }
 
   .menu-icon {
@@ -639,6 +742,18 @@ const location = lt(profile.location, lang);
     background: var(--paper, var(--canvas));
     overflow-y: auto;
     overscroll-behavior: contain;
+    opacity: 0;
+    transition: opacity 240ms var(--ease-out, ease-out);
+  }
+
+  .mast-menu.is-open {
+    opacity: 1;
+  }
+
+  /* Raise the whole header above page chrome (progress bar, TOC rail) while
+     the overlay menu is open. */
+  :global(html.menu-open) .masthead-wrap {
+    z-index: 80;
   }
 
   .mast-menu[hidden] {
@@ -653,8 +768,8 @@ const location = lt(profile.location, lang);
     opacity: 0;
     transform: translateY(6px);
     transition:
-      opacity var(--dur-3, 320ms) var(--ease-out, ease-out),
-      transform var(--dur-3, 320ms) var(--ease-out, ease-out);
+      opacity 240ms var(--ease-out, ease-out),
+      transform 240ms var(--ease-out, ease-out);
   }
 
   .mast-menu.is-open .mast-menu-in {
@@ -687,6 +802,7 @@ const location = lt(profile.location, lang);
 
   .mast-menu-link {
     display: grid;
+    min-height: 3.25rem;
     grid-template-columns: 2.25rem 1fr auto;
     align-items: baseline;
     gap: 0.5rem;
@@ -716,6 +832,11 @@ const location = lt(profile.location, lang);
 
   .mast-menu-arrow {
     color: var(--accent);
+    transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
+  }
+
+  .mast-menu-num {
+    transition: color var(--dur-1, 120ms) ease-out;
   }
 
   @keyframes menu-link-in {
@@ -746,11 +867,100 @@ const location = lt(profile.location, lang);
   }
 
   .menu-scrim {
-    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: color-mix(in oklab, var(--ink) 18%, transparent);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    cursor: pointer;
+    transition: opacity var(--dur-2, 200ms) var(--ease-out, ease-out);
+  }
+
+  .menu-scrim[data-visible] {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   :global(html.menu-open) {
     overflow: hidden;
+  }
+
+  /* --- focus-visible ---------------------------------------------------- */
+  .wordmark:focus-visible,
+  .mast-nav-item:focus-visible,
+  .lang-option:focus-visible,
+  .theme-toggle:focus-visible,
+  .status-pill:focus-visible,
+  .menu-button:focus-visible,
+  .mast-menu-link:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .theme-toggle:focus-visible,
+  .menu-button:focus-visible,
+  .status-pill:focus-visible {
+    border-radius: 999px;
+  }
+
+  /* --- hover (only on capable pointers) --------------------------------- */
+  @media (hover: hover) and (pointer: fine) {
+    .mast-nav-item:hover::after {
+      transform: scaleX(1);
+    }
+
+    .mast-nav-item:hover {
+      color: var(--accent-strong);
+    }
+
+    .mast-nav-item:hover i {
+      color: var(--accent);
+    }
+
+    .wordmark:hover .wordmark-en {
+      color: var(--ink);
+    }
+
+    .wordmark:hover .wordmark-zh {
+      color: var(--accent-strong);
+    }
+
+    .lang-option:hover {
+      color: var(--ink);
+    }
+
+    .theme-toggle:hover {
+      color: var(--ink);
+      border-color: var(--line-strong);
+    }
+
+    .status-pill:hover {
+      border-color: var(--line-strong);
+      background: var(--hover);
+    }
+
+    .menu-button:hover {
+      background: var(--hover);
+    }
+
+    .mast-menu-link:hover {
+      color: var(--accent-strong);
+    }
+
+    .mast-menu-link:hover .mast-menu-arrow {
+      transform: translateX(3px);
+    }
+
+    .mast-menu-link:hover .mast-menu-num {
+      color: var(--accent);
+    }
   }
 
   @media (max-width: 1023px) {
@@ -785,15 +995,32 @@ const location = lt(profile.location, lang);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .mast-nav-item::after,
+    .masthead,
+    .mast-menu,
     .mast-nav-item,
+    .mast-nav-item::after,
     .mast-nav-item i,
+    .wordmark,
+    .lang-option,
+    .theme-toggle,
     .theme-icon,
+    .menu-button,
     .menu-icon,
+    .menu-scrim,
     .mast-menu-in,
-    .mast-menu-link {
+    .mast-menu-link,
+    .mast-menu-arrow,
+    .mast-menu-num,
+    .status-pill {
       transition: none;
       animation: none;
+    }
+
+    .mast-nav-item:active,
+    .lang-option:active,
+    .theme-toggle:active,
+    .menu-button:active {
+      transform: none;
     }
 
     .status-dot::after {

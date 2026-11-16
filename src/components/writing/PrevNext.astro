@@ -2,6 +2,10 @@
 /**
  * PrevNext — previous / next essay links at the foot of an article.
  * `older` is the previous essay in time, `newer` is the next one.
+ *
+ * The whole card is a link: hover lifts it 2px and draws an accent border,
+ * focus-visible gets the shared ring, press settles 1px. Hover is restricted to
+ * hover-capable pointers; reduced motion keeps colour state only.
  */
 import Icon from '../ui/Icon.astro';
 import { formatDate, isoDate, localizePath, useTranslations } from '../../i18n/utils';
@@ -25,13 +29,13 @@ const otherLocale: Locale = lang === 'zh' ? 'en' : 'zh';
         <a
           href={localizePath(older.path, lang)}
           rel="prev"
-          class="group flex flex-col gap-2 rounded-xl border border-line bg-canvas p-5 transition-colors duration-200 hover:border-line-strong hover:bg-elevated sm:p-6"
+          class="pn-card group flex flex-col gap-2 rounded-xl border border-line bg-canvas p-5 sm:p-6"
         >
-          <span class="flex items-center gap-1.5 font-sans text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-subtle">
-            <Icon name="arrow-left" size={12} />
+          <span class="pn-label flex items-center gap-1.5 font-sans text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-subtle">
+            <Icon name="arrow-left" size={12} class="pn-arrow" />
             {t('writing.prev')}
           </span>
-          <span class="font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.012em] text-ink-strong text-balance transition-colors group-hover:text-accent-strong">
+          <span class="pn-title font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.012em] text-ink-strong text-balance">
             {older.title}
           </span>
           <span class="display-latin text-[0.9375rem] text-muted">
@@ -50,13 +54,13 @@ const otherLocale: Locale = lang === 'zh' ? 'en' : 'zh';
         <a
           href={localizePath(newer.path, lang)}
           rel="next"
-          class="group flex flex-col gap-2 rounded-xl border border-line bg-canvas p-5 transition-colors duration-200 hover:border-line-strong hover:bg-elevated sm:items-end sm:p-6 sm:text-right"
+          class="pn-card group flex flex-col gap-2 rounded-xl border border-line bg-canvas p-5 sm:items-end sm:p-6 sm:text-right"
         >
-          <span class="flex items-center gap-1.5 font-sans text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-subtle">
+          <span class="pn-label flex items-center gap-1.5 font-sans text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-subtle">
             {t('writing.next')}
-            <Icon name="arrow-right" size={12} />
+            <Icon name="arrow-right" size={12} class="pn-arrow" />
           </span>
-          <span class="font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.012em] text-ink-strong text-balance transition-colors group-hover:text-accent-strong">
+          <span class="pn-title font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.012em] text-ink-strong text-balance">
             {newer.title}
           </span>
           <span class="display-latin text-[0.9375rem] text-muted">
@@ -73,3 +77,79 @@ const otherLocale: Locale = lang === 'zh' ? 'en' : 'zh';
     </nav>
   )
 }
+
+<style>
+  .pn-card {
+    touch-action: manipulation;
+    transition:
+      border-color var(--dur-1) ease-out,
+      background-color var(--dur-1) ease-out,
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .pn-card .pn-title,
+  .pn-card .pn-label {
+    transition: color var(--dur-1) ease-out;
+  }
+
+  /* Arrow SVG is rendered by <Icon>; style it globally. */
+  :global(.pn-card .pn-arrow) {
+    transition:
+      color var(--dur-1) ease-out,
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .pn-card:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+
+  .pn-card:active {
+    transform: translateY(1px);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .pn-card:hover {
+      border-color: var(--accent-line);
+      background: var(--elevated);
+      transform: translateY(-2px);
+    }
+
+    .pn-card:hover .pn-title {
+      color: var(--accent-strong);
+    }
+
+    .pn-card:hover .pn-label {
+      color: var(--muted);
+    }
+
+    :global(.pn-card:hover .pn-arrow) {
+      color: var(--accent);
+      transform: translateX(-3px);
+    }
+
+    :global(.pn-card[rel='next']:hover .pn-arrow) {
+      transform: translateX(3px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pn-card,
+    .pn-card .pn-title,
+    .pn-card .pn-label,
+    :global(.pn-card .pn-arrow) {
+      transition:
+        color var(--dur-1) ease-out,
+        border-color var(--dur-1) ease-out,
+        background-color var(--dur-1) ease-out;
+    }
+
+    .pn-card:hover {
+      transform: none;
+    }
+
+    .pn-card:active {
+      transform: none;
+    }
+  }
+</style>

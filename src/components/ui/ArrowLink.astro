@@ -30,12 +30,19 @@ const isExternal = external || /^(https?:|mailto:)/.test(href);
 
 <style>
   .arrow-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    margin-block: -0.6875rem;
+    padding-block: 0.6875rem;
     font-family: var(--font-sans);
     font-size: 0.75rem;
     letter-spacing: 0.06em;
     line-height: 1.6;
     color: var(--ink);
     text-decoration: none;
+    touch-action: manipulation;
     transition: color var(--dur-1, 120ms) ease-out;
   }
 
@@ -50,21 +57,28 @@ const isExternal = external || /^(https?:|mailto:)/.test(href);
     transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
   }
 
-  .arrow-link:hover {
-    color: var(--accent-strong);
-  }
-
-  .arrow-link:hover .arrow-label {
-    border-color: var(--accent);
-  }
-
-  .arrow-link:hover .arrow-glyph {
-    transform: translateX(3px);
+  .arrow-link:active {
+    transform: translateY(1px);
   }
 
   .arrow-link:focus-visible {
     outline: 2px solid var(--ring);
-    outline-offset: 3px;
+    outline-offset: var(--ring-offset, 3px);
+    border-radius: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .arrow-link:hover {
+      color: var(--accent-strong);
+    }
+
+    .arrow-link:hover .arrow-label {
+      border-color: var(--accent);
+    }
+
+    .arrow-link:hover .arrow-glyph {
+      transform: translateX(3px);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -73,6 +87,11 @@ const isExternal = external || /^(https?:|mailto:)/.test(href);
     .arrow-link {
       transition: none;
     }
+
+    .arrow-link:active {
+      transform: none;
+    }
+
     .arrow-link:hover .arrow-glyph {
       transform: none;
     }

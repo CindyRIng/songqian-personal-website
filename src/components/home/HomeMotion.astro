@@ -15,6 +15,9 @@
   let cleanups: Cleanup[] = [];
 
   const prefersReduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* Parallax is a pointer-perk: off for touch, reduced motion and < 900px. */
+  const canParallax = () =>
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches && window.innerWidth > 900;
 
   function initHomeMotion() {
     while (cleanups.length) cleanups.pop()?.();
@@ -74,8 +77,20 @@
           (entries) => {
             for (const entry of entries) {
               if (!entry.isIntersecting) continue;
-              entry.target.classList.add('is-inview');
-              reveal.unobserve(entry.target);
+              const plate = entry.target as HTMLElement;
+              plate.classList.add('is-inview');
+              const inner = plate.querySelector<HTMLElement>('[data-plate-inner]');
+              if (inner) {
+                // Once the wipe has finished, drop the clip-path entirely so
+                // there is never a 1px seam on resize / repaint boundaries.
+                const done = (event: TransitionEvent) => {
+                  if (event.propertyName !== 'clip-path') return;
+                  inner.style.clipPath = 'none';
+                  inner.removeEventListener('transitionend', done);
+                };
+                inner.addEventListener('transitionend', done);
+              }
+              reveal.unobserve(plate);
             }
           },
           { threshold: 0.16, rootMargin: '0px 0px -4% 0px' }
@@ -93,7 +108,12 @@
         const update = () => {
           frame = 0;
           const vh = window.innerHeight;
+          const allow = canParallax();
           for (const { plate, wheel } of wheels) {
+            if (!allow) {
+              wheel.style.removeProperty('--plate-shift');
+              continue;
+            }
             const rect = plate.getBoundingClientRect();
             if (rect.bottom < -80 || rect.top > vh + 80) continue;
             const center = rect.top + rect.height / 2;

@@ -48,14 +48,17 @@ const monthAbbr = (start: string) => {
           const note = entry.summary;
           return (
             <li class:list={['timeline-node', entry.current && 'is-current']}>
-              <span class="timeline-dot" aria-hidden="true" />
-              <p class="timeline-year">
-                {entry.start.slice(0, 4)}
-                <sup class="mono">{monthAbbr(entry.start)}</sup>
-              </p>
-              <p class="timeline-role">{entry.role}</p>
-              <p class="timeline-org">{entry.org}</p>
-              <p class="timeline-note">{note}</p>
+              <a class="timeline-link focus-ring" href={timelineHref}>
+                <span class="timeline-dot" aria-hidden="true" />
+                <span class="timeline-year">
+                  {entry.start.slice(0, 4)}
+                  <sup class="mono">{monthAbbr(entry.start)}</sup>
+                </span>
+                <span class="timeline-role">{entry.role}</span>
+                <span class="timeline-org">{entry.org}</span>
+                <span class="timeline-note">{note}</span>
+                <span class="timeline-arrow" aria-hidden="true">→</span>
+              </a>
             </li>
           );
         })
@@ -74,18 +77,50 @@ const monthAbbr = (start: string) => {
 
   .timeline-node {
     position: relative;
-    padding: 1.5rem 1.5rem 0 0;
+    padding: 0;
     min-width: 0;
+  }
+
+  .timeline-link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.5rem 1.5rem 1.25rem 0;
+    color: inherit;
+    text-decoration: none;
+    border-radius: 6px;
+    touch-action: manipulation;
+    transition: background-color var(--dur-1, 120ms) ease-out;
+  }
+
+  .timeline-link:active {
+    background: color-mix(in oklab, var(--accent) 6%, transparent);
+  }
+
+  .timeline-arrow {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    color: var(--subtle);
+    align-self: flex-start;
+    transition:
+      transform var(--dur-2, 200ms) var(--ease-out, ease-out),
+      color var(--dur-1, 120ms) ease-out;
   }
 
   .timeline-node + .timeline-node {
     border-inline-start: 1px solid var(--line);
+  }
+
+  .timeline-node + .timeline-node .timeline-link {
     padding-inline-start: 1.5rem;
   }
 
   .timeline-dot {
     position: absolute;
-    top: -3.5px;
+    top: 1.5rem;
     left: 0;
     width: 7px;
     height: 7px;
@@ -123,6 +158,8 @@ const monthAbbr = (start: string) => {
   }
 
   .timeline-year {
+    display: block;
+    margin-top: 0.25rem;
     font-family: var(--font-serif);
     font-size: clamp(1.625rem, 2.2vw, 2rem);
     font-weight: 400;
@@ -142,7 +179,9 @@ const monthAbbr = (start: string) => {
   }
 
   .timeline-role {
+    display: block;
     margin-top: 0.9375rem;
+    transition: color var(--dur-1, 120ms) ease-out;
     font-family: var(--font-sans);
     font-size: 0.8438rem;
     font-weight: 500;
@@ -152,7 +191,9 @@ const monthAbbr = (start: string) => {
   }
 
   .timeline-org {
+    display: block;
     margin-top: 0.375rem;
+    transition: color var(--dur-1, 120ms) ease-out;
     font-family: var(--font-sans);
     font-size: 0.6875rem;
     line-height: 1.6;
@@ -161,13 +202,13 @@ const monthAbbr = (start: string) => {
   }
 
   .timeline-note {
+    display: -webkit-box;
     margin-top: 0.75rem;
     font-family: var(--font-sans);
     font-size: 0.6563rem;
     line-height: 1.7;
     letter-spacing: 0.02em;
     color: var(--accent-strong);
-    display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -182,7 +223,6 @@ const monthAbbr = (start: string) => {
 
     .timeline-node {
       border-top: 1px solid var(--line);
-      padding: 1.25rem 1.25rem 1.25rem 0;
     }
 
     .timeline-node + .timeline-node {
@@ -191,19 +231,14 @@ const monthAbbr = (start: string) => {
 
     .timeline-node:nth-child(2n) {
       border-inline-start: 1px solid var(--line);
-      padding-inline-start: 1.25rem;
     }
 
     .timeline-node:nth-child(n + 3) {
       border-top: 1px solid var(--line);
     }
 
-    .timeline-node + .timeline-node .timeline-dot {
-      left: 0;
-    }
-
-    .timeline-node:nth-child(2n) .timeline-dot {
-      left: 1.25rem;
+    .timeline-link {
+      padding: 1.25rem 1.25rem 1.25rem 1.25rem;
     }
 
     .timeline-node:last-child {
@@ -219,20 +254,21 @@ const monthAbbr = (start: string) => {
     .timeline-node,
     .timeline-node:nth-child(2n) {
       border-inline-start: 0;
-      padding: 1.125rem 0 1.125rem 0;
+      border-top: 0;
+      border-bottom: 1px solid var(--line);
     }
 
-    .timeline-node .timeline-dot,
+    .timeline-link,
+    .timeline-node:nth-child(2n) .timeline-link,
+    .timeline-node + .timeline-node .timeline-link {
+      padding: 1.125rem 0.5rem 1.125rem 1.25rem;
+    }
+
+    .timeline-dot,
     .timeline-node + .timeline-node .timeline-dot,
     .timeline-node:nth-child(2n) .timeline-dot {
       left: 0;
       top: 1.5rem;
-    }
-
-    .timeline-node {
-      padding-left: 1.25rem;
-      border-top: 0;
-      border-bottom: 1px solid var(--line);
     }
 
     .timeline-node.is-current {
@@ -244,9 +280,49 @@ const monthAbbr = (start: string) => {
     }
   }
 
+  @media (hover: hover) and (pointer: fine) {
+    .timeline-link:hover {
+      background: color-mix(in oklab, var(--accent) 4%, transparent);
+    }
+
+    .timeline-link:hover .timeline-year {
+      color: var(--accent-strong);
+    }
+
+    .timeline-link:hover .timeline-role {
+      color: var(--accent-strong);
+    }
+
+    .timeline-link:hover .timeline-org {
+      color: var(--muted);
+    }
+
+    .timeline-link:hover .timeline-arrow {
+      color: var(--accent-strong);
+      transform: translateX(3px);
+    }
+
+    .timeline-link:hover .timeline-dot {
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .timeline-node.is-current .timeline-dot::after {
       animation: none;
+    }
+
+    .timeline-link,
+    .timeline-year,
+    .timeline-role,
+    .timeline-org,
+    .timeline-arrow,
+    .timeline-dot {
+      transition: none;
+    }
+
+    .timeline-link:hover .timeline-arrow {
+      transform: none;
     }
   }
 </style>

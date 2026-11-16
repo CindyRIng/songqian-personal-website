@@ -5,6 +5,11 @@
  * Layout: mono number → title + English/Chinese subtitle + one-liner → right
  * meta (category · date) with a quiet arrow. The first (featured) row is set
  * larger and shows the "read" action; later rows are compact.
+ *
+ * Interaction: the whole row is one link. Hover only fires on hover-capable
+ * pointers (row wash + title/number/arrow accents), focus-visible draws the
+ * shared ring, and press gives a 1px settle. All of it is disabled under
+ * `prefers-reduced-motion`.
  */
 import Icon from '../ui/Icon.astro';
 import { formatDate, isoDate, localizePath, useTranslations } from '../../i18n/utils';
@@ -32,14 +37,15 @@ const subtitle = post.titleByLocale[otherLocale];
 ---
 <a
   href={href}
+  data-featured={featured ? '' : undefined}
   class:list={[
-    'group grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-x-4 gap-y-3 border-b border-line py-6 sm:grid-cols-[3rem_minmax(0,1fr)_9rem] sm:gap-x-8',
+    'essay-row group grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-x-4 gap-y-3 border-b border-line py-6 sm:grid-cols-[3rem_minmax(0,1fr)_9rem] sm:gap-x-8',
     featured ? 'py-8 sm:py-11' : 'sm:py-7',
   ]}
 >
   <span
     class:list={[
-      'mt-1 font-mono tabular leading-none text-faint',
+      'essay-number mt-1 font-mono tabular leading-none text-faint',
       featured ? 'text-[0.8125rem] text-accent' : 'text-[0.6875rem]',
     ]}
   >{number}</span>
@@ -53,7 +59,7 @@ const subtitle = post.titleByLocale[otherLocale];
 
     <h2
       class:list={[
-        'mt-2 font-serif font-[540] tracking-[-0.022em] text-ink-strong text-balance transition-colors duration-200 group-hover:text-accent-strong',
+        'essay-title mt-2 font-serif font-[540] tracking-[-0.022em] text-ink-strong text-balance',
         featured
           ? 'text-[clamp(1.75rem,3.2vw,2.5rem)] leading-[1.15]'
           : 'text-[1.25rem] leading-[1.3] sm:text-[1.375rem]',
@@ -66,7 +72,7 @@ const subtitle = post.titleByLocale[otherLocale];
       subtitle && (
         <p
           class:list={[
-            'display-latin mt-1.5 text-muted',
+            'essay-subtitle display-latin mt-1.5 text-muted',
             featured ? 'text-[1.125rem] sm:text-[1.25rem]' : 'text-[0.9375rem]',
           ]}
         >
@@ -86,13 +92,9 @@ const subtitle = post.titleByLocale[otherLocale];
 
     {
       featured && (
-        <span class="mt-5 inline-flex items-center gap-2 font-sans text-[0.8125rem] text-ink-strong">
+        <span class="essay-readmore mt-5 inline-flex items-center gap-2 font-sans text-[0.8125rem] text-ink-strong">
           {t('actions.readMore')}
-          <Icon
-            name="arrow-right"
-            size={14}
-            class="transition-transform duration-200 ease-out motion-safe:group-hover:translate-x-1"
-          />
+          <Icon name="arrow-right" size={14} class="essay-readmore-arrow" />
         </span>
       )
     }
@@ -115,7 +117,100 @@ const subtitle = post.titleByLocale[otherLocale];
     <Icon
       name="arrow-right"
       size={featured ? 20 : 16}
-      class="text-faint transition-[color,transform] duration-200 ease-out group-hover:text-accent motion-safe:group-hover:translate-x-1"
+      class="essay-arrow shrink-0 text-faint"
     />
   </div>
 </a>
+
+<style>
+  .essay-row {
+    position: relative;
+    isolation: isolate;
+    border-radius: 6px;
+    touch-action: manipulation;
+    transition: transform 100ms var(--ease-out);
+  }
+
+  /* Hover wash sits behind the row and bleeds slightly into the gutter. */
+  .essay-row::before {
+    content: '';
+    position: absolute;
+    inset: 0 -0.75rem;
+    border-radius: 6px;
+    background: var(--hover);
+    opacity: 0;
+    transition: opacity var(--dur-1) ease-out;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .essay-row .essay-title,
+  .essay-row .essay-number,
+  .essay-row .essay-subtitle {
+    transition:
+      color var(--dur-1) ease-out,
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  /* The arrows are SVGs rendered by the Icon component, so they carry their
+     own scope attribute — style them through a global descendant rule. */
+  :global(.essay-row .essay-arrow),
+  :global(.essay-row .essay-readmore-arrow) {
+    transition:
+      color var(--dur-1) ease-out,
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .essay-row:hover::before {
+      opacity: 1;
+    }
+
+    .essay-row:hover .essay-title {
+      color: var(--accent-strong);
+    }
+
+    .essay-row:hover .essay-number {
+      color: var(--accent);
+    }
+
+    :global(.essay-row:hover .essay-arrow) {
+      color: var(--accent);
+      transform: translateX(3px);
+    }
+
+    :global(.essay-row:hover .essay-readmore-arrow) {
+      transform: translateX(3px);
+    }
+
+    /* Featured row earns a slightly warmer wash on hover. */
+    .essay-row[data-featured]:hover::before {
+      background: var(--accent-soft);
+    }
+  }
+
+  .essay-row:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+
+  .essay-row:active {
+    transform: translateY(1px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .essay-row,
+    .essay-row::before,
+    .essay-row .essay-title,
+    .essay-row .essay-number,
+    .essay-row .essay-subtitle,
+    :global(.essay-row .essay-arrow),
+    :global(.essay-row .essay-readmore-arrow) {
+      transition: none;
+    }
+
+    .essay-row:active {
+      transform: none;
+    }
+  }
+</style>

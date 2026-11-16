@@ -73,6 +73,17 @@ const { stats, label = 'At a glance', class: className = '' } = Astro.props;
     letter-spacing: -0.045em;
     color: var(--ink-strong);
     font-variant-numeric: tabular-nums;
+    transition: color var(--dur-1, 120ms) ease-out;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .stat-cell:hover .stat-num {
+      color: var(--accent-strong);
+    }
+
+    .stat-cell:hover .stat-label {
+      color: var(--ink);
+    }
   }
 
   .stat-num > span {
@@ -88,6 +99,7 @@ const { stats, label = 'At a glance', class: className = '' } = Astro.props;
     text-transform: uppercase;
     color: var(--muted);
     line-height: 1.4;
+    transition: color var(--dur-1, 120ms) ease-out;
   }
 
   .stat-label-en {
@@ -98,6 +110,13 @@ const { stats, label = 'At a glance', class: className = '' } = Astro.props;
     font-weight: 400;
     color: var(--subtle);
     text-transform: uppercase;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stat-num,
+    .stat-label {
+      transition: none;
+    }
   }
 
   @media (max-width: 640px) {

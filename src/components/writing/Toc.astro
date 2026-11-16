@@ -9,7 +9,8 @@
  *     article is finished.
  *
  * The rail is fixed, so adding it never shifts layout. Without JavaScript the
- * inline list still works as plain anchor links.
+ * inline list still works as plain anchor links. Anchor jumps are offset by
+ * `html { scroll-padding-top }` in global.css, so no manual scroll math.
  */
 import type { MarkdownHeading } from 'astro';
 import { useTranslations } from '../../i18n/utils';
@@ -24,7 +25,6 @@ const { headings, lang } = Astro.props;
 const t = useTranslations(lang);
 const items = headings.filter((heading) => heading.depth === 2);
 ---
-
 {
   items.length >= 2 && (
     <Fragment>
@@ -32,21 +32,17 @@ const items = headings.filter((heading) => heading.depth === 2);
       <nav
         data-toc-inline
         aria-label={t('writing.toc')}
-        class="my-9 border-y border-line py-5 lg:hidden"
+        class="toc-inline my-9 border-y border-line py-5 lg:hidden"
       >
-        <p class="eyebrow mb-3">{t('writing.toc')}</p>
-        <ol class="flex flex-col gap-1.5">
+        <p class="eyebrow mb-2">{t('writing.toc')}</p>
+        <ol class="flex flex-col">
           {items.map((heading, index) => (
             <li class="flex items-baseline gap-3">
-              <span class="w-4 shrink-0 font-sans text-[0.625rem] tabular text-faint">
+              <span class="toc-num w-4 shrink-0 font-sans text-[0.625rem] tabular text-faint">
                 {String(index + 1).padStart(2, '0')}
               </span>
-              <a
-                href={`#${heading.slug}`}
-                data-toc-link={heading.slug}
-                class="toc-link font-sans text-[0.8125rem] leading-snug text-muted transition-colors duration-200 hover:text-ink"
-              >
-                {heading.text}
+              <a href={`#${heading.slug}`} data-toc-link={heading.slug} class="toc-link">
+                <span class="line-clamp-2">{heading.text}</span>
               </a>
             </li>
           ))}
@@ -59,7 +55,7 @@ const items = headings.filter((heading) => heading.depth === 2);
         aria-label={t('writing.toc')}
         class="fixed right-5 top-32 z-40 hidden w-44 lg:block xl:right-8 xl:w-48"
       >
-        <p class="eyebrow mb-3 pl-3">{t('writing.toc')}</p>
+        <p class="eyebrow mb-2 pl-3">{t('writing.toc')}</p>
         <div class="relative">
           <span
             aria-hidden="true"
@@ -69,14 +65,8 @@ const items = headings.filter((heading) => heading.depth === 2);
           <ol class="flex flex-col border-l border-line">
             {items.map((heading, index) => (
               <li>
-                <a
-                  href={`#${heading.slug}`}
-                  data-toc-link={heading.slug}
-                  class="toc-link group flex items-baseline gap-2 py-1.5 pl-3 pr-2 font-sans text-[0.75rem] leading-snug text-muted transition-colors duration-200 hover:text-ink"
-                >
-                  <span class="shrink-0 font-mono text-[0.5625rem] tabular tracking-[0.04em] text-faint transition-colors duration-200 group-hover:text-subtle">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
+                <a href={`#${heading.slug}`} data-toc-link={heading.slug} class="toc-link toc-link--rail">
+                  <span class="toc-num">{String(index + 1).padStart(2, '0')}</span>
                   <span class="line-clamp-2">{heading.text}</span>
                 </a>
               </li>
@@ -108,17 +98,93 @@ const items = headings.filter((heading) => heading.depth === 2);
       opacity 200ms ease-out;
   }
 
-  :global(.toc-link[aria-current='true']) {
+  .toc-link {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding-block: 0.35rem;
+    border-radius: 4px;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--muted);
+    text-align: start;
+    touch-action: manipulation;
+    transition:
+      color var(--dur-1) ease-out,
+      background-color var(--dur-1) ease-out;
+  }
+
+  .toc-link:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  .toc-link .toc-num {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--faint);
+    transition: color var(--dur-1) ease-out;
+  }
+
+  /* Inline (mobile / no-JS) list: 44px targets. */
+  .toc-inline .toc-link {
+    min-height: 2.75rem;
+    gap: 0.75rem;
+  }
+
+  .toc-inline .toc-link:active {
+    color: var(--ink);
+  }
+
+  /* Desktop rail */
+  .toc-link--rail {
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding-block: 0.5rem;
+    padding-inline: 0.75rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .toc-link--rail .toc-num {
+    width: 1.15rem;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .toc-link:hover {
+      color: var(--ink);
+    }
+
+    .toc-link:hover .toc-num {
+      color: var(--subtle);
+    }
+
+    .toc-link--rail:hover {
+      background: var(--hover);
+    }
+  }
+
+  .toc-link[aria-current='true'] {
     color: var(--ink-strong);
   }
 
-  :global(.toc-link[aria-current='true'] span:first-child) {
+  .toc-link[aria-current='true'] .toc-num {
     color: var(--accent);
+  }
+
+  .toc-link[aria-current='true']:active {
+    color: var(--ink-strong);
   }
 
   @media (prefers-reduced-motion: reduce) {
     [data-toc-rail],
-    [data-toc-indicator] {
+    [data-toc-indicator],
+    .toc-link,
+    .toc-link .toc-num {
       transition: none;
     }
   }
@@ -151,71 +217,85 @@ const items = headings.filter((heading) => heading.depth === 2);
       })
       .filter((target): target is { id: string; element: HTMLElement } => Boolean(target));
 
-    if (targets.length > 0) {
-      let currentId = '';
-      let frame = 0;
+    if (targets.length === 0) return;
 
-      const setActive = (id: string) => {
-        if (id === currentId) return;
-        currentId = id;
+    /* The sticky masthead height + the global scroll padding both determine
+       where the reader's eye actually reads. Prefer the real header height. */
+    const scrollPad = (() => {
+      const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
+      const header = document.querySelector<HTMLElement>('[data-masthead]');
+      return Math.max(Number.isFinite(pad) ? pad : 112, header?.offsetHeight ?? 0) + 16;
+    })();
 
-        for (const link of links) {
-          const active = (link.dataset.tocLink ?? '') === id;
-          if (active) link.setAttribute('aria-current', 'true');
-          else link.removeAttribute('aria-current');
-        }
+    let currentId = '';
+    let frame = 0;
 
-        if (!indicator) return;
-        const active = railLinks.find((link) => (link.dataset.tocLink ?? '') === id);
-        if (!active) {
-          indicator.style.height = '0px';
-          indicator.style.opacity = '0';
-          return;
-        }
-        // A short sage tick centred on the active rail entry.
-        const tick = 18;
-        indicator.style.top = `${active.offsetTop + active.offsetHeight / 2 - tick / 2}px`;
-        indicator.style.height = `${tick}px`;
-        indicator.style.opacity = '1';
-      };
+    const setActive = (id: string) => {
+      if (id === currentId) return;
+      currentId = id;
 
-      const update = () => {
-        frame = 0;
-        // The section whose heading has most recently crossed the read line.
-        const readLine = scrollY + Math.min(innerHeight * 0.3, 260);
-        let current = targets[0];
-        for (const target of targets) {
-          const top = target.element.getBoundingClientRect().top + scrollY;
-          if (top <= readLine) current = target;
-        }
-        setActive(current?.id ?? '');
-
-        if (article) {
-          // Fade the rail once the end of the essay (neighbours, related) is
-          // on screen — it belongs to the reading flow, not the page footer.
-          const past = article.getBoundingClientRect().bottom < innerHeight - 120;
-          rail.toggleAttribute('data-hidden', past);
-        }
-      };
-
-      const schedule = () => {
-        if (!frame) frame = requestAnimationFrame(update);
-      };
-
-      // A clicked link is active instantly — smooth scrolling catches up.
       for (const link of links) {
-        link.addEventListener('click', () => setActive(link.dataset.tocLink ?? ''));
+        const active = (link.dataset.tocLink ?? '') === id;
+        if (active) link.setAttribute('aria-current', 'true');
+        else link.removeAttribute('aria-current');
       }
 
-      update();
-      addEventListener('scroll', schedule, { passive: true });
-      addEventListener('resize', schedule, { passive: true });
-      cleanupToc = () => {
-        removeEventListener('scroll', schedule);
-        removeEventListener('resize', schedule);
-        if (frame) cancelAnimationFrame(frame);
-      };
+      if (!indicator) return;
+      const active = railLinks.find((link) => (link.dataset.tocLink ?? '') === id);
+      if (!active) {
+        indicator.style.height = '0px';
+        indicator.style.opacity = '0';
+        return;
+      }
+      // A short sage tick centred on the active rail entry.
+      const tick = 18;
+      indicator.style.top = `${active.offsetTop + active.offsetHeight / 2 - tick / 2}px`;
+      indicator.style.height = `${tick}px`;
+      indicator.style.opacity = '1';
+    };
+
+    const update = () => {
+      frame = 0;
+      // The section whose heading has most recently crossed the read line.
+      const readLine = scrollY + scrollPad;
+      let current = targets[0];
+      for (const target of targets) {
+        const top = target.element.getBoundingClientRect().top + scrollY;
+        if (top <= readLine) current = target;
+      }
+
+      // Near the document end the last section should win even if its heading
+      // never reaches the read line on short final sections.
+      const atBottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 64;
+      if (atBottom) current = targets[targets.length - 1];
+
+      setActive(current?.id ?? '');
+
+      if (article) {
+        // Fade the rail once the end of the essay (neighbours, related) is
+        // on screen — it belongs to the reading flow, not the page footer.
+        const past = article.getBoundingClientRect().bottom < innerHeight - 120;
+        rail.toggleAttribute('data-hidden', past);
+      }
+    };
+
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    // A clicked link is active instantly — smooth scrolling catches up.
+    for (const link of links) {
+      link.addEventListener('click', () => setActive(link.dataset.tocLink ?? ''));
     }
+
+    update();
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', schedule, { passive: true });
+    cleanupToc = () => {
+      removeEventListener('scroll', schedule);
+      removeEventListener('resize', schedule);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }
 
   /* ClientRouter: re-bind the rail after every page swap (body-node guard). */

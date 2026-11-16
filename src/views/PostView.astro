@@ -7,6 +7,10 @@
  * previous/next essay and the author card. Reading enhancements (heading
  * anchors, code copy, image lightbox, progress bar) are wired by BaseLayout
  * for `type="article"` pages.
+ *
+ * Polish pass: motion-safe intro, inline-link underline animation, refined
+ * blockquote/figure/caption, and full hover/focus/press states for the page's
+ * own controls. All hover states only run on hover-capable pointers.
  */
 import type { MarkdownHeading } from 'astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -100,26 +104,19 @@ const articleJsonLd = {
 
   <div id="reading-progress" class="progress" aria-hidden="true"></div>
 
-  <article>
-    <a
-      href={writingHref}
-      class="group inline-flex items-center gap-2 font-sans text-[0.8125rem] text-subtle transition-colors hover:text-ink"
-    >
-      <Icon
-        name="arrow-left"
-        size={14}
-        class="transition-transform duration-200 ease-out motion-safe:group-hover:-translate-x-1"
-      />
-      {t('writing.all')}
+  <article class="post-enter">
+    <a href={writingHref} class="back-link group">
+      <Icon name="arrow-left" size={14} class="back-link-arrow" />
+      <span>{t('writing.all')}</span>
     </a>
 
-    <div class="mt-10 sm:mt-14">
+    <div class="post-intro mt-6 sm:mt-8">
       <PostHeader post={post} lang={lang} />
     </div>
 
     {
       cover && (
-        <figure class="mt-10 overflow-hidden rounded-lg border border-line bg-surface sm:mt-14">
+        <figure class="post-figure mt-10 overflow-hidden rounded-lg border border-line bg-surface sm:mt-14">
           <img
             src={cover}
             alt={post.coverAlt ?? ''}
@@ -141,13 +138,11 @@ const articleJsonLd = {
 
     {
       post.tags.length > 0 && (
-        <div class="mt-12 flex flex-wrap items-center gap-2">
+        <ul class="post-tags mt-12 flex flex-wrap items-center gap-2">
           {post.tags.map((tag) => (
-            <span class="inline-flex items-center rounded-full border border-line px-2.5 py-1 font-sans text-[0.6875rem] tracking-[0.02em] text-subtle">
-              {tag}
-            </span>
+            <li class="post-tag">{tag}</li>
           ))}
-        </div>
+        </ul>
       )
     }
 
@@ -167,14 +162,9 @@ const articleJsonLd = {
           <ul class="mt-5 border-t border-line">
             {related.map((item) => (
               <li>
-                <a
-                  href={localizePath(item.path, lang)}
-                  class="group flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-line py-4 transition-colors hover:text-accent-strong"
-                >
-                  <span class="font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.012em] text-ink-strong transition-colors group-hover:text-accent-strong">
-                    {item.title}
-                  </span>
-                  <span class="font-mono text-[0.6875rem] tabular uppercase tracking-[0.06em] text-subtle">
+                <a href={localizePath(item.path, lang)} class="related-row group">
+                  <span class="related-title">{item.title}</span>
+                  <span class="related-date">
                     {formatDate(item.date, lang, 'short')}
                   </span>
                 </a>
@@ -185,4 +175,230 @@ const articleJsonLd = {
       )
     }
   </article>
+
+  <style>
+    /* ------------------------------------------------------------------
+     * Reading progress — 2px sage hairline, transform-only updates.
+     * ------------------------------------------------------------------ */
+    #reading-progress {
+      will-change: transform;
+      contain: layout style;
+    }
+
+    /* ------------------------------------------------------------------
+     * Back link
+     * ------------------------------------------------------------------ */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 2.75rem;
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      color: var(--subtle);
+      touch-action: manipulation;
+      transition: color var(--dur-1) ease-out;
+    }
+
+    :global(.back-link .back-link-arrow) {
+      transition: transform var(--dur-2) var(--ease-out);
+    }
+
+    .back-link:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: var(--ring-offset);
+      border-radius: 4px;
+    }
+
+    .back-link:active {
+      color: var(--ink);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .back-link:hover {
+        color: var(--ink);
+      }
+
+      :global(.back-link:hover .back-link-arrow) {
+        transform: translateX(-3px);
+      }
+    }
+
+    /* ------------------------------------------------------------------
+     * Motion-safe intro: header + cover settle in, 240ms.
+     * ------------------------------------------------------------------ */
+    @media (prefers-reduced-motion: no-preference) {
+      .post-enter .post-intro {
+        animation: post-intro-in 240ms var(--ease-out) both;
+      }
+
+      .post-enter .post-figure {
+        animation: post-intro-in 240ms var(--ease-out) 60ms both;
+      }
+    }
+
+    @keyframes post-intro-in {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .back-link,
+      :global(.back-link .back-link-arrow) {
+        transition: color var(--dur-1) ease-out;
+      }
+    }
+
+    /* ------------------------------------------------------------------
+     * Tags — decorative taxonomy chips with a gentle hover tint.
+     * ------------------------------------------------------------------ */
+    .post-tag {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-pill);
+      padding: 0.25rem 0.625rem;
+      font-family: var(--font-sans);
+      font-size: 0.6875rem;
+      letter-spacing: 0.02em;
+      color: var(--subtle);
+      transition:
+        color var(--dur-1) ease-out,
+        border-color var(--dur-1) ease-out,
+        background-color var(--dur-1) ease-out;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .post-tag:hover {
+        color: var(--muted);
+        border-color: var(--line-strong);
+        background: var(--hover);
+      }
+    }
+
+    /* ------------------------------------------------------------------
+     * Related list rows
+     * ------------------------------------------------------------------ */
+    .related-row {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.25rem 1.5rem;
+      min-height: 2.75rem;
+      padding-block: 1rem;
+      border-bottom: 1px solid var(--line);
+      touch-action: manipulation;
+      transition: color var(--dur-1) ease-out;
+    }
+
+    .related-row .related-title {
+      font-family: var(--font-serif);
+      font-size: 1.0625rem;
+      font-weight: 540;
+      line-height: 1.4;
+      letter-spacing: -0.012em;
+      color: var(--ink-strong);
+      transition: color var(--dur-1) ease-out;
+    }
+
+    .related-row .related-date {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-variant-numeric: tabular-nums;
+      color: var(--subtle);
+    }
+
+    .related-row:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    .related-row:active .related-title {
+      color: var(--accent-strong);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .related-row:hover .related-title {
+        color: var(--accent-strong);
+      }
+    }
+
+    /* ------------------------------------------------------------------
+     * Prose details owned by the article template
+     * ------------------------------------------------------------------ */
+
+    /* Inline links: a resting 1px rule that thickens on hover (drawn with a
+       background gradient so the change is smooth and layout-free). */
+    .post-body :global(a:not(.heading-anchor)) {
+      text-decoration: none;
+      background-image: linear-gradient(currentColor, currentColor);
+      background-repeat: no-repeat;
+      background-position: 0 100%;
+      background-size: 100% 1px;
+      padding-bottom: 1px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .post-body :global(a:not(.heading-anchor):hover) {
+        background-size: 100% 2px;
+      }
+    }
+
+    /* Blockquotes: slightly larger, looser, with a clear sage rule. */
+    .post-body :global(blockquote) {
+      font-size: 1.0625rem;
+      line-height: 1.85;
+      padding-block: 0.35em;
+      padding-inline-start: 1.35em;
+      border-inline-start-color: var(--accent-line);
+      color: var(--muted);
+    }
+
+    .post-body :global(blockquote p) {
+      text-wrap: pretty;
+    }
+
+    /* Figures + captions: full-bleed to the measure, caption as a quiet rule. */
+    .post-body :global(figure) {
+      margin-inline: 0;
+    }
+
+    .post-body :global(figcaption) {
+      margin-top: 0.9em;
+      padding-top: 0.6em;
+      border-top: 1px solid var(--line);
+      text-align: start;
+      letter-spacing: 0.01em;
+      line-height: 1.55;
+    }
+
+    /* Global.css pairs html { scroll-padding-top: 7rem } with a 7rem
+       scroll-margin on prose headings, which double-offsets anchor jumps.
+       Keep the html padding (it clears the sticky masthead) and trim the
+       heading margin so a TOC jump lands just under the masthead. */
+    .post-body :global(:is(h2, h3, h4)[id]) {
+      scroll-margin-top: 0.5rem;
+    }
+
+    /* Heading anchors become keyboard-focusable (JS adds them). */
+    .post-body :global(.heading-anchor) {
+      border-radius: 4px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .post-body :global(a:not(.heading-anchor)),
+      .post-tag,
+      .related-row,
+      .related-row .related-title {
+        transition: color var(--dur-1) ease-out;
+      }
+    }
+  </style>
 </BaseLayout>

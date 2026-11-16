@@ -83,23 +83,28 @@ const metricLine = (project: ProjectEntry) =>
           const variant = index % 2 === 0 ? 'paper' : 'evergreen';
           const href = localizePath(`/works/${project.slug}`, lang);
           return (
-            <article class="featured-card">
-              <a class="featured-cover" href={href} tabindex="-1" aria-hidden="true">
+            <a
+              class="featured-card focus-ring"
+              href={href}
+              aria-labelledby={`work-${project.slug}-title`}
+            >
+              <div class="featured-cover" aria-hidden="true">
                 <span class="cover-grid" />
                 <span class="cover-ring cover-ring--a" />
                 <span class="cover-ring cover-ring--b" />
-                <TerminalCard
-                  title={terminal.window}
-                  meta={terminal.meta}
-                  lines={terminal.lines}
-                  variant={variant}
-                  class="featured-terminal"
-                />
+                <span class="featured-terminal">
+                  <TerminalCard
+                    title={terminal.window}
+                    meta={terminal.meta}
+                    lines={terminal.lines}
+                    variant={variant}
+                  />
+                </span>
                 <span class="cover-caption mono">
                   <span>FIG. {String(index + 1).padStart(2, '0')} — {project.slug}</span>
                   <span>{project.stack.slice(0, 2).join(' · ')}</span>
                 </span>
-              </a>
+              </div>
 
               <div class="featured-body">
                 <div class="featured-meta">
@@ -111,20 +116,20 @@ const metricLine = (project: ProjectEntry) =>
                     {t(statusKey[project.status])}
                   </span>
                 </div>
-                <h3 class="featured-title">
-                  <a href={href}>{project.title}</a>
+                <h3 class="featured-title" id={`work-${project.slug}-title`}>
+                  {project.title}
                 </h3>
                 <p class="featured-slug mono">{project.slug}</p>
                 <p class="featured-desc">{project.tagline}</p>
                 <p class="featured-metrics mono">{metricLine(project)}</p>
                 <div class="featured-foot">
                   <p class="featured-stack mono">{project.stack.join(' / ')}</p>
-                  <a class="featured-go" href={href}>
-                    {viewProject} <span aria-hidden="true">→</span>
-                  </a>
+                  <span class="featured-go">
+                    {viewProject} <span class="featured-go-arrow" aria-hidden="true">→</span>
+                  </span>
                 </div>
               </div>
-            </article>
+            </a>
           );
         })
       }
@@ -140,7 +145,7 @@ const metricLine = (project: ProjectEntry) =>
         tools.map((project, index) => {
           const href = localizePath(`/works/${project.slug}`, lang);
           return (
-            <a class="tool-row" href={href}>
+            <a class="tool-row focus-ring" href={href}>
               <span class="tool-num mono">{String(index + 3).padStart(2, '0')}</span>
               <span class="tool-main">
                 <span class="tool-title">{project.title}</span>
@@ -176,6 +181,16 @@ const metricLine = (project: ProjectEntry) =>
     display: flex;
     flex-direction: column;
     min-width: 0;
+    color: inherit;
+    text-decoration: none;
+    border-radius: 6px;
+    touch-action: manipulation;
+    transition:
+      transform var(--dur-2, 200ms) var(--ease-out, ease-out);
+  }
+
+  .featured-card:active {
+    transform: translateY(1px);
   }
 
   .featured-cover {
@@ -183,7 +198,6 @@ const metricLine = (project: ProjectEntry) =>
     display: block;
     padding: 1.5rem 1.5rem 0.8125rem;
     overflow: hidden;
-    text-decoration: none;
     background: linear-gradient(
       152deg,
       var(--paper) 0%,
@@ -239,8 +253,14 @@ const metricLine = (project: ProjectEntry) =>
   .featured-terminal {
     position: relative;
     z-index: 1;
-    transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
-    --term-h: clamp(15rem, 20vw, 16.5rem);
+    display: block;
+    transition:
+      transform var(--dur-2, 200ms) var(--ease-out, ease-out),
+      box-shadow var(--dur-2, 200ms) var(--ease-out, ease-out);
+  }
+
+  .featured-terminal > :global(*) {
+    display: block;
   }
 
   .cover-caption {
@@ -259,14 +279,7 @@ const metricLine = (project: ProjectEntry) =>
     color: var(--subtle);
   }
 
-  .featured-card:hover .featured-cover {
-    border-color: var(--line-strong);
-    box-shadow: var(--shadow-md);
-  }
 
-  .featured-card:hover .featured-terminal {
-    transform: translateY(-4px);
-  }
 
   .featured-body {
     display: flex;
@@ -333,15 +346,8 @@ const metricLine = (project: ProjectEntry) =>
     line-height: 1.28;
     letter-spacing: 0.015em;
     color: var(--ink-strong);
-  }
-
-  .featured-title a {
-    text-decoration: none;
+    text-wrap: balance;
     transition: color var(--dur-1, 120ms) ease-out;
-  }
-
-  .featured-title a:hover {
-    color: var(--accent-strong);
   }
 
   .featured-slug {
@@ -386,11 +392,13 @@ const metricLine = (project: ProjectEntry) =>
 
   .featured-go {
     flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
     font-family: var(--font-sans);
     font-size: 0.7188rem;
     letter-spacing: 0.06em;
     color: var(--ink);
-    text-decoration: none;
     border-bottom: 1px solid var(--line);
     padding-bottom: 3px;
     white-space: nowrap;
@@ -399,19 +407,10 @@ const metricLine = (project: ProjectEntry) =>
       border-color var(--dur-1, 120ms) ease-out;
   }
 
-  .featured-go span {
+  .featured-go-arrow {
     color: var(--accent);
-    transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
     display: inline-block;
-  }
-
-  .featured-go:hover {
-    color: var(--accent-strong);
-    border-color: var(--accent);
-  }
-
-  .featured-go:hover span {
-    transform: translateX(3px);
+    transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
   }
 
   /* --- compact rows ------------------------------------------------------ */
@@ -454,9 +453,7 @@ const metricLine = (project: ProjectEntry) =>
     transition: background-color var(--dur-1, 120ms) ease-out;
   }
 
-  .tool-row:hover {
-    background: color-mix(in oklab, var(--accent) 4%, transparent);
-  }
+
 
   .tool-num {
     font-size: 0.6563rem;
@@ -479,10 +476,6 @@ const metricLine = (project: ProjectEntry) =>
     line-height: 1.4;
     color: var(--ink);
     transition: color var(--dur-1, 120ms) ease-out;
-  }
-
-  .tool-row:hover .tool-title {
-    color: var(--accent-strong);
   }
 
   .tool-slug {
@@ -534,17 +527,14 @@ const metricLine = (project: ProjectEntry) =>
 
   .tool-arrow {
     font-family: var(--font-sans);
-    color: var(--faint);
+    color: var(--subtle);
     text-align: right;
     transition:
       transform var(--dur-2, 200ms) var(--ease-out, ease-out),
       color var(--dur-1, 120ms) ease-out;
   }
 
-  .tool-row:hover .tool-arrow {
-    transform: translateX(3px);
-    color: var(--accent-strong);
-  }
+
 
   @media (max-width: 1023px) {
     .featured-grid {
@@ -589,18 +579,87 @@ const metricLine = (project: ProjectEntry) =>
     }
   }
 
+  /* --- hover: only on capable pointers ---------------------------------- */
+  @media (hover: hover) and (pointer: fine) {
+    .featured-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .featured-card:hover .featured-cover {
+      border-color: var(--accent-line);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .featured-card:hover .featured-terminal {
+      transform: translateY(-4px);
+      box-shadow:
+        0 30px 60px -36px rgb(36 33 28 / 0.6),
+        0 0 0 1px var(--accent-line);
+    }
+
+    .featured-card:hover .featured-title {
+      color: var(--accent-strong);
+    }
+
+    .featured-card:hover .featured-go {
+      color: var(--accent-strong);
+      border-color: var(--accent);
+    }
+
+    .featured-card:hover .featured-go-arrow {
+      transform: translateX(3px);
+    }
+
+    .tool-row:hover {
+      background: color-mix(in oklab, var(--accent) 4%, transparent);
+    }
+
+    .tool-row:hover .tool-title {
+      color: var(--accent-strong);
+    }
+
+    .tool-row:hover .tool-num {
+      color: var(--accent);
+    }
+
+    .tool-row:hover .tool-arrow {
+      transform: translateX(3px);
+      color: var(--accent-strong);
+    }
+  }
+
+  /* --- press feedback --------------------------------------------------- */
+  .tool-row:active {
+    background: color-mix(in oklab, var(--accent) 7%, transparent);
+  }
+
+  .tool-row:active .tool-arrow {
+    transform: translateX(1px);
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .featured-card,
     .featured-terminal,
-    .featured-go span,
+    .featured-title,
+    .featured-go,
+    .featured-go-arrow,
     .tool-arrow,
-    .tool-title {
+    .tool-title,
+    .tool-num {
       transition: none;
     }
 
+    .featured-card:hover,
+    .featured-card:active,
     .featured-card:hover .featured-terminal,
-    .featured-go:hover span,
+    .featured-card:hover .featured-go-arrow,
+    .tool-row:active .tool-arrow,
     .tool-row:hover .tool-arrow {
       transform: none;
+    }
+
+    .featured-card:hover .featured-terminal {
+      box-shadow: none;
     }
 
     .status-dot::after {

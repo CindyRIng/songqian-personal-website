@@ -1,6 +1,9 @@
 ---
 /**
  * NotFoundView — shared 404 body (zh/en).
+ *
+ * Editorial "lost page": oversized headline, a quiet engraved compass plate on
+ * the right, and a directory row back into the four sections. No JS needed.
  */
 import Icon from './ui/Icon.astro';
 import { useTranslations, localizePath } from '../i18n/utils';
@@ -11,19 +14,84 @@ interface Props {
 }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+
+const directory = [
+  { href: '/works', label: t('nav.works'), number: '01' },
+  { href: '/writing', label: t('nav.writing'), number: '02' },
+  { href: '/timeline', label: t('nav.timeline'), number: '03' },
+  { href: '/about', label: t('nav.about'), number: '04' },
+];
+
+const title = lang === 'zh' ? '走错地方了' : 'Lost in the woods';
+const secondary = lang === 'zh' ? 'Lost in the woods' : '走错地方了';
 ---
 
-<section class="measure-wrap py-[clamp(3rem,8vw,6rem)]">
-  <p class="label mb-6">404</p>
-  <h1 class="h2 max-w-[26rem]">{t('notFound.title')}</h1>
-  <p class="lede mt-5 max-w-[30rem] text-[1.0625rem]">{t('notFound.text')}</p>
+<section class="wrap grid min-h-[62vh] grid-cols-1 items-center gap-14 py-[clamp(3rem,7vw,6rem)] lg:grid-cols-[minmax(0,1fr)_22rem]">
+  <div class="max-w-[38rem]">
+    <p class="label flex items-center gap-3">
+      <span>404</span>
+      <span class="h-px w-8 bg-[var(--line-strong)]" aria-hidden="true"></span>
+      <span>{lang === 'zh' ? '页面不存在' : 'Not found'}</span>
+    </p>
 
-  <div class="mt-10 flex flex-wrap items-center gap-3">
-    <a href={localizePath('/', lang)} class="btn btn--solid">
-      <Icon name="arrow-left" size={15} />
-      {t('notFound.back')}
-    </a>
-    <a href={localizePath('/works', lang)} class="btn">{t('nav.works')}</a>
-    <a href={localizePath('/writing', lang)} class="btn">{t('nav.writing')}</a>
+    <h1 class="display mt-7">
+      {title}
+      <span class="display-latin mt-1 block text-[0.5em] leading-tight text-muted">{secondary}</span>
+    </h1>
+
+    <p class="lede mt-6 max-w-[30rem] text-[1.0625rem]">{t('notFound.text')}</p>
+
+    <div class="mt-10 flex flex-wrap items-center gap-3">
+      <a href={localizePath('/', lang)} class="btn btn--solid">
+        <Icon name="arrow-left" size={15} />
+        {t('notFound.back')}
+      </a>
+      <a href={localizePath('/writing', lang)} class="btn">{t('nav.writing')}</a>
+      <a href={localizePath('/works', lang)} class="btn">{t('nav.works')}</a>
+    </div>
+  </div>
+
+  <!-- Engraved compass plate — same visual language as the home ArtPlate. -->
+  <div class="relative mx-auto hidden aspect-square w-full max-w-[22rem] select-none lg:block" aria-hidden="true">
+    <svg viewBox="0 0 400 400" fill="none" class="size-full">
+      <g stroke="var(--line-strong)" stroke-width="1">
+        <circle cx="200" cy="200" r="186"></circle>
+        <circle cx="200" cy="200" r="130"></circle>
+        <circle cx="200" cy="200" r="74"></circle>
+      </g>
+      <g stroke="var(--line)" stroke-width="1">
+        <path d="M200 14v26M200 360v26M14 200h26M360 200h26"></path>
+        <path d="M200 56v244M56 200h288" stroke-dasharray="1 7" stroke-linecap="round"></path>
+      </g>
+      <circle cx="200" cy="200" r="4" fill="var(--accent)" opacity="0.85"></circle>
+      <path d="M200 118 216 200 200 282 184 200Z" fill="var(--ink)" opacity="0.06"></path>
+      <path d="M200 118v82h16Z" fill="var(--terra)" opacity="0.5"></path>
+      <path d="M200 282v-82h-16Z" fill="var(--ink)" opacity="0.32"></path>
+      <text x="200" y="30" text-anchor="middle" fill="var(--subtle)" font-family="var(--font-mono)" font-size="10" letter-spacing="2">N</text>
+      <text x="200" y="384" text-anchor="middle" fill="var(--subtle)" font-family="var(--font-mono)" font-size="10" letter-spacing="2">S</text>
+    </svg>
+    <span class="mono absolute inset-x-0 bottom-[-1.4rem] text-center text-[0.625rem] uppercase tracking-[0.22em] text-subtle">
+      {lang === 'zh' ? '所有路都通向首页' : 'every path leads home'}
+    </span>
   </div>
 </section>
+
+<div class="wrap">
+  <div class="hairline flex flex-wrap items-center justify-between gap-x-8 gap-y-4 pt-6">
+    <p class="label">{lang === 'zh' ? '你也可以去' : 'Or head to'}</p>
+    <nav aria-label={lang === 'zh' ? '站点目录' : 'Site directory'} class="flex flex-wrap items-center gap-x-7 gap-y-3">
+      {
+        directory.map((item) => (
+          <a
+            href={localizePath(item.href, lang)}
+            class="group inline-flex min-h-11 items-center gap-2 text-[0.8125rem] text-muted transition-colors duration-150 hover:text-ink"
+          >
+            <span class="mono text-[0.625rem] text-subtle">{item.number}</span>
+            {item.label}
+            <span aria-hidden="true" class="text-faint transition-[transform,color] duration-200 group-hover:translate-x-1 group-hover:text-accent">→</span>
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+</div>

@@ -28,7 +28,7 @@ Mobile (390px):
 
 | Layer | Choice |
 | --- | --- |
-| Framework | [Astro 7](https://astro.build) — static output, `<ClientRouter />` client-side navigation, ~16 KB of JS total |
+| Framework | [Astro 7](https://astro.build) — static output, `<ClientRouter />` client-side navigation, ~24 KB of JS and ~148 KB of CSS (uncompressed) |
 | Styling | [Tailwind CSS 4](https://tailwindcss.com) + a small semantic token system in `src/styles/global.css` |
 | Type | Source Serif 4, Inter, JetBrains Mono — self-hosted variable fonts (Fontsource) |
 | i18n | Astro native i18n routing; Chinese at `/`, English at `/en/`; typed dictionary + `src/data/copy.ts` |
@@ -105,6 +105,17 @@ node scripts/indexnow.mjs https://songqian.me   # submit sitemap to IndexNow
 ```
 
 > The custom domain, TLS certificate, www→apex redirect and legacy-host redirect are all configured; the sitemap was submitted to IndexNow (HTTP 202). For Google, verify the domain in Search Console and submit `https://songqian.me/sitemap-index.xml`.
+
+## Interaction & accessibility
+
+A dedicated polish pass covers every clickable thing on the site:
+
+- **State system:** one matrix for hover / focus-visible / active / disabled / reduced-motion across chrome, cards, rows, chips, footer and article controls. Hover effects only run behind `@media (hover: hover) and (pointer: fine)`, so nothing sticks on touch; all interactive targets are ≥ 44 × 44 px (inline prose links excepted by WCAG).
+- **Chrome:** sticky paper-glass masthead that densifies after 24 px of scroll; nav underline that morphs between destinations via a shared view-transition element; sun↔moon theme toggle; 中/EN switch; full-screen mobile menu with staggered items, focus trap, Esc close, focus return and pixel-exact scroll restore.
+- **Home:** hero stagger, art-plate mask reveal + parallax (disabled on touch/small screens), stat count-up, per-stat hover, single-link featured cards (lift + terminal glow), writing/timeline rows, footer click-to-copy email & phone with an `aria-live` toast, and a WeChat-QR lightbox.
+- **Works / writing / timeline:** filter chips with `aria-pressed`, staggered filtering, sticky-year highlighting driven by `IntersectionObserver`, TOC scroll-spy, keyboard-focusable heading anchors, code copy, image lightbox (Esc / arrow keys / focus trap), animated FAQ, prev/next cards.
+- **Reading & a11y:** one `<h1>` per page, skip link, visible 2 px focus rings everywhere, `route-announcer` + focus moved to `<main>` after client-side navigation, anchor offsets that clear the sticky header, 404 with an engraved compass plate, and complete `prefers-reduced-motion` fallbacks (content never hidden).
+- **Measured:** 34/34 pages with zero console errors and one `<h1>` each; CLS 0; no horizontal overflow at 320 / 390 / 768 / 1024 / 1440; no broken links; no-JS pages fully readable.
 
 ## SEO & GEO
 

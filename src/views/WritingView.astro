@@ -85,12 +85,9 @@ const pageTitle =
           </span>
         </h1>
 
-        <a
-          href={rssHref}
-          class="group inline-flex items-center gap-2 border-b border-line pb-1 font-sans text-[0.8125rem] text-subtle transition-colors hover:border-line-strong hover:text-ink"
-        >
-          <Icon name="rss" size={13} />
-          <span class="hidden sm:inline">{t('footer.rss')}</span>
+        <a href={rssHref} class="rss-link group">
+          <Icon name="rss" size={13} class="rss-link-icon" />
+          <span class="rss-link-text">{t('footer.rss')}</span>
         </a>
       </div>
 
@@ -121,3 +118,62 @@ const pageTitle =
     <Pagination lang={lang} page={page.currentPage} totalPages={page.lastPage} />
   </div>
 </BaseLayout>
+
+<style>
+  .rss-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding-block: 0.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    color: var(--subtle);
+    touch-action: manipulation;
+    transition: color var(--dur-1) ease-out;
+  }
+
+  .rss-link .rss-link-text {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1px;
+    transition:
+      border-color var(--dur-1) ease-out,
+      color var(--dur-1) ease-out;
+  }
+
+  .rss-link .rss-link-icon {
+    transition: color var(--dur-1) ease-out;
+  }
+
+  .rss-link:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: var(--ring-offset);
+    border-radius: 4px;
+  }
+
+  .rss-link:active {
+    color: var(--ink);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .rss-link:hover {
+      color: var(--ink);
+    }
+
+    .rss-link:hover .rss-link-text {
+      border-color: var(--line-strong);
+    }
+
+    .rss-link:hover .rss-link-icon {
+      color: var(--accent);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rss-link,
+    .rss-link .rss-link-text,
+    .rss-link .rss-link-icon {
+      transition: color var(--dur-1) ease-out;
+    }
+  }
+</style>

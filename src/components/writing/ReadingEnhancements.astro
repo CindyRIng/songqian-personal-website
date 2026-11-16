@@ -2,17 +2,15 @@
 /**
  * ReadingEnhancements — progressive article polish, all JavaScript-only.
  *
- *   - heading anchors (#) on hover/focus for h2/h3;
+ *   - keyboard-focusable heading anchors (#) revealed on heading hover/focus;
  *   - copy buttons for code blocks (check-mark feedback + aria-live);
- *   - a quiet native <dialog> lightbox for prose images;
+ *   - a quiet native <dialog> lightbox for prose images: 200ms open/close
+ *     scale+fade, Esc / scrim / × to close, ←/→ to move between images,
+ *     native focus trap, focus returns to the trigger.
  *
  * Nothing here is required to read an article: without JS there are no
  * anchors, no copy buttons and images simply stay inline. Rendered only on
  * article pages by BaseLayout; the script itself also guards on `.post-body`.
- *
- * Micro-copy: prefers the ui.ts keys when they exist (writing.copyCode,
- * writing.codeCopied, a11y.close) and falls back to a local six-locale map
- * until those keys land — TODO: drop the fallback once ui.ts has them.
  */
 import Icon from '../ui/Icon.astro';
 import { useTranslations } from '../../i18n/utils';
@@ -27,38 +25,10 @@ const { lang } = Astro.props;
 const t = useTranslations(lang);
 
 const fallback = {
-  copyCode: {
-    en: 'Copy code',
-    zh: '复制代码',
-    ja: 'コードをコピー',
-    es: 'Copiar código',
-    fr: 'Copier le code',
-    de: 'Code kopieren',
-  },
-  codeCopied: {
-    en: 'Code copied',
-    zh: '代码已复制',
-    ja: 'コードをコピーしました',
-    es: 'Código copiado',
-    fr: 'Code copié',
-    de: 'Code kopiert',
-  },
-  close: {
-    en: 'Close',
-    zh: '关闭',
-    ja: '閉じる',
-    es: 'Cerrar',
-    fr: 'Fermer',
-    de: 'Schließen',
-  },
-  linkToSection: {
-    en: 'Link to this section',
-    zh: '链接到本节',
-    ja: 'この節へのリンク',
-    es: 'Enlace a esta sección',
-    fr: 'Lien vers cette section',
-    de: 'Link zu diesem Abschnitt',
-  },
+  copyCode: { zh: '复制代码', en: 'Copy code' },
+  codeCopied: { zh: '代码已复制', en: 'Code copied' },
+  close: { zh: '关闭', en: 'Close' },
+  linkToSection: { zh: '链接到本节', en: 'Link to this section' },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 const keyOrFallback = (key: string, table: Record<Locale, string>): string => {
@@ -81,15 +51,76 @@ const labels = {
     <img data-lightbox-img alt="" />
     <figcaption data-lightbox-caption></figcaption>
   </figure>
-  <button
-    type="button"
-    data-lightbox-close
-    class="lightbox-close"
-    aria-label={labels.close}
-  >
+  <button type="button" data-lightbox-close class="lightbox-close" aria-label={labels.close}>
     <Icon name="close" size={18} />
   </button>
 </dialog>
+
+<style>
+  /* Close animation (open animation lives in global.css). JS adds
+     [data-closing] for ~180ms before actually closing the dialog. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-lightbox][data-closing] {
+      animation: lightbox-out 180ms var(--ease-out) forwards;
+    }
+
+    [data-lightbox][data-closing]::backdrop {
+      animation: lightbox-backdrop-out 180ms ease-out forwards;
+    }
+
+    [data-lightbox] [data-lightbox-img][data-swap] {
+      animation: lightbox-swap 160ms var(--ease-out);
+    }
+  }
+
+  @keyframes lightbox-out {
+    to {
+      opacity: 0;
+      scale: 0.965;
+    }
+  }
+
+  @keyframes lightbox-backdrop-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes lightbox-swap {
+    from {
+      opacity: 0.35;
+      scale: 0.99;
+    }
+  }
+
+  /* Code copy: 44px target, press feedback, and no sticky hover on touch. */
+  :global(.code-copy) {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    justify-content: center;
+    padding: 0.5rem 0.6rem;
+    touch-action: manipulation;
+  }
+
+  :global(.code-copy:active) {
+    transform: scale(0.96);
+    transition-duration: var(--dur-press);
+  }
+
+  @media (hover: none) {
+    :global(.code-copy:hover) {
+      color: var(--subtle);
+      border-color: var(--line);
+      background: color-mix(in oklab, var(--elevated) 88%, transparent);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.code-copy:active) {
+      transform: none;
+    }
+  }
+</style>
 
 <script>
   interface ReadingLabels {
@@ -104,6 +135,9 @@ const labels = {
   const CHECK_ICON =
     '<svg class="icon-check" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m20 6.5-11 11-5-5"/></svg>';
 
+  const prefersReducedMotion = () =>
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function initReading() {
     const config = document.querySelector<HTMLElement>('[data-reading-config]');
     const body = document.querySelector<HTMLElement>('.post-body');
@@ -113,30 +147,39 @@ const labels = {
     try {
       labels = JSON.parse(config.dataset.labels ?? '{}') as ReadingLabels;
     } catch {
-      labels = { copyCode: 'Copy code', codeCopied: 'Copied', close: 'Close', linkToSection: 'Link to this section' };
+      labels = {
+        copyCode: 'Copy code',
+        codeCopied: 'Copied',
+        close: 'Close',
+        linkToSection: 'Link to this section',
+      };
     }
 
     /* ------------------------------------------------------------------ */
-    /* Heading anchors                                                     */
+    /* Heading anchors — focusable, revealed on heading hover/focus        */
     /* ------------------------------------------------------------------ */
     for (const heading of body.querySelectorAll<HTMLHeadingElement>('h2[id], h3[id]')) {
+      if (heading.querySelector('.heading-anchor')) continue;
       const anchor = document.createElement('a');
       anchor.className = 'heading-anchor';
       anchor.href = `#${heading.id}`;
       anchor.textContent = '#';
-      anchor.setAttribute('aria-hidden', 'true');
-      anchor.tabIndex = -1;
+      anchor.setAttribute('aria-label', `${labels.linkToSection}: ${heading.textContent ?? ''}`.trim());
       heading.append(anchor);
     }
 
     /* ------------------------------------------------------------------ */
     /* Code copy buttons                                                   */
     /* ------------------------------------------------------------------ */
-    const liveRegion = document.createElement('span');
-    liveRegion.className = 'sr-only';
-    liveRegion.setAttribute('role', 'status');
-    liveRegion.setAttribute('aria-live', 'polite');
-    document.body.append(liveRegion);
+    let liveRegion = document.querySelector<HTMLElement>('[data-copy-live]');
+    if (!liveRegion) {
+      liveRegion = document.createElement('span');
+      liveRegion.className = 'sr-only';
+      liveRegion.dataset.copyLive = '';
+      liveRegion.setAttribute('role', 'status');
+      liveRegion.setAttribute('aria-live', 'polite');
+      document.body.append(liveRegion);
+    }
 
     const copyText = async (text: string): Promise<boolean> => {
       try {
@@ -162,6 +205,7 @@ const labels = {
     };
 
     for (const pre of body.querySelectorAll<HTMLPreElement>('pre')) {
+      if (pre.closest('.code-frame')) continue;
       const code = pre.querySelector('code');
       if (!code) continue;
 
@@ -184,12 +228,12 @@ const labels = {
         if (!ok) return;
         button.dataset.copied = '';
         button.setAttribute('aria-label', labels.codeCopied);
-        liveRegion.textContent = labels.codeCopied;
+        liveRegion!.textContent = labels.codeCopied;
         window.clearTimeout(resetTimer);
         resetTimer = window.setTimeout(() => {
           delete button.dataset.copied;
           button.setAttribute('aria-label', labels.copyCode);
-          liveRegion.textContent = '';
+          liveRegion!.textContent = '';
         }, 1800);
       });
     }
@@ -209,44 +253,106 @@ const labels = {
       closeButton &&
       typeof dialog.showModal === 'function'
     ) {
+      const images = Array.from(body.querySelectorAll<HTMLImageElement>('img[alt]')).filter(
+        (image) => image.alt.trim().length > 0 && !image.closest('a') && !image.closest('[data-lightbox]')
+      );
+      let currentIndex = -1;
       let lastTrigger: HTMLImageElement | null = null;
+      let closing = false;
 
-      const openLightbox = (image: HTMLImageElement) => {
-        lastTrigger = image;
+      const captionFor = (image: HTMLImageElement): string => {
+        const figure = image.closest('figure');
+        return figure?.querySelector('figcaption')?.textContent?.trim() || image.alt;
+      };
+
+      const show = (image: HTMLImageElement) => {
         dialogImage.src = image.currentSrc || image.src;
         dialogImage.alt = image.alt;
-        const figure = image.closest('figure');
-        const caption = figure?.querySelector('figcaption')?.textContent?.trim() || image.alt;
+        const caption = captionFor(image);
         dialogCaption.textContent = caption;
         dialogCaption.hidden = caption.length === 0;
         dialog.setAttribute('aria-label', image.alt || labels.close);
+        // Subtle cross-fade when switching with arrow keys.
+        dialogImage.removeAttribute('data-swap');
+        void dialogImage.offsetWidth;
+        dialogImage.dataset.swap = '';
+      };
+
+      const open = (image: HTMLImageElement) => {
+        lastTrigger = image;
+        currentIndex = images.indexOf(image);
+        show(image);
         dialog.showModal();
         document.documentElement.classList.add('lightbox-open');
         closeButton.focus();
       };
 
-      for (const image of body.querySelectorAll<HTMLImageElement>('img[alt]')) {
-        if (!image.alt.trim() || image.closest('a') || image.closest('[data-lightbox]')) continue;
+      const finishClose = () => {
+        delete dialog.dataset.closing;
+        closing = false;
+        document.documentElement.classList.remove('lightbox-open');
+        dialog.close();
+      };
+
+      const closeAnimated = () => {
+        if (!dialog.open || closing) return;
+        if (prefersReducedMotion()) {
+          document.documentElement.classList.remove('lightbox-open');
+          dialog.close();
+          return;
+        }
+        closing = true;
+        dialog.dataset.closing = '';
+        window.setTimeout(finishClose, 180);
+      };
+
+      const step = (direction: -1 | 1) => {
+        if (images.length < 2) return;
+        currentIndex = (currentIndex + direction + images.length) % images.length;
+        show(images[currentIndex]);
+      };
+
+      for (const image of images) {
         image.classList.add('is-zoomable');
         image.tabIndex = 0;
         image.setAttribute('role', 'button');
-        image.addEventListener('click', () => openLightbox(image));
+        image.addEventListener('click', () => open(image));
         image.addEventListener('keydown', (event) => {
           if (event.key !== 'Enter' && event.key !== ' ') return;
           event.preventDefault();
-          openLightbox(image);
+          open(image);
         });
       }
 
       dialog.addEventListener('click', (event) => {
-        if (event.target === dialog) dialog.close();
+        if (event.target === dialog) closeAnimated();
       });
 
-      closeButton.addEventListener('click', () => dialog.close());
+      closeButton.addEventListener('click', closeAnimated);
+
+      /* Native dialog already closes on Esc; intercept to play the close
+         animation, and add ←/→ navigation while it is open. */
+      dialog.addEventListener('cancel', (event) => {
+        event.preventDefault();
+        closeAnimated();
+      });
+
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          step(-1);
+        } else if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          step(1);
+        }
+      });
 
       dialog.addEventListener('close', () => {
-        document.documentElement.classList.remove('lightbox-open');
+        const wasAnimated = dialog.dataset.closing !== undefined;
+        if (!wasAnimated) document.documentElement.classList.remove('lightbox-open');
         dialogImage.removeAttribute('src');
+        dialogImage.removeAttribute('data-swap');
+        currentIndex = -1;
         if (lastTrigger) {
           lastTrigger.focus();
           lastTrigger = null;

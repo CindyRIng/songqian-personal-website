@@ -6,12 +6,17 @@
  * cards on the right, hairline rules between year groups. Type filtering is
  * progressive enhancement — the no-JS page is the complete timeline.
  *
- * TODO(forge): `ui/SectionHeading.astro` follows rebuild-spec §3.
+ * Polish: sticky year marks the current band while scrolling (IntersectionObserver,
+ * no scroll listeners), type dots match the filter chips, chips have
+ * hover/press/focus/44px-touch states, entering entries fade with a 20ms
+ * stagger, everything re-binds after client-side navigation and is
+ * reduced-motion safe.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/ui/SectionHeading.astro';
 import Icon from '../components/ui/Icon.astro';
 import TimelineEntry from '../components/timeline/TimelineEntry.astro';
+import { TIMELINE_TYPE_DOTS } from '../components/timeline/type-colors';
 import { copy, c } from '../data/copy';
 import { localizePath, useTranslations } from '../i18n/utils';
 import { SITE, localeMeta, type Locale } from '../i18n/config';
@@ -78,17 +83,25 @@ const timelineJsonLd = {
       en={lang === 'zh' ? 'Timeline' : '时间线'}
       lede={c(copy.timeline.lede, lang)}
       id="timeline-title"
+      headingLevel="h1"
     />
 
     <!-- Type filter (hidden until the script runs) -->
-    <div class="mt-8 flex flex-wrap items-center gap-1.5" data-timeline-filters style="display: none;" role="group" aria-label={t('timeline.filterAll')}>
-      <button type="button" class="tl-filter is-active" data-filter="all" aria-pressed="true">
+    <div
+      class="mt-8 flex flex-wrap items-center gap-1.5"
+      data-timeline-filters
+      style="display: none;"
+      role="group"
+      aria-label={t('timeline.filterAll')}
+    >
+      <button type="button" class="tl-filter focus-ring is-active" data-filter="all" aria-pressed="true">
         {t('timeline.filterAll')}
         <span class="mono text-[0.625rem] text-subtle">{entries.length}</span>
       </button>
       {
         activeTypes.map((type) => (
-          <button type="button" class="tl-filter" data-filter={type} aria-pressed="false">
+          <button type="button" class="tl-filter focus-ring" data-filter={type} aria-pressed="false">
+            <span class="type-dot" style={`background: ${TIMELINE_TYPE_DOTS[type]}`} aria-hidden="true"></span>
             {t(TIMELINE_TYPE_KEYS[type])}
             <span class="mono text-[0.625rem] text-subtle">{counts[type]}</span>
           </button>
@@ -107,12 +120,14 @@ const timelineJsonLd = {
         <section
           class="grid grid-cols-[4.5rem_1fr] gap-x-4 border-t border-line py-10 first:border-t-0 md:grid-cols-[10rem_1fr] md:gap-x-12 md:py-14"
           data-timeline-group
+          data-year={String(group.year)}
           aria-label={String(group.year)}
         >
-          <div class="md:sticky md:top-28 md:self-start">
-            <h2 class="font-serif text-[clamp(1.75rem,6vw,3.5rem)] font-[520] leading-none tracking-[-0.03em] text-ink-strong tabular">
+          <div class="tl-year md:sticky md:top-28 md:self-start">
+            <h2 class="tl-year-num font-serif text-[clamp(1.75rem,6vw,3.5rem)] font-[520] leading-none tracking-[-0.03em] text-ink-strong tabular">
               {group.year}
             </h2>
+            <span class="tl-year-marker" aria-hidden="true"></span>
             <span class="mono mt-2 hidden text-[0.625rem] uppercase tracking-[0.14em] text-subtle md:block">
               {String(group.entries.length).padStart(2, '0')} {lang === 'zh' ? '条' : 'entries'}
             </span>
@@ -132,7 +147,7 @@ const timelineJsonLd = {
   <div class="wrap mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
     <a
       href={localizePath('/about', lang)}
-      class="group inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted transition-colors duration-200 hover:text-ink"
+      class="group focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted transition-colors duration-200 hover:text-ink"
     >
       <Icon
         name="arrow-left"
@@ -143,7 +158,7 @@ const timelineJsonLd = {
     </a>
     <a
       href={localizePath('/works', lang)}
-      class="group inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted transition-colors duration-200 hover:text-ink"
+      class="group focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted transition-colors duration-200 hover:text-ink"
     >
       {t('nav.works')}
       <Icon
@@ -156,40 +171,119 @@ const timelineJsonLd = {
 
   <Fragment slot="scripts">
     <script>
-      // Quiet type filter — the no-JS page already lists everything.
-      const filters = document.querySelector<HTMLElement>('[data-timeline-filters]');
-      const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-timeline-group]'));
-      const empty = document.querySelector<HTMLElement>('[data-timeline-empty]');
+      // Quiet type filter + sticky-year highlight. Both re-bind after Astro's
+      // client-side navigation; all motion is skipped under reduced-motion.
+      let yearObserver: IntersectionObserver | undefined;
 
-      if (filters && groups.length > 0) {
-        filters.style.display = '';
-        const buttons = Array.from(filters.querySelectorAll<HTMLButtonElement>('[data-filter]'));
+      function initTimeline() {
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const filters = document.querySelector<HTMLElement>('[data-timeline-filters]');
+        const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-timeline-group]'));
 
-        const apply = (value: string) => {
-          let visible = 0;
-          for (const group of groups) {
-            const items = Array.from(group.querySelectorAll<HTMLElement>('[data-timeline-item]'));
-            let groupVisible = 0;
-            for (const item of items) {
-              const show = value === 'all' || item.dataset.type === value;
-              item.hidden = !show;
-              if (show) groupVisible += 1;
+        /* ---- Type filter ------------------------------------------------- */
+        if (filters && groups.length > 0) {
+          filters.style.display = '';
+          if (filters.dataset.bound !== 'true') {
+            filters.dataset.bound = 'true';
+
+            const empty = document.querySelector<HTMLElement>('[data-timeline-empty]');
+            const buttons = Array.from(filters.querySelectorAll<HTMLButtonElement>('[data-filter]'));
+
+            // Fade + 6px rise with a 20ms stagger. Web Animations is used so
+            // the effect also applies to entries rendered by a child component.
+            const stagger = (elements: HTMLElement[]) => {
+              if (reduceMotion.matches || elements.length === 0) return;
+              elements.forEach((el, index) => {
+                const animation = el.animate(
+                  [
+                    { opacity: 0, transform: 'translateY(6px)' },
+                    { opacity: 1, transform: 'none' },
+                  ],
+                  {
+                    duration: 200,
+                    delay: index * 20,
+                    easing: 'cubic-bezier(0.22, 0.68, 0.24, 1)',
+                    fill: 'both',
+                  }
+                );
+                animation.finished
+                  .then(() => animation.cancel())
+                  .catch(() => {
+                    /* navigation cancelled the animation — nothing to clean up */
+                  });
+              });
+            };
+
+            const apply = (value: string) => {
+              let visible = 0;
+              const entering: HTMLElement[] = [];
+              for (const group of groups) {
+                const items = Array.from(group.querySelectorAll<HTMLElement>('[data-timeline-item]'));
+                let groupVisible = 0;
+                for (const item of items) {
+                  const show = value === 'all' || item.dataset.type === value;
+                  const wasHidden = item.hidden;
+                  item.hidden = !show;
+                  if (show) {
+                    groupVisible += 1;
+                    if (wasHidden) entering.push(item);
+                  }
+                }
+                group.hidden = groupVisible === 0;
+                visible += groupVisible;
+              }
+              if (empty) empty.classList.toggle('hidden', visible > 0);
+              for (const button of buttons) {
+                const active = button.dataset.filter === value;
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-pressed', String(active));
+              }
+              stagger(entering);
+            };
+
+            for (const button of buttons) {
+              button.addEventListener('click', () => apply(button.dataset.filter ?? 'all'));
             }
-            group.hidden = groupVisible === 0;
-            visible += groupVisible;
           }
-          if (empty) empty.classList.toggle('hidden', visible > 0);
-          for (const button of buttons) {
-            const active = button.dataset.filter === value;
-            button.classList.toggle('is-active', active);
-            button.setAttribute('aria-pressed', String(active));
-          }
-        };
+        }
 
-        for (const button of buttons) {
-          button.addEventListener('click', () => apply(button.dataset.filter ?? 'all'));
+        /* ---- Sticky year highlight (no scroll listeners) ----------------- */
+        yearObserver?.disconnect();
+        const yearEls = new Map<string, HTMLElement>();
+        for (const group of groups) {
+          const yearEl = group.querySelector<HTMLElement>('.tl-year');
+          const year = group.dataset.year ?? '';
+          if (yearEl) yearEls.set(year, yearEl);
+        }
+        if (groups.length > 0 && typeof IntersectionObserver !== 'undefined') {
+          const visibleYears = new Set<string>();
+          yearObserver = new IntersectionObserver(
+            (observed) => {
+              for (const entry of observed) {
+                const year = (entry.target as HTMLElement).dataset.year ?? '';
+                if (entry.isIntersecting) visibleYears.add(year);
+                else visibleYears.delete(year);
+              }
+              let active = '';
+              for (const group of groups) {
+                const year = group.dataset.year ?? '';
+                if (visibleYears.has(year)) {
+                  active = year;
+                  break;
+                }
+              }
+              for (const [year, element] of yearEls) {
+                element.classList.toggle('is-current', year === active);
+              }
+            },
+            { rootMargin: '-30% 0px -55% 0px', threshold: 0 }
+          );
+          for (const group of groups) yearObserver.observe(group);
         }
       }
+
+      document.addEventListener('astro:page-load', initTimeline);
+      initTimeline();
     </script>
   </Fragment>
 </BaseLayout>
@@ -201,7 +295,7 @@ const timelineJsonLd = {
     align-items: center;
     gap: 0.375rem;
     border: 1px solid var(--line);
-    border-radius: 999px;
+    border-radius: var(--radius-pill, 999px);
     background: transparent;
     padding: 0.3rem 0.7rem;
     font-family: var(--font-sans);
@@ -210,16 +304,31 @@ const timelineJsonLd = {
     letter-spacing: 0.01em;
     color: var(--muted);
     cursor: pointer;
+    touch-action: manipulation;
     transition:
       color var(--dur-1) ease-out,
       background-color var(--dur-1) ease-out,
-      border-color var(--dur-1) ease-out;
+      border-color var(--dur-1) ease-out,
+      transform var(--dur-press, 100ms) var(--ease-out);
   }
 
-  .tl-filter:hover {
-    color: var(--ink);
-    background: var(--hover);
-    border-color: var(--line-strong);
+  @media (hover: none) {
+    .tl-filter {
+      min-height: 2.75rem;
+      padding-inline: 0.85rem;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .tl-filter:hover {
+      color: var(--ink);
+      background: var(--hover);
+      border-color: var(--line-strong);
+    }
+  }
+
+  .tl-filter:active {
+    transform: translateY(1px) scale(0.985);
   }
 
   .tl-filter.is-active {
@@ -230,5 +339,83 @@ const timelineJsonLd = {
 
   .tl-filter.is-active .mono {
     color: color-mix(in oklab, var(--canvas) 72%, transparent);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .tl-filter.is-active:hover {
+      background: var(--accent-strong);
+      border-color: var(--accent-strong);
+    }
+  }
+
+  .type-dot {
+    display: inline-block;
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    transform: translateY(-1px);
+  }
+
+  /* Sticky year: hairline marker + accent when the band is in focus. */
+  .tl-year {
+    position: relative;
+    padding-left: 1rem;
+    margin-left: -1rem;
+    border-left: 1px solid transparent;
+    transition:
+      border-color var(--dur-3) var(--ease-out),
+      color var(--dur-3) var(--ease-out);
+  }
+
+  .tl-year-num {
+    transition: color var(--dur-3) var(--ease-out);
+  }
+
+  .tl-year-marker {
+    display: block;
+    width: 1.25rem;
+    height: 2px;
+    margin-top: 0.6rem;
+    border-radius: 999px;
+    background: var(--accent);
+    opacity: 0;
+    transform: scaleX(0.4);
+    transform-origin: left center;
+    transition:
+      opacity var(--dur-3) var(--ease-out),
+      transform var(--dur-3) var(--ease-out);
+  }
+
+  .tl-year.is-current {
+    border-left-color: var(--accent-line);
+  }
+
+  .tl-year.is-current .tl-year-num {
+    color: var(--accent-strong);
+  }
+
+  .tl-year.is-current .tl-year-marker {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tl-filter,
+    .tl-filter:active {
+      transition: none;
+      transform: none;
+    }
+
+    .tl-year,
+    .tl-year-num,
+    .tl-year-marker {
+      transition: none;
+    }
+
+    .tl-year-marker {
+      transform: none;
+    }
+
   }
 </style>

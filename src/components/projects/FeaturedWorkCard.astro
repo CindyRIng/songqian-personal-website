@@ -5,6 +5,11 @@
  * A+ direction: a credible CLI window (forge's ui/TerminalCard) with the
  * project's real bilingual metadata underneath — title, slug, one-liner,
  * metric line and the status dot.
+ *
+ * Interaction polish: the whole card is one link with a focus ring; hover lifts
+ * the card, zooms the terminal 1.02 inside a clipping wrapper, moves the arrow
+ * and warms the title; press settles it. Hover is gated to hover-capable
+ * pointers and every motion is disabled under reduced-motion.
  */
 import TerminalCard from '../ui/TerminalCard.astro';
 import Icon from '../ui/Icon.astro';
@@ -33,7 +38,7 @@ const metrics = project.metrics.slice(0, 3);
 ---
 
 <article
-  class="group flex h-full flex-col gap-5"
+  class="flex h-full flex-col"
   data-work-item
   data-tags={project.tags.join(' ')}
   data-reveal
@@ -41,17 +46,18 @@ const metrics = project.metrics.slice(0, 3);
 >
   <a
     href={href}
-    class="flex h-full flex-col gap-5 rounded-[6px] focus-visible:outline-none"
+    class="featured-link focus-ring press flex h-full flex-col gap-5 rounded-[6px]"
     aria-label={`${project.title} — ${t('actions.viewProject')}`}
   >
-    <TerminalCard
-      title={terminal.title}
-      caption={terminal.caption}
-      meta={terminal.meta}
-      lines={terminal.lines}
-      variant={terminal.variant}
-      class="transition-transform duration-300 ease-[var(--ease-out)] group-hover:-translate-y-1"
-    />
+    <div class="terminal-zoom overflow-hidden">
+      <TerminalCard
+        title={terminal.title}
+        caption={terminal.caption}
+        meta={terminal.meta}
+        lines={terminal.lines}
+        variant={terminal.variant}
+      />
+    </div>
 
     <div class="flex flex-1 flex-col gap-3">
       <div class="flex items-center justify-between gap-3">
@@ -63,7 +69,7 @@ const metrics = project.metrics.slice(0, 3);
       </div>
 
       <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h3 class="h3 transition-colors duration-200 group-hover:text-accent-deep">{project.title}</h3>
+        <h3 class="featured-title h3">{project.title}</h3>
         <span class="mono text-[0.75rem] text-subtle">{project.slug}</span>
       </div>
 
@@ -74,21 +80,80 @@ const metrics = project.metrics.slice(0, 3);
           {
             metrics.map((metric) => (
               <li class="inline-flex items-baseline gap-1.5">
-                <span class="text-[0.8125rem] text-ink-strong">{metric.value}</span>
+                <span class="featured-metric-value text-[0.8125rem] text-ink-strong">{metric.value}</span>
                 <span class="text-subtle">{metric.label}</span>
               </li>
             ))
           }
         </ul>
-        <span class="inline-flex items-center gap-1.5 text-[0.8125rem] text-muted transition-colors duration-200 group-hover:text-accent-deep">
+        <span class="featured-cta inline-flex items-center gap-1.5 text-[0.8125rem] text-muted">
           {t('actions.viewProject')}
-          <Icon
-            name="arrow-right"
-            size={14}
-            class="transition-transform duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5"
-          />
+          <span class="featured-arrow inline-flex">
+            <Icon name="arrow-right" size={14} />
+          </span>
         </span>
       </div>
     </div>
   </a>
 </article>
+
+<style>
+  .featured-link {
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  .terminal-zoom {
+    transition: transform var(--dur-3) var(--ease-out);
+    transform-origin: center;
+  }
+
+  .featured-title,
+  .featured-cta,
+  .featured-metric-value {
+    transition: color var(--dur-1) var(--ease-out);
+  }
+
+  .featured-arrow {
+    transition:
+      transform var(--dur-2) var(--ease-out),
+      color var(--dur-1) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .featured-link:hover {
+      transform: translateY(-3px);
+    }
+
+    .featured-link:hover .terminal-zoom {
+      transform: scale(1.02);
+    }
+
+    .featured-link:hover .featured-title,
+    .featured-link:hover .featured-cta,
+    .featured-link:hover .featured-metric-value {
+      color: var(--accent-strong);
+    }
+
+    .featured-link:hover .featured-arrow {
+      transform: translateX(3px);
+      color: var(--accent);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .featured-link,
+    .terminal-zoom,
+    .featured-title,
+    .featured-cta,
+    .featured-metric-value,
+    .featured-arrow {
+      transition: none;
+    }
+
+    .featured-link:hover,
+    .featured-link:hover .terminal-zoom,
+    .featured-link:hover .featured-arrow {
+      transform: none;
+    }
+  }
+</style>

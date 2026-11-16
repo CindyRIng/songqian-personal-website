@@ -185,10 +185,19 @@ const innerTicks = Array.from({ length: 24 }, (_, i) => i * 15);
     top: 50%;
     width: min(46rem, 58vw);
     height: min(46rem, 58vw);
-    translate: 0 -50%;
+    translate: 0 calc(-50% + var(--plate-shift, 0px));
     -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 26%);
     mask-image: linear-gradient(90deg, transparent 0, #000 26%);
     will-change: transform;
+    transition: translate 80ms linear;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plate-wheel {
+      translate: 0 -50%;
+      transition: none;
+      will-change: auto;
+    }
   }
 
   .plate-wheel svg {
@@ -306,8 +315,8 @@ const innerTicks = Array.from({ length: 24 }, (_, i) => i * 15);
     position: absolute;
     inset-inline: 0;
     bottom: 1.75rem;
+    margin: 0;
     padding-inline: var(--gutter);
-  }
     font-family: var(--font-mono);
     font-size: 0.5938rem;
     letter-spacing: 0.14em;

@@ -4,10 +4,14 @@
  *
  * The left column of the page owns the large serif year; this component only
  * renders the entry card so the grid stays aligned across a year group.
+ *
+ * Interaction polish: hover wash (hover-capable pointers only), type dot that
+ * matches the filter chips, reduced-motion safe.
  */
 import { useTranslations } from '../../i18n/utils';
 import type { Locale } from '../../i18n/config';
 import { TIMELINE_TYPE_KEYS, type ResolvedTimelineEntry } from '../../data/timeline';
+import { TIMELINE_TYPE_DOTS } from './type-colors';
 
 interface Props {
   lang: Locale;
@@ -21,7 +25,7 @@ const typeLabel = t(TIMELINE_TYPE_KEYS[entry.type]);
 ---
 
 <article
-  class="border-t border-line py-5 first:border-t-0 first:pt-0"
+  class="tl-entry border-t border-line py-5 first:border-t-0 first:pt-0"
   data-timeline-item
   data-type={entry.type}
   data-reveal
@@ -29,13 +33,13 @@ const typeLabel = t(TIMELINE_TYPE_KEYS[entry.type]);
 >
   <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
     <span class="label inline-flex items-center gap-2">
-      {entry.current && <span class="size-1.5 rounded-full bg-accent" aria-hidden="true"></span>}
+      <span class="type-dot" style={`background: ${TIMELINE_TYPE_DOTS[entry.type]}`} aria-hidden="true"></span>
       {typeLabel}
     </span>
     <span class="mono whitespace-nowrap text-[0.6875rem] text-subtle">{entry.period}</span>
   </div>
 
-  <h3 class="mt-2 font-serif text-[1.25rem] font-[540] leading-snug tracking-[-0.015em] text-ink-strong">
+  <h3 class="tl-entry-title mt-2 font-serif text-[1.25rem] font-[540] leading-snug tracking-[-0.015em] text-ink-strong">
     {entry.org}
   </h3>
   <p class="mt-0.5 text-[0.9375rem] leading-snug text-muted">{entry.role}</p>
@@ -52,3 +56,52 @@ const typeLabel = t(TIMELINE_TYPE_KEYS[entry.type]);
     )
   }
 </article>
+
+<style>
+  .tl-entry {
+    position: relative;
+    isolation: isolate;
+  }
+
+  /* Wash slides in behind the row; content stays above it. */
+  .tl-entry::before {
+    content: '';
+    position: absolute;
+    inset: 0 -0.75rem;
+    z-index: -1;
+    border-radius: 6px;
+    background: var(--hover);
+    opacity: 0;
+    transition: opacity 160ms var(--ease-out);
+  }
+
+  .type-dot {
+    display: inline-block;
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    transform: translateY(-1px);
+  }
+
+  .tl-entry-title {
+    transition: color var(--dur-1) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .tl-entry:hover::before {
+      opacity: 1;
+    }
+
+    .tl-entry:hover .tl-entry-title {
+      color: var(--accent-strong);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tl-entry::before,
+    .tl-entry-title {
+      transition: none;
+    }
+  }
+</style>

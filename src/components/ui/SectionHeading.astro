@@ -20,18 +20,21 @@ interface Props {
   actionLabel?: string;
   id?: string;
   class?: string;
+  /** Render the label as a real heading (page-level titles must be h1). */
+  headingLevel?: 'h1' | 'h2';
 }
 
-const { number, title, en, lede, href, actionLabel, id, class: className = '' } = Astro.props;
+const { number, title, en, lede, href, actionLabel, id, class: className = '', headingLevel } = Astro.props;
+const LabelTag = headingLevel ?? 'p';
 ---
 
 <header id={id} class:list={['section-heading border-t-[1.5px] border-ink pt-4', className]}>
   <div class="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
-    <p class="section-label flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+    <LabelTag class="section-label flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
       {number && <span class="section-number">{number}</span>}
       <span class="section-title">{title}</span>
       {en && <em class="section-en">{en}</em>}
-    </p>
+    </LabelTag>
 
     <div class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
       {lede && <span class="section-lede">{lede}</span>}
@@ -46,6 +49,7 @@ const { number, title, en, lede, href, actionLabel, id, class: className = '' } 
 
 <style>
   .section-label {
+    margin: 0;
     font-family: var(--font-sans);
     font-size: 0.75rem;
     font-weight: 500;

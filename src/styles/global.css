@@ -26,20 +26,20 @@
   --elevated: #fdfaf6;
   --scrim: rgb(247 242 237 / 0.72);
 
-  /* ink */
+  /* ink — muted/subtle tuned to pass WCAG AA at small sizes */
   --ink: #33302b;
   --ink-strong: #211e1a;
-  --muted: #6d655b;
-  --subtle: #8a8072;
-  --faint: #b2a89a;
+  --muted: #635b51; /* 6.0:1 on canvas */
+  --subtle: #776d60; /* 4.56:1 on canvas */
+  --faint: #a99e8f; /* decorative only */
 
   /* lines */
   --line: rgb(51 48 43 / 0.1);
   --line-strong: rgb(51 48 43 / 0.18);
 
-  /* accent — muted sage */
-  --accent: #5c7838;
-  --accent-strong: #455d27;
+  /* accent — muted sage (AA on paper) */
+  --accent: #52692f; /* 5.5:1 */
+  --accent-strong: #3f5222; /* 7.0:1 */
   --accent-soft: rgb(92 120 56 / 0.1);
   --accent-line: rgb(92 120 56 / 0.28);
 
@@ -53,6 +53,7 @@
   --shadow-sm: 0 1px 2px rgb(51 48 43 / 0.05);
   --shadow-md: 0 2px 6px rgb(51 48 43 / 0.05), 0 16px 40px -20px rgb(51 48 43 / 0.22);
   --shadow-lg: 0 4px 12px rgb(51 48 43 / 0.06), 0 28px 64px -28px rgb(51 48 43 / 0.3);
+  --shadow-hover: 0 2px 4px rgb(51 48 43 / 0.04), 0 14px 32px -18px rgb(51 48 43 / 0.24);
   /* focus ring: 6.63:1 on canvas / 6.24:1 on surface (WCAG 1.4.11) */
   --ring: #455d27;
 
@@ -85,10 +86,11 @@
 
   /* v3 surface accents */
   --paper: #fbf8f3;
-  --sage-tint: #e9eadf;
-  --terra: #b4653a;
+  --sage-tint: #e7e8db;
+  --terra: #b4653a; /* art only */
+  --terra-ink: #9a5228; /* 5.2:1 — for text/links */
   --terra-soft: rgb(180 101 58 / 0.12);
-  --accent-deep: #3f5222;
+  --accent-deep: #33431c;
 
   /* geometry */
   --measure: 39rem; /* 624px — reading column */
@@ -116,6 +118,9 @@
   --text-display: clamp(3.25rem, 6.2vw, 4.5rem);
 
   --dur-slow: 480ms;
+  --dur-press: 100ms;
+  --radius-pill: 999px;
+  --ring-offset: 3px;
 
   /* legacy aliases kept while components migrate */
   --content: var(--measure);
@@ -136,7 +141,7 @@
   --ink: #e4e8de;
   --ink-strong: #f3f5ee;
   --muted: #a0a998;
-  --subtle: #828f79;
+  --subtle: #8d9a86;
   --faint: #6b7664;
 
   --line: rgb(228 232 222 / 0.16);
@@ -155,6 +160,7 @@
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
   --shadow-md: 0 2px 6px rgb(0 0 0 / 0.3), 0 18px 44px -20px rgb(0 0 0 / 0.7);
   --shadow-lg: 0 4px 12px rgb(0 0 0 / 0.35), 0 32px 72px -28px rgb(0 0 0 / 0.8);
+  --shadow-hover: 0 2px 5px rgb(0 0 0 / 0.3), 0 18px 36px -18px rgb(0 0 0 / 0.65);
   --ring: #a6c684;
 
   --overlay: rgb(0 0 0 / 0.72);
@@ -167,6 +173,7 @@
   --paper: #141e17;
   --sage-tint: #1d2a1f;
   --terra: #d08a5f;
+  --terra-ink: #e0a179;
   --terra-soft: rgb(208 138 95 / 0.14);
   --accent-deep: #c6dba3;
 }
@@ -196,6 +203,7 @@
   --color-paper: var(--paper);
   --color-sage-tint: var(--sage-tint);
   --color-terra: var(--terra);
+  --color-terra-ink: var(--terra-ink);
   --color-terra-soft: var(--terra-soft);
 
   --color-nav-bg: var(--nav-bg);
@@ -231,6 +239,8 @@
     -webkit-text-size-adjust: 100%;
     scrollbar-gutter: stable;
     scroll-behavior: smooth;
+    /* Anchors (TOC, heading links) clear the sticky masthead. */
+    scroll-padding-top: 7rem;
     background-color: var(--canvas);
   }
 
@@ -266,7 +276,33 @@
 
   :focus-visible {
     outline: 2px solid var(--ring);
-    outline-offset: 2px;
+    outline-offset: var(--ring-offset);
+    border-radius: inherit;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* `<main>` is only focused programmatically after navigation — no ring. */
+  #main:focus,
+  #main:focus-visible {
+    outline: none;
+  }
+
+  /* Touch / pointer affordances */
+  a,
+  button,
+  summary,
+  [role='button'] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  button,
+  summary,
+  [role='button'] {
+    cursor: pointer;
   }
 
   @media (forced-colors: active) {
@@ -316,14 +352,8 @@
     font-synthesis-weight: none;
   }
 
-  :lang(zh) p,
-  :lang(ja) p {
+  :lang(zh) p {
     line-height: 1.85;
-  }
-
-  /* Anchors and the skip link share one scroll offset for the fixed nav. */
-  html {
-    scroll-padding-top: 7rem;
   }
 
 }
@@ -363,10 +393,22 @@
       text-decoration-color var(--dur-1) ease-out,
       text-decoration-thickness var(--dur-1) ease-out;
   }
-  .link:hover {
+  .link:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: var(--ring-offset);
+    border-radius: 2px;
+  }
+
+  .link:active {
     color: var(--accent-strong);
-    text-decoration-color: var(--accent);
-    text-decoration-thickness: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .link:hover {
+      color: var(--accent-strong);
+      text-decoration-color: var(--accent);
+      text-decoration-thickness: 2px;
+    }
   }
 
   /* Small caps-ish label used above sections */
@@ -385,37 +427,80 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    min-height: 2.75rem; /* 44px hit target */
+    padding: 0.6875rem 1.25rem;
     font-family: var(--font-sans);
     font-size: 0.8125rem;
-    font-weight: 500;
-    letter-spacing: -0.006em;
-    padding: 0.5625rem 1rem;
-    border-radius: 999px;
-    border: 1px solid var(--line-strong);
+    font-weight: 520;
+    letter-spacing: -0.004em;
+    line-height: 1;
     color: var(--ink);
     background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    cursor: pointer;
     transition:
-      background-color var(--dur-1) ease-out,
-      border-color var(--dur-1) ease-out,
-      color var(--dur-1) ease-out,
-      transform var(--dur-2) var(--ease-out);
+      background-color var(--dur-1) var(--ease-out),
+      border-color var(--dur-1) var(--ease-out),
+      color var(--dur-1) var(--ease-out),
+      box-shadow var(--dur-2) var(--ease-out),
+      transform var(--dur-press) var(--ease-out);
   }
-  .btn:hover {
-    background: var(--hover);
-    border-color: var(--line-strong);
+
+  .btn:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: var(--ring-offset);
   }
+
   .btn:active {
-    transform: scale(0.985);
+    transform: translateY(1px) scale(0.985);
+    transition-duration: var(--dur-press);
   }
+
+  @media (hover: hover) and (pointer: fine) {
+    .btn:hover {
+      background: var(--hover);
+      border-color: var(--ink-strong);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+  }
+
   .btn--solid {
     background: var(--ink-strong);
     border-color: var(--ink-strong);
     color: var(--canvas);
   }
-  .btn--solid:hover {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--canvas);
+
+  @media (hover: hover) and (pointer: fine) {
+    .btn--solid:hover {
+      background: var(--accent-strong);
+      border-color: var(--accent-strong);
+      color: var(--canvas);
+      box-shadow: var(--shadow-md);
+    }
+  }
+
+  .btn--quiet {
+    border-color: transparent;
+    color: var(--muted);
+    padding-inline: 0.75rem;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .btn--quiet:hover {
+      color: var(--ink);
+      background: var(--hover);
+      box-shadow: none;
+      transform: none;
+    }
+  }
+
+  .btn[disabled],
+  .btn[aria-disabled='true'] {
+    opacity: 0.45;
+    pointer-events: none;
   }
 
   /* Tag / chip */
@@ -437,9 +522,20 @@
       color var(--dur-1) ease-out,
       background-color var(--dur-1) ease-out;
   }
-  .chip:hover {
-    color: var(--ink);
-    background: var(--hover-strong);
+  .chip:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  .chip:active {
+    transform: translateY(1px) scale(0.99);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .chip:hover {
+      color: var(--ink);
+      background: var(--hover-strong);
+    }
   }
 
   /* Hairline divider */
@@ -461,10 +557,17 @@
       box-shadow var(--dur-2) var(--ease-out),
       transform var(--dur-2) var(--ease-out);
   }
-  .card:hover {
-    border-color: var(--line-strong);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+  .card:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover {
+      border-color: var(--line-strong);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
   }
 
   /* The paper grain overlay, fixed above the canvas and below content */
@@ -477,6 +580,24 @@
     opacity: var(--grain-opacity);
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 160px 160px;
+  }
+
+  /* Ambient paper light — adds depth without a visible gradient edge. */
+  .grain::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(68rem 38rem at 84% -10%, rgb(180 101 58 / 0.055), transparent 62%),
+      radial-gradient(46rem 30rem at -8% 0%, rgb(82 105 47 / 0.04), transparent 60%);
+  }
+
+  .dark .grain::after {
+    background:
+      radial-gradient(68rem 38rem at 84% -10%, rgb(208 138 95 / 0.07), transparent 62%),
+      radial-gradient(46rem 30rem at -8% 0%, rgb(166 198 132 / 0.05), transparent 60%);
   }
 
   /* Reading progress bar */
@@ -527,14 +648,25 @@
     text-decoration: underline;
     text-decoration-color: var(--accent-line);
     text-decoration-thickness: 1.5px;
-    text-underline-offset: 3px;
+    text-underline-offset: 3.5px;
     transition:
       color var(--dur-1) ease-out,
-      text-decoration-color var(--dur-1) ease-out;
+      text-decoration-color var(--dur-1) ease-out,
+      text-decoration-thickness var(--dur-1) ease-out;
   }
-  .prose a:hover {
-    color: var(--accent-strong);
-    text-decoration-color: var(--accent);
+
+  .prose a:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: var(--ring-offset);
+    border-radius: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .prose a:hover {
+      color: var(--accent-strong);
+      text-decoration-color: var(--accent);
+      text-decoration-thickness: 2px;
+    }
   }
 
   .prose strong {
@@ -553,6 +685,7 @@
     margin-top: 2.5em;
     margin-bottom: 0.75em;
     line-height: 1.25;
+    text-wrap: balance;
   }
 
   .prose h3 {
@@ -561,6 +694,7 @@
     letter-spacing: -0.012em;
     margin-top: 2em;
     margin-bottom: 0.6em;
+    text-wrap: balance;
   }
 
   .prose h4 {
@@ -602,13 +736,22 @@
   }
 
   .prose blockquote {
+    margin-block: 1.8em;
     border-inline-start: 2px solid var(--accent-line);
-    padding-inline-start: 1.1em;
+    padding: 0.15em 0 0.15em 1.25em;
     color: var(--muted);
     font-style: italic;
+    text-wrap: pretty;
+  }
+  :lang(zh) .prose blockquote {
+    font-style: normal;
+    letter-spacing: 0.015em;
   }
   .prose blockquote p {
     margin: 0;
+  }
+  .prose blockquote p + p {
+    margin-top: 0.75em;
   }
 
   .prose code {
@@ -679,14 +822,17 @@
 
   .prose hr {
     border: 0;
+    width: 4rem;
     height: 1px;
-    background: var(--line);
-    margin-block: 2.75em;
+    margin: 3em auto;
+    background: var(--line-strong);
   }
 
   .prose img {
     border-radius: var(--radius-md);
     width: 100%;
+    outline: 1px solid var(--line);
+    outline-offset: -1px;
     box-shadow: var(--shadow-sm);
   }
 
@@ -696,11 +842,13 @@
 
   .prose figcaption {
     font-family: var(--font-sans);
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
     color: var(--subtle);
-    margin-top: 0.7em;
+    margin-top: 0.85em;
     text-align: center;
     letter-spacing: 0.005em;
+    text-wrap: pretty;
   }
 
   .prose table {
@@ -772,8 +920,24 @@
     transform: none;
   }
 
+  /* Hero stagger: children opt in with their own delay via --stagger. */
+  .js [data-hero-step] {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 560ms var(--ease-out),
+      transform 560ms var(--ease-out);
+    transition-delay: calc(var(--stagger, 0) * 70ms + 60ms);
+  }
+
+  .js [data-hero-step].is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .js [data-reveal] {
+    .js [data-reveal],
+    .js [data-hero-step] {
       opacity: 1;
       transform: none;
       transition: none;
@@ -784,8 +948,20 @@
   .img-zoom img {
     transition: transform 900ms var(--ease-out);
   }
-  .img-zoom:hover img {
-    transform: scale(1.035);
+
+  @media (hover: hover) and (pointer: fine) {
+    .img-zoom:hover img {
+      transform: scale(1.03);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .img-zoom img {
+      transition: none;
+    }
+    .img-zoom:hover img {
+      transform: none;
+    }
   }
 
   /* Underline that draws in from the left on hover */
@@ -796,13 +972,59 @@
     background-repeat: no-repeat;
     transition: background-size var(--dur-2) var(--ease-out);
   }
-  .draw-underline:hover {
-    background-size: 100% 1px;
+
+  @media (hover: hover) and (pointer: fine) {
+    .draw-underline:hover {
+      background-size: 100% 1px;
+    }
+  }
+
+  /* Minimum 44px touch target around small visual controls */
+  .tap-target {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  /* Shared focus treatment for custom interactive components */
+  .focus-ring:focus-visible,
+  .ring-focus:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: var(--ring-offset);
+  }
+
+  /* Lift on hover, settle on press (only where hovering is meaningful) */
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift {
+      transition:
+        transform var(--dur-2) var(--ease-out),
+        box-shadow var(--dur-2) var(--ease-out),
+        border-color var(--dur-2) var(--ease-out);
+    }
+    .hover-lift:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+    }
+  }
+
+  .press:active {
+    transform: translateY(1px) scale(0.985);
+    transition-duration: var(--dur-press);
   }
 
   @media (prefers-reduced-motion: reduce) {
     .draw-underline {
       transition: none;
+    }
+    .hover-lift,
+    .hover-lift:hover {
+      transform: none;
+      transition: none;
+    }
+    .press:active {
+      transform: none;
     }
   }
 }
@@ -858,8 +1080,8 @@
 }
 
 ::view-transition-group(page-main) {
-  animation-duration: 320ms;
-  animation-timing-function: cubic-bezier(0.22, 0.68, 0.24, 1);
+  animation-duration: 340ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* The active nav pill is a shared element, so it glides between destinations
@@ -877,11 +1099,11 @@
 /* The old page clears out quickly; the new one starts slightly later so the
    two texts never visibly overlap — just a clean hand-off. */
 ::view-transition-old(page-main) {
-  animation: vt-page-out 90ms ease-in both;
+  animation: vt-page-out 100ms ease-in both;
 }
 
 ::view-transition-new(page-main) {
-  animation: vt-page-in 240ms cubic-bezier(0.22, 0.68, 0.24, 1) 70ms both;
+  animation: vt-page-in 260ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
 }
 
 /* The theme wipe must cover the whole page, so the content region is merged
@@ -1317,44 +1539,6 @@ html.lightbox-open body {
     color: var(--ink-strong);
   }
 
-  /* Motion primitives ------------------------------------------------------ */
-  [data-reveal] {
-    opacity: 0;
-    transform: translateY(10px);
-    transition:
-      opacity var(--dur-slow) var(--ease-out),
-      transform var(--dur-slow) var(--ease-out);
-    transition-delay: var(--reveal-delay, 0ms);
-  }
-
-  [data-reveal].is-revealed {
-    opacity: 1;
-    transform: none;
-  }
-
-  /* Hero stagger: children opt in with their own delay via --stagger. */
-  [data-hero-step] {
-    opacity: 0;
-    transform: translateY(10px);
-    transition:
-      opacity 560ms var(--ease-out),
-      transform 560ms var(--ease-out);
-    transition-delay: calc(var(--stagger, 0) * 70ms + 60ms);
-  }
-
-  [data-hero-step].is-revealed {
-    opacity: 1;
-    transform: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    [data-reveal],
-    [data-hero-step] {
-      opacity: 1 !important;
-      transform: none !important;
-      transition: none !important;
-    }
-  }
 }
 
 @layer components {
@@ -1383,5 +1567,23 @@ html.lightbox-open body {
   .draw-line:hover,
   .draw-line[aria-current='page'] {
     background-size: 100% 1px;
+  }
+}
+
+/* ==========================================================================
+   Global reduced-motion safety net — colour changes stay instant, no motion.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

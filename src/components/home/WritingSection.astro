@@ -51,16 +51,14 @@ const rssHref = localizePath('/rss.xml', lang);
       id="writing-title"
     />
 
-    <article class="post-featured">
+    <a class="post-featured focus-ring" href={featured.href}>
       <p class="post-num mono">{featured.number}</p>
       <div class="post-main">
         <p class="post-category mono">
           {featured.category}
           {featured.tag && <span> · {featured.tag}</span>}
         </p>
-        <h3 class="post-title">
-          <a href={featured.href}>{featured.title}</a>
-        </h3>
+        <h3 class="post-title">{featured.title}</h3>
         <p class="post-secondary">{featured.secondaryTitle}</p>
         <p class="post-desc">{featured.description}</p>
       </div>
@@ -69,32 +67,30 @@ const rssHref = localizePath('/rss.xml', lang);
           {featured.dateLabel}<br />
           {t('common.minRead', { n: featured.readingTime })}
         </p>
-        <a class="post-read" href={featured.href}>
-          {chromeLabel('readEssay', lang)} <span aria-hidden="true">→</span>
-        </a>
+        <span class="post-read">
+          {chromeLabel('readEssay', lang)} <span class="post-arrow" aria-hidden="true">→</span>
+        </span>
       </div>
-    </article>
+    </a>
 
     <div class="post-rows">
       {
         rows.map((post) => (
-          <article class="post-row">
+          <a class="post-row focus-ring" href={post.href}>
             <p class="post-num mono">{post.number}</p>
             <div class="post-main">
-              <h4 class="post-row-title">
-                <a href={post.href}>{post.title}</a>
-              </h4>
+              <h4 class="post-row-title">{post.title}</h4>
               <p class="post-secondary post-secondary--small">{post.secondaryTitle}</p>
               <p class="post-row-desc">{post.description}</p>
             </div>
             <p class="post-meta mono">
               <span class="post-meta-cat">{post.category}</span>
               <span class="post-meta-date">{post.dateLabel}</span>
-              <a class="post-meta-read" href={post.href}>
-                {chromeLabel('read', lang)} <span aria-hidden="true">→</span>
-              </a>
+              <span class="post-meta-read">
+                {chromeLabel('read', lang)} <span class="post-arrow" aria-hidden="true">→</span>
+              </span>
             </p>
-          </article>
+          </a>
         ))
       }
     </div>
@@ -112,8 +108,17 @@ const rssHref = localizePath('/rss.xml', lang);
     grid-template-columns: 4rem minmax(0, 1fr) 10.5rem;
     gap: 1.875rem;
     margin-top: 2.125rem;
-    padding-bottom: 2.125rem;
+    padding: 0 0 2.125rem;
     border-bottom: 1px solid var(--line-strong);
+    border-radius: 6px;
+    color: inherit;
+    text-decoration: none;
+    touch-action: manipulation;
+    transition: background-color var(--dur-1, 120ms) ease-out;
+  }
+
+  .post-featured:active {
+    background: color-mix(in oklab, var(--accent) 5%, transparent);
   }
 
   .post-num {
@@ -121,6 +126,7 @@ const rssHref = localizePath('/rss.xml', lang);
     letter-spacing: 0.08em;
     color: var(--accent);
     padding-top: 0.5625rem;
+    transition: color var(--dur-1, 120ms) ease-out;
   }
 
   .post-category {
@@ -141,13 +147,8 @@ const rssHref = localizePath('/rss.xml', lang);
     text-wrap: balance;
   }
 
-  .post-title a {
-    text-decoration: none;
+  .post-title {
     transition: color var(--dur-1, 120ms) ease-out;
-  }
-
-  .post-title a:hover {
-    color: var(--accent-strong);
   }
 
   .post-secondary {
@@ -157,6 +158,7 @@ const rssHref = localizePath('/rss.xml', lang);
     font-size: 0.9063rem;
     letter-spacing: 0.01em;
     color: var(--subtle);
+    transition: color var(--dur-1, 120ms) ease-out;
   }
 
   .post-secondary--small {
@@ -171,6 +173,7 @@ const rssHref = localizePath('/rss.xml', lang);
     font-size: 1.0313rem;
     line-height: 1.78;
     color: var(--muted);
+    transition: color var(--dur-1, 120ms) ease-out;
   }
 
   .post-side {
@@ -197,7 +200,6 @@ const rssHref = localizePath('/rss.xml', lang);
     font-size: 0.7188rem;
     letter-spacing: 0.05em;
     color: var(--ink);
-    text-decoration: none;
     border-bottom: 1px solid var(--line);
     padding-bottom: 3px;
     margin-top: 1.375rem;
@@ -206,13 +208,10 @@ const rssHref = localizePath('/rss.xml', lang);
       border-color var(--dur-1, 120ms) ease-out;
   }
 
-  .post-read span {
+  .post-arrow {
     color: var(--accent);
-  }
-
-  .post-featured:hover .post-read {
-    color: var(--accent-strong);
-    border-color: var(--accent);
+    display: inline-block;
+    transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
   }
 
   /* --- rows -------------------------------------------------------------- */
@@ -225,8 +224,17 @@ const rssHref = localizePath('/rss.xml', lang);
     grid-template-columns: 4rem minmax(0, 1fr) 10.5rem;
     gap: 1.875rem;
     align-items: baseline;
-    padding-block: 1.1875rem;
+    padding: 1.1875rem 0;
     border-bottom: 1px solid var(--line);
+    border-radius: 6px;
+    color: inherit;
+    text-decoration: none;
+    touch-action: manipulation;
+    transition: background-color var(--dur-1, 120ms) ease-out;
+  }
+
+  .post-row:active {
+    background: color-mix(in oklab, var(--accent) 6%, transparent);
   }
 
   .post-row-title {
@@ -239,13 +247,8 @@ const rssHref = localizePath('/rss.xml', lang);
     text-wrap: balance;
   }
 
-  .post-row-title a {
-    text-decoration: none;
+  .post-row-title {
     transition: color var(--dur-1, 120ms) ease-out;
-  }
-
-  .post-row:hover .post-row-title a {
-    color: var(--accent-strong);
   }
 
   .post-row-desc {
@@ -282,18 +285,7 @@ const rssHref = localizePath('/rss.xml', lang);
 
   .post-meta-read {
     color: var(--ink);
-    text-decoration: none;
     margin-top: 0.125rem;
-  }
-
-  .post-meta-read span {
-    color: var(--accent);
-    display: inline-block;
-    transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
-  }
-
-  .post-row:hover .post-meta-read span {
-    transform: translateX(3px);
   }
 
   /* --- foot -------------------------------------------------------------- */
@@ -312,6 +304,9 @@ const rssHref = localizePath('/rss.xml', lang);
   }
 
   .writing-foot a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
     color: var(--ink);
     text-decoration: none;
     border-bottom: 1px solid var(--line);
@@ -321,10 +316,7 @@ const rssHref = localizePath('/rss.xml', lang);
       border-color var(--dur-1, 120ms) ease-out;
   }
 
-  .writing-foot a:hover {
-    color: var(--accent-strong);
-    border-color: var(--accent);
-  }
+
 
   @media (max-width: 1023px) {
     .post-featured,
@@ -388,16 +380,71 @@ const rssHref = localizePath('/rss.xml', lang);
     }
   }
 
+  /* --- hover: only on capable pointers ---------------------------------- */
+  @media (hover: hover) and (pointer: fine) {
+    .writing-foot a:hover {
+      color: var(--accent-strong);
+      border-color: var(--accent);
+    }
+
+    .post-featured:hover .post-title {
+      color: var(--accent-strong);
+    }
+
+    .post-featured:hover .post-secondary {
+      color: var(--muted);
+    }
+
+    .post-featured:hover .post-read {
+      color: var(--accent-strong);
+      border-color: var(--accent);
+    }
+
+    .post-featured:hover .post-arrow {
+      transform: translateX(3px);
+    }
+
+    .post-featured:hover .post-desc {
+      color: var(--ink);
+    }
+
+    .post-row:hover {
+      background: color-mix(in oklab, var(--accent) 4%, transparent);
+    }
+
+    .post-row:hover .post-row-title {
+      color: var(--accent-strong);
+    }
+
+    .post-row:hover .post-secondary {
+      color: var(--muted);
+    }
+
+    .post-row:hover .post-arrow {
+      transform: translateX(3px);
+    }
+
+    .post-row:hover .post-num {
+      color: var(--accent);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .post-title a,
+    .post-featured,
+    .post-row,
+    .post-title,
     .post-read,
-    .post-row-title a,
-    .post-meta-read span,
+    .post-row-title,
+    .post-arrow,
+    .post-desc,
+    .post-secondary,
+    .post-num,
     .writing-foot a {
       transition: none;
     }
 
-    .post-row:hover .post-meta-read span {
+    .post-featured:hover .post-arrow,
+    .post-row:hover .post-arrow {
       transform: none;
     }
   }

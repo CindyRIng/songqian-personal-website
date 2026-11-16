@@ -6,6 +6,9 @@
  * photo with explicit dimensions (no CLS). Otherwise render a designed
  * monogram plate so the layout never has an empty hole. Drop-in replacement:
  * add the file and the next build picks it up.
+ *
+ * Interaction polish: a ≤1.02 zoom on hover (hover-capable pointers only,
+ * reduced-motion safe). The figure already clips, so nothing escapes.
  */
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -27,7 +30,12 @@ const portrait = candidates
 const src = portrait ? `/images/${portrait.file}` : undefined;
 ---
 
-<figure class:list={['relative overflow-hidden rounded-[6px] border border-line bg-[var(--paper)]', className]}>
+<figure
+  class:list={[
+    'portrait-figure relative overflow-hidden rounded-[6px] border border-line bg-[var(--paper)]',
+    className,
+  ]}
+>
   {
     src ? (
       <img
@@ -37,10 +45,14 @@ const src = portrait ? `/images/${portrait.file}` : undefined;
         height={1500}
         loading="eager"
         decoding="async"
-        class="aspect-[4/5] w-full object-cover"
+        class="portrait-media aspect-[4/5] w-full object-cover"
       />
     ) : (
-      <div class="relative isolate aspect-[4/5] w-full overflow-hidden bg-[var(--paper)]" aria-label={`${name} — ${monogram}`} role="img">
+      <div
+        class="portrait-media relative isolate aspect-[4/5] w-full overflow-hidden bg-[var(--paper)]"
+        aria-label={`${name} — ${monogram}`}
+        role="img"
+      >
         {/* paper grain + hairline grid */}
         <div
           class="absolute inset-0"
@@ -75,3 +87,24 @@ const src = portrait ? `/images/${portrait.file}` : undefined;
     )
   }
 </figure>
+
+<style>
+  .portrait-media {
+    transition: transform var(--dur-3) var(--ease-out);
+    transform-origin: center;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .portrait-figure:hover .portrait-media {
+      transform: scale(1.02);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .portrait-media,
+    .portrait-figure:hover .portrait-media {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>

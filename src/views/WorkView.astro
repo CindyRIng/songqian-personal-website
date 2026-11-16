@@ -6,8 +6,10 @@
  * diagram for hardware projects), the MDX case study in .prose, a mono metric
  * bar, GitHub link and a next-project row.
  *
- * TODO(forge): `ui/StatBar.astro` and `ui/TerminalCard.astro` follow
- * rebuild-spec §3 and resolve once forge lands them.
+ * Polish: back link + external repo link have hover/press/focus states, the
+ * metric bar warms on hover, and the next-project card is a full card with
+ * lift/arrow/focus/press. All hover is gated to fine pointers, reduced-motion
+ * safe.
  */
 import { render } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -122,13 +124,11 @@ const workJsonLd = {
     <!-- Back -->
     <a
       href={localizePath('/works', lang)}
-      class="group inline-flex min-h-11 items-center gap-2 text-[0.8125rem] text-muted transition-colors duration-200 hover:text-ink"
+      class="back-link focus-ring group inline-flex min-h-11 items-center gap-2 text-[0.8125rem] text-muted"
     >
-      <Icon
-        name="arrow-left"
-        size={14}
-        class="transition duration-200 ease-[var(--ease-out)] group-hover:-translate-x-0.5"
-      />
+      <span class="back-arrow inline-flex">
+        <Icon name="arrow-left" size={14} />
+      </span>
       {t('actions.backToWorks')}
     </a>
 
@@ -200,11 +200,14 @@ const workJsonLd = {
             href={project.links.repo}
             target="_blank"
             rel="noopener noreferrer"
-            class="work-link min-h-11"
+            class="work-link focus-ring press min-h-11"
           >
             <Icon name="github" size={15} />
             GitHub
-            <Icon name="external" size={12} class="opacity-60" />
+            <span class="repo-external inline-flex opacity-60">
+              <Icon name="external" size={12} />
+            </span>
+            <span class="sr-only">({t('a11y.external')})</span>
           </a>
         </div>
       )
@@ -222,7 +225,7 @@ const workJsonLd = {
     <!-- Metrics -->
     {
       project.metrics.length > 0 && (
-        <section class="mt-14" aria-label={t('works.overview')} data-reveal>
+        <section class="work-metrics mt-14" aria-label={t('works.overview')} data-reveal>
           <StatBar stats={project.metrics.map((metric) => ({ value: metric.value, label: metric.label }))} />
         </section>
       )
@@ -231,46 +234,156 @@ const workJsonLd = {
     <!-- Next project -->
     <a
       href={hrefNext}
-      class="group mt-16 flex flex-wrap items-end justify-between gap-4 border-t border-line pt-6"
+      class="next-card focus-ring press mt-16 flex flex-wrap items-end justify-between gap-4"
       data-reveal
     >
       <span class="flex flex-col gap-1">
         <span class="label">{nextLabel}</span>
-        <span class="h3 transition-colors duration-200 group-hover:text-accent-deep">{next.title}</span>
+        <span class="next-title h3">{next.title}</span>
         <span class="mono text-[0.75rem] text-subtle">{next.slug}</span>
       </span>
-      <span class="inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted transition-colors duration-200 group-hover:text-accent-deep">
+      <span class="next-cta inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted">
         {t('actions.viewProject')}
-        <Icon
-          name="arrow-right"
-          size={16}
-          class="transition duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5"
-        />
+        <span class="next-arrow inline-flex">
+          <Icon name="arrow-right" size={16} />
+        </span>
       </span>
     </a>
   </div>
 </BaseLayout>
 
 <style>
+  /* Back link ------------------------------------------------------------ */
+  .back-link {
+    transition: color var(--dur-1) var(--ease-out);
+  }
+
+  .back-arrow {
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .back-link:hover {
+      color: var(--ink);
+    }
+
+    .back-link:hover .back-arrow {
+      transform: translateX(-2px);
+    }
+  }
+
+  /* External repo button ------------------------------------------------ */
   .work-link {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    border-radius: 999px;
+    border-radius: var(--radius-pill, 999px);
     border: 1px solid var(--line-strong);
     padding: 0.5rem 1rem;
     font-family: var(--font-sans);
     font-size: 0.8125rem;
     font-weight: 500;
     color: var(--ink);
+    touch-action: manipulation;
     transition:
       background-color var(--dur-1) ease-out,
       border-color var(--dur-1) ease-out,
-      color var(--dur-1) ease-out;
+      color var(--dur-1) ease-out,
+      transform var(--dur-2) var(--ease-out);
   }
-  .work-link:hover {
-    background: var(--ink-strong);
-    border-color: var(--ink-strong);
-    color: var(--canvas);
+
+  .repo-external {
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .work-link:hover {
+      background: var(--ink-strong);
+      border-color: var(--ink-strong);
+      color: var(--canvas);
+    }
+
+    .work-link:hover .repo-external {
+      transform: translate(1px, -1px);
+    }
+  }
+
+  /* Metric bar ----------------------------------------------------------- */
+  .work-metrics :global(.stat-num),
+  .work-metrics :global(.stat-label) {
+    transition: color var(--dur-1) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .work-metrics :global(.stat-cell:hover .stat-num) {
+      color: var(--accent);
+    }
+
+    .work-metrics :global(.stat-cell:hover .stat-label) {
+      color: var(--ink);
+    }
+  }
+
+  /* Next project card ---------------------------------------------------- */
+  .next-card {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    transition:
+      transform var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out),
+      background-color var(--dur-2) var(--ease-out);
+  }
+
+  .next-title {
+    transition: color var(--dur-1) var(--ease-out);
+  }
+
+  .next-cta {
+    transition: color var(--dur-1) var(--ease-out);
+  }
+
+  .next-arrow {
+    transition:
+      transform var(--dur-2) var(--ease-out),
+      color var(--dur-1) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .next-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--line-strong);
+      background: var(--paper);
+    }
+
+    .next-card:hover .next-title,
+    .next-card:hover .next-cta {
+      color: var(--accent-strong);
+    }
+
+    .next-card:hover .next-arrow {
+      transform: translateX(3px);
+      color: var(--accent);
+    }
+  }
+
+  /* Reduced motion ------------------------------------------------------- */
+  @media (prefers-reduced-motion: reduce) {
+    .back-arrow,
+    .repo-external,
+    .next-card,
+    .next-title,
+    .next-cta,
+    .next-arrow {
+      transition: none;
+    }
+
+    .back-link:hover .back-arrow,
+    .work-link:hover .repo-external,
+    .next-card:hover,
+    .next-card:hover .next-arrow {
+      transform: none;
+    }
   }
 </style>

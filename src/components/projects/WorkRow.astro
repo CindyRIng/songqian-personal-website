@@ -5,6 +5,10 @@
  *
  * Rule from the spec: mono metadata left, serif name in the middle, one-line
  * summary, type + status + arrow right.
+ *
+ * Interaction polish: hover wash slides in behind the row (hover-capable
+ * pointers only), title warms, arrow nudges; focus ring + press feedback;
+ * reduced-motion safe.
  */
 import Icon from '../ui/Icon.astro';
 import { localizePath, useTranslations } from '../../i18n/utils';
@@ -33,7 +37,7 @@ const paddedIndex = String(index).padStart(2, '0');
 <a
   href={href}
   class:list={[
-    'group flex flex-col gap-3 border-t border-line py-5 transition-colors duration-200 hover:bg-[var(--sage-tint)] md:grid md:grid-cols-[3rem_4.5rem_1fr_auto] md:items-baseline md:gap-5 md:px-3 md:-mx-3 md:rounded-[6px]',
+    'work-row group focus-ring press flex flex-col gap-3 border-t border-line py-5 md:grid md:grid-cols-[3rem_4.5rem_1fr_auto] md:items-baseline md:gap-5 md:px-3 md:-mx-3 md:rounded-[6px]',
     className,
   ]}
   data-work-item
@@ -45,7 +49,7 @@ const paddedIndex = String(index).padStart(2, '0');
 
   <span class="flex min-w-0 flex-col gap-1">
     <span class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-      <span class="font-serif text-[1.125rem] font-[540] leading-snug tracking-[-0.01em] text-ink-strong transition-colors duration-200 group-hover:text-accent-deep">
+      <span class="row-title font-serif text-[1.125rem] font-[540] leading-snug tracking-[-0.01em] text-ink-strong">
         {project.title}
       </span>
       <span class="mono text-[0.6875rem] text-subtle">{project.slug}</span>
@@ -58,10 +62,72 @@ const paddedIndex = String(index).padStart(2, '0');
   <span class="flex items-center gap-4 md:justify-end">
     <span class="label">{typeLabel}</span>
     <span class="mono text-[0.6875rem] uppercase tracking-[0.1em] text-subtle">{statusLabel}</span>
-    <Icon
-      name="arrow-right"
-      size={16}
-      class="text-subtle transition duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5 group-hover:text-accent"
-    />
+    <span class="row-arrow inline-flex text-subtle">
+      <Icon name="arrow-right" size={16} />
+    </span>
   </span>
 </a>
+
+<style>
+  .work-row {
+    position: relative;
+    isolation: isolate;
+  }
+
+  /* Wash slides in behind the row; content paints above it. */
+  .work-row::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 6px;
+    background: var(--sage-tint);
+    opacity: 0;
+    transform: scaleY(0.96);
+    transition:
+      opacity 160ms var(--ease-out),
+      transform 160ms var(--ease-out);
+  }
+
+  .row-title {
+    transition: color var(--dur-1) var(--ease-out);
+  }
+
+  .row-arrow {
+    transition:
+      transform var(--dur-2) var(--ease-out),
+      color var(--dur-1) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .work-row:hover::before {
+      opacity: 1;
+      transform: none;
+    }
+
+    .work-row:hover .row-title {
+      color: var(--accent-strong);
+    }
+
+    .work-row:hover .row-arrow {
+      transform: translateX(4px);
+      color: var(--accent);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .work-row::before,
+    .row-title,
+    .row-arrow {
+      transition: none;
+    }
+
+    .work-row:hover::before {
+      transform: none;
+    }
+
+    .work-row:hover .row-arrow {
+      transform: none;
+    }
+  }
+</style>

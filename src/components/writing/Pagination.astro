@@ -2,6 +2,9 @@
 /**
  * Pagination — quiet circular arrows with a localized "page N of M" caption.
  * Hidden entirely when there is only one page.
+ *
+ * States: hover (capable pointers only), focus-visible ring, press settle and
+ * a real disabled look on the ends; 44px touch targets.
  */
 import Icon from '../ui/Icon.astro';
 import { localizePath, useTranslations } from '../../i18n/utils';
@@ -22,26 +25,23 @@ const hasPrev = page > 1;
 const hasNext = page < totalPages;
 const prevHref = localizePath(writingPagePath(page - 1), lang);
 const nextHref = localizePath(writingPagePath(page + 1), lang);
-const buttonClass =
-  'grid size-10 place-items-center rounded-full border border-line text-muted transition-colors duration-200 ease-out hover:border-line-strong hover:bg-elevated hover:text-ink';
-const disabledClass = 'grid size-10 place-items-center rounded-full text-faint';
 ---
 {
   totalPages > 1 && (
     <nav
       aria-label={t('common.pageOf', { n: page, total: totalPages })}
       class:list={[
-        'mt-12 flex items-center justify-between gap-6 border-t border-line pt-6',
+        'pagination mt-12 flex items-center justify-between gap-6 border-t border-line pt-6',
         className,
       ]}
     >
       {hasPrev ? (
-        <a href={prevHref} aria-label={t('writing.prevPage')} class={buttonClass} rel="prev">
+        <a href={prevHref} aria-label={t('writing.prevPage')} class="page-btn" rel="prev">
           <Icon name="arrow-left" size={16} class="rotate-180" />
         </a>
       ) : (
-        <span class={disabledClass} aria-hidden="true">
-          <Icon name="arrow-left" size={16} class="rotate-180 opacity-40" />
+        <span class="page-btn page-btn--disabled" aria-hidden="true">
+          <Icon name="arrow-left" size={16} class="rotate-180" />
         </span>
       )}
 
@@ -50,14 +50,76 @@ const disabledClass = 'grid size-10 place-items-center rounded-full text-faint';
       </span>
 
       {hasNext ? (
-        <a href={nextHref} aria-label={t('writing.nextPage')} class={buttonClass} rel="next">
+        <a href={nextHref} aria-label={t('writing.nextPage')} class="page-btn" rel="next">
           <Icon name="arrow-right" size={16} />
         </a>
       ) : (
-        <span class={disabledClass} aria-hidden="true">
-          <Icon name="arrow-right" size={16} class="opacity-40" />
+        <span class="page-btn page-btn--disabled" aria-hidden="true">
+          <Icon name="arrow-right" size={16} />
         </span>
       )}
     </nav>
   )
 }
+
+<style>
+  .page-btn {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    touch-action: manipulation;
+    transition:
+      color var(--dur-1) ease-out,
+      border-color var(--dur-1) ease-out,
+      background-color var(--dur-1) ease-out,
+      transform 100ms var(--ease-out);
+  }
+
+  .page-btn:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  .page-btn:active {
+    transform: scale(0.96);
+  }
+
+  .page-btn--disabled {
+    color: var(--faint);
+    border-color: transparent;
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .page-btn:hover {
+      color: var(--ink);
+      border-color: var(--line-strong);
+      background: var(--elevated);
+    }
+
+    .page-btn--disabled:hover {
+      color: var(--faint);
+      border-color: transparent;
+      background: transparent;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page-btn {
+      transition:
+        color var(--dur-1) ease-out,
+        border-color var(--dur-1) ease-out,
+        background-color var(--dur-1) ease-out;
+    }
+
+    .page-btn:active {
+      transform: none;
+    }
+  }
+</style>

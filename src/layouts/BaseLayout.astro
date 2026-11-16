@@ -183,7 +183,7 @@ const jsonLd = {
     </script>
 
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f2ed" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f1712" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e1611" />
     <meta name="color-scheme" content="light dark" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -262,6 +262,9 @@ const jsonLd = {
     <SiteFooter lang={lang} path={currentPath} />
 
     {type === 'article' && <ReadingEnhancements lang={lang} />}
+
+    <!-- Announced to screen readers after client-side navigation. -->
+    <div id="route-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
     <script>
       /* ------------------------------------------------------------------
@@ -429,10 +432,22 @@ const jsonLd = {
 
       /* Boot / re-boot ------------------------------------------------------ */
       let lastBootedBody: HTMLElement | null = null;
+      let lastBootedPath = location.pathname;
+      let hasBooted = false;
+
+      function announceRoute() {
+        const announcer = document.getElementById('route-announcer');
+        if (announcer) {
+          announcer.textContent = document.title;
+        }
+      }
 
       function bootPage() {
         if (document.body === lastBootedBody) return;
+        const navigated = hasBooted && location.pathname !== lastBootedPath;
         lastBootedBody = document.body;
+        lastBootedPath = location.pathname;
+        hasBooted = true;
 
         initReveal();
         initProgress();
@@ -441,6 +456,14 @@ const jsonLd = {
         const root = document.documentElement;
         if (root.hasAttribute('data-initial')) {
           window.setTimeout(() => root.removeAttribute('data-initial'), 560);
+        }
+
+        // Client-side navigation: move focus to the new content and announce
+        // the page title so keyboard and screen-reader users are not stranded.
+        if (navigated) {
+          const main = document.getElementById('main');
+          main?.focus({ preventScroll: true });
+          announceRoute();
         }
 
         const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
