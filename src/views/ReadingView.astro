@@ -1,0 +1,96 @@
+---
+/**
+ * ReadingView — `/reading` (Chinese only).
+ *
+ * The desk: a quiet, dense list of books I finished, am reading, or put down.
+ * Notebook language — no covers, no cards, no numbering, no filters. Each row
+ * is title — author, a small meta line from the project logs (year / hours /
+ * progress) and one honest note.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { books, booksPaused, booksRead, booksUpdated, currentlyReading, type Book } from '../data/reading';
+import type { Locale } from '../i18n/config';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const updated = booksUpdated.replaceAll('-', '.');
+const title = '书桌';
+const description = '读完的、在读的和搁下的书。记录时长和进度，不写推荐语。';
+
+const sections = [
+  { id: 'reading', label: '在读', books: currentlyReading },
+  { id: 'finished', label: '读完', books: booksRead },
+  { id: 'paused', label: '搁置', books: booksPaused },
+].filter((section) => section.books.length > 0);
+
+const metaOf = (book: Book): string =>
+  [book.year ? `${book.year} 年` : undefined, book.hours, book.progress].filter(Boolean).join(' · ');
+---
+
+<BaseLayout lang={lang} title={title} description={description} path="/reading" translated={false} wide>
+  <div class="wrap">
+    <!-- Header ------------------------------------------------------------ -->
+    <header class="max-w-[44rem] border-t border-line pt-5" data-reveal>
+      <p class="mono flex items-center gap-3 text-[0.6875rem] uppercase tracking-[0.14em] text-subtle">
+        <span>书桌 / READING</span>
+        <span class="h-px w-8 bg-[var(--line-strong)]" aria-hidden="true"></span>
+        <time datetime={booksUpdated}>{updated}</time>
+      </p>
+      <h1 class="mt-6 font-serif text-[clamp(2.5rem,5vw,3.75rem)] font-[540] leading-[1.05] tracking-[-0.03em] text-ink-strong">
+        书桌
+      </h1>
+      <p class="mt-5 max-w-[38rem] text-pretty text-[1.0625rem] leading-[1.75] text-muted">
+        读书慢，也经常半路停下。这里只记读完的、在读的和搁下的；时长和进度来自自己的项目日志，不写推荐语。
+      </p>
+      <p class="mt-4 max-w-[38rem] text-pretty text-[0.9375rem] leading-[1.7] text-subtle">
+        {booksRead.length} 本读完，{currentlyReading.length} 本在读，{booksPaused.length} 本搁着。这一年读得最多的是软件架构，最慢的是数学。
+      </p>
+    </header>
+
+    <!-- Sections ---------------------------------------------------------- -->
+    {
+      sections.map((section) => (
+        <section class="mt-12 max-w-[44rem]" aria-labelledby={`reading-${section.id}`}>
+          <h2
+            id={`reading-${section.id}`}
+            class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle"
+          >
+            {section.label}
+          </h2>
+          <ul class="mt-1">
+            {section.books.map((book) => (
+              <li class="border-b border-line py-5" data-reveal>
+                <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <h3 class="font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.01em] text-ink-strong">
+                    {book.title}
+                  </h3>
+                  <span class="text-[0.875rem] text-muted">— {book.author}</span>
+                </div>
+                {metaOf(book) && (
+                  <p class="mono mt-1.5 text-[0.6875rem] tracking-[0.04em] text-subtle">{metaOf(book)}</p>
+                )}
+                <p class="mt-2 max-w-[58ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted">
+                  {book.note}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+
+    <!-- Footer note ------------------------------------------------------- -->
+    <div class="mt-12 flex max-w-[44rem] flex-wrap items-baseline justify-between gap-4 border-t border-line pt-5">
+      <p class="mono text-[0.6875rem] uppercase tracking-[0.14em] text-subtle">
+        最后更新 · <time datetime={booksUpdated}>{booksUpdated}</time>
+      </p>
+      <a href="/now" class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
+        现在在做什么
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</BaseLayout>

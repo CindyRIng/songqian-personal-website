@@ -2,21 +2,21 @@
 /**
  * WritingView — the numbered writing index (A+ direction).
  *
- * Header: section number + bilingual title + lede + RSS.
- * List: 01 featured entry set larger, 02–05 compact rows with the other
- * language's title as an italic subtitle, category · date meta and an arrow.
- * Pagination (8 per page) is kept; it only renders when there is more than one
- * page.
+ * Header: single-language title, one-line lede, last-updated date + essay count
+ * and RSS — no bilingual pairs in the page chrome.
+ * List: 01 featured entry set larger, 02–05 compact rows with category · date
+ * meta and an arrow. Numbering stays: it reads like a table of contents.
+ * Pagination (8 per page) only renders when there is more than one page.
  */
 import type { Page } from 'astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/ui/Icon.astro';
 import EssayRow from '../components/writing/EssayRow.astro';
 import Pagination from '../components/writing/Pagination.astro';
-import { localizePath, useTranslations } from '../i18n/utils';
-import { copy, c, pair } from '../data/copy';
+import { isoDate, localizePath, useTranslations } from '../i18n/utils';
+import { copy, c } from '../data/copy';
 import { SITE, localeMeta, type Locale } from '../i18n/config';
-import type { PostEntry } from '../lib/posts';
+import { getAllPosts, type PostEntry } from '../lib/posts';
 
 interface Props {
   lang: Locale;
@@ -27,10 +27,21 @@ const { lang, page } = Astro.props;
 const t = useTranslations(lang);
 
 const posts = page.data;
-const title = pair(copy.writing.title, lang);
+const title = c(copy.writing.title, lang);
 const lede = c(copy.writing.lede, lang);
 const rssHref = localizePath('/rss.xml', lang);
-const label = `${copy.sections.writing.number} / ${copy.sections.writing.title[lang]}`;
+
+/* Dated notebook meta: when the shelf was last touched and how much is on it. */
+const allPosts = await getAllPosts(lang);
+const lastUpdated = allPosts.reduce<Date | null>((latest, post) => {
+  const stamp = post.updated ?? post.date;
+  return !latest || stamp > latest ? stamp : latest;
+}, null);
+const updatedLabel = lastUpdated ? isoDate(lastUpdated).replaceAll('-', '.') : '';
+const countLabel =
+  lang === 'zh'
+    ? `最后更新 ${updatedLabel} · 共 ${allPosts.length} 篇`
+    : `Last updated ${updatedLabel} · ${allPosts.length} ${allPosts.length === 1 ? 'essay' : 'essays'}`;
 
 /** Index numbers continue across paginated pages. */
 const startIndex = (page.currentPage - 1) * page.size + 1;
@@ -39,7 +50,7 @@ const listingJsonLd = {
   '@graph': [
     {
       '@type': 'CollectionPage',
-      name: title.title,
+      name: title,
       description: lede,
       url: new URL(localizePath(page.currentPage > 1 ? `/writing/${page.currentPage}` : '/writing', lang), Astro.site ?? new URL(SITE.url)).href,
       inLanguage: localeMeta[lang].htmlLang,
@@ -59,39 +70,28 @@ const listingJsonLd = {
 
 const pageTitle =
   page.currentPage > 1
-    ? `${title.title} · ${t('common.pageOf', { n: page.currentPage, total: page.lastPage })}`
-    : `${copy.writing.title.zh} · ${copy.writing.title.en}`;
+    ? `${title} · ${t('common.pageOf', { n: page.currentPage, total: page.lastPage })}`
+    : title;
 ---
 <BaseLayout lang={lang} title={pageTitle} description={c(copy.meta.writingDescription, lang)} wide>
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(listingJsonLd)} />
   </Fragment>
   <div class="wrap">
-    <header class="flex flex-col gap-6 pb-10 sm:pb-14">
-      <p class="font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-subtle">{label}</p>
-
-      <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-6">
-        <h1 class="display">
-          {title.title}
-          <span
-            class:list={[
-              'ml-2 inline-block align-baseline sm:ml-4',
-              lang === 'zh'
-                ? 'display-latin text-[0.62em] text-muted'
-                : 'font-serif text-[0.55em] font-[420] tracking-[-0.02em] text-muted',
-            ]}
-          >
-            {title.secondary}
-          </span>
-        </h1>
-
+    <header class="border-t border-line pt-5 pb-10 sm:pb-12">
+      <div class="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1">
+        <p class="font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-subtle">
+          {countLabel}
+        </p>
         <a href={rssHref} class="rss-link group">
           <Icon name="rss" size={13} class="rss-link-icon" />
           <span class="rss-link-text">{t('footer.rss')}</span>
         </a>
       </div>
 
-      <p class="lede max-w-[36rem]">{lede}</p>
+      <h1 class="display mt-6">{title}</h1>
+
+      <p class="lede mt-5 max-w-[36rem]">{lede}</p>
     </header>
 
     {

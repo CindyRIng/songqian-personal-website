@@ -1,231 +1,83 @@
 ---
 /**
- * WritingSection — "写作 Writing": a numbered index.
- *   01  featured essay, larger, with the English title as an italic secondary
- *   02–05 rows: title + secondary title + one-line summary + category/date
+ * WritingSection — the four newest essays, plain list.
+ *
+ * Date, title, one-line summary, whole row is the link. No numbering,
+ * no featured slot, no English secondary titles.
  */
-import SectionHeading from '../ui/SectionHeading.astro';
-import { copy, c, pair } from '../../data/copy';
+import SectionHead from '../ui/SectionHead.astro';
+import { copy, c } from '../../data/copy';
 import { localizePath, useTranslations } from '../../i18n/utils';
 import type { Locale } from '../../i18n/config';
-import { chromeLabel } from './labels';
 
 export interface WritingItem {
   title: string;
-  secondaryTitle: string;
   description: string;
   category: string;
-  tag: string;
   dateLabel: string;
   readingTime: number;
   href: string;
-  number: string;
 }
 
 interface Props {
   lang: Locale;
-  featured: WritingItem;
-  rows: WritingItem[];
-  total: number;
-  yearRange: string;
+  posts: WritingItem[];
+  class?: string;
 }
 
-const { lang, featured, rows, total, yearRange } = Astro.props;
+const { lang, posts, class: className = '' } = Astro.props;
 const t = useTranslations(lang);
-
 const section = copy.sections.writing;
-const sectionTitle = pair(section.title, lang);
-const writingHref = localizePath('/writing', lang);
-const rssHref = localizePath('/rss.xml', lang);
 ---
 
-<section class="writing section" aria-labelledby="writing-title" data-reveal>
-  <div class="wrap">
-    <SectionHeading
-      number={section.number}
-      title={sectionTitle.title}
-      en={sectionTitle.secondary}
-      lede={c(section.lede, lang)}
-      href={writingHref}
-      actionLabel={c(section.action, lang)}
-      id="writing-title"
-    />
+{
+  posts.length > 0 && (
+    <section class:list={['writing section', className]} aria-labelledby="writing-title">
+      <div class="wrap">
+        <SectionHead
+          title={c(section.title, lang)}
+          lede={c(section.lede, lang)}
+          href={localizePath('/writing', lang)}
+          actionLabel={c(section.action, lang)}
+          id="writing-title"
+        />
 
-    <a class="post-featured focus-ring" href={featured.href}>
-      <p class="post-num mono">{featured.number}</p>
-      <div class="post-main">
-        <p class="post-category mono">
-          {featured.category}
-          {featured.tag && <span> · {featured.tag}</span>}
-        </p>
-        <h3 class="post-title">{featured.title}</h3>
-        <p class="post-secondary">{featured.secondaryTitle}</p>
-        <p class="post-desc">{featured.description}</p>
+        <ul class="post-list">
+          {posts.map((post) => (
+            <li>
+              <a class="post-row focus-ring" href={post.href}>
+                <span class="post-date mono">{post.dateLabel}</span>
+                <span class="post-main">
+                  <span class="post-title">{post.title}</span>
+                  <span class="post-desc">{post.description}</span>
+                </span>
+                <span class="post-meta mono">
+                  <span>{t('common.minRead', { n: post.readingTime })}</span>
+                  <span class="post-arrow" aria-hidden="true">
+                    →
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
-      <div class="post-side">
-        <p class="post-date mono">
-          {featured.dateLabel}<br />
-          {t('common.minRead', { n: featured.readingTime })}
-        </p>
-        <span class="post-read">
-          {chromeLabel('readEssay', lang)} <span class="post-arrow" aria-hidden="true">→</span>
-        </span>
-      </div>
-    </a>
-
-    <div class="post-rows">
-      {
-        rows.map((post) => (
-          <a class="post-row focus-ring" href={post.href}>
-            <p class="post-num mono">{post.number}</p>
-            <div class="post-main">
-              <h4 class="post-row-title">{post.title}</h4>
-              <p class="post-secondary post-secondary--small">{post.secondaryTitle}</p>
-              <p class="post-row-desc">{post.description}</p>
-            </div>
-            <p class="post-meta mono">
-              <span class="post-meta-cat">{post.category}</span>
-              <span class="post-meta-date">{post.dateLabel}</span>
-              <span class="post-meta-read">
-                {chromeLabel('read', lang)} <span class="post-arrow" aria-hidden="true">→</span>
-              </span>
-            </p>
-          </a>
-        ))
-      }
-    </div>
-
-    <div class="writing-foot">
-      <span>{yearRange} · {chromeLabel('writingFoot', lang)}</span>
-      <a href={rssHref}>{t('footer.rss')} →</a>
-    </div>
-  </div>
-</section>
+    </section>
+  )
+}
 
 <style>
-  .post-featured {
-    display: grid;
-    grid-template-columns: 4rem minmax(0, 1fr) 10.5rem;
-    gap: 1.875rem;
-    margin-top: 2.125rem;
-    padding: 0 0 2.125rem;
-    border-bottom: 1px solid var(--line-strong);
-    border-radius: 6px;
-    color: inherit;
-    text-decoration: none;
-    touch-action: manipulation;
-    transition: background-color var(--dur-1, 120ms) ease-out;
-  }
-
-  .post-featured:active {
-    background: color-mix(in oklab, var(--accent) 5%, transparent);
-  }
-
-  .post-num {
-    font-size: 0.6875rem;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-    padding-top: 0.5625rem;
-    transition: color var(--dur-1, 120ms) ease-out;
-  }
-
-  .post-category {
-    font-size: 0.5938rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--subtle);
-  }
-
-  .post-title {
-    margin-top: 0.625rem;
-    font-family: var(--font-serif);
-    font-size: clamp(1.75rem, 2.6vw, 2.125rem);
-    font-weight: 500;
-    line-height: 1.3;
-    letter-spacing: 0.012em;
-    color: var(--ink-strong);
-    text-wrap: balance;
-  }
-
-  .post-title {
-    transition: color var(--dur-1, 120ms) ease-out;
-  }
-
-  .post-secondary {
-    margin-top: 0.375rem;
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-size: 0.9063rem;
-    letter-spacing: 0.01em;
-    color: var(--subtle);
-    transition: color var(--dur-1, 120ms) ease-out;
-  }
-
-  .post-secondary--small {
-    font-size: 0.7813rem;
-    margin-top: 0.1875rem;
-  }
-
-  .post-desc {
-    margin-top: 0.9375rem;
-    max-width: 38.5rem;
-    font-family: var(--font-serif);
-    font-size: 1.0313rem;
-    line-height: 1.78;
-    color: var(--muted);
-    transition: color var(--dur-1, 120ms) ease-out;
-  }
-
-  .post-side {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: space-between;
-    padding-top: 0.5rem;
-    text-align: right;
-  }
-
-  .post-date {
-    font-size: 0.6875rem;
-    letter-spacing: 0.06em;
-    color: var(--subtle);
-    line-height: 1.8;
-  }
-
-  .post-read {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    font-family: var(--font-sans);
-    font-size: 0.7188rem;
-    letter-spacing: 0.05em;
-    color: var(--ink);
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 3px;
-    margin-top: 1.375rem;
-    transition:
-      color var(--dur-1, 120ms) ease-out,
-      border-color var(--dur-1, 120ms) ease-out;
-  }
-
-  .post-arrow {
-    color: var(--accent);
-    display: inline-block;
-    transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
-  }
-
-  /* --- rows -------------------------------------------------------------- */
-  .post-rows {
-    margin-top: 0;
+  .post-list {
+    margin-top: 1.125rem;
   }
 
   .post-row {
     display: grid;
-    grid-template-columns: 4rem minmax(0, 1fr) 10.5rem;
-    gap: 1.875rem;
+    grid-template-columns: 6rem minmax(0, 1fr) auto;
+    gap: 1.25rem;
     align-items: baseline;
-    padding: 1.1875rem 0;
-    border-bottom: 1px solid var(--line);
+    padding-block: 1.0625rem 1.125rem;
+    border-top: 1px solid var(--line);
     border-radius: 6px;
     color: inherit;
     text-decoration: none;
@@ -237,213 +89,100 @@ const rssHref = localizePath('/rss.xml', lang);
     background: color-mix(in oklab, var(--accent) 6%, transparent);
   }
 
-  .post-row-title {
-    font-family: var(--font-serif);
-    font-size: 1.3125rem;
-    font-weight: 500;
-    line-height: 1.4;
-    letter-spacing: 0.015em;
-    color: var(--ink);
-    text-wrap: balance;
+  .post-date {
+    font-size: 0.6563rem;
+    letter-spacing: 0.06em;
+    color: var(--subtle);
+    font-variant-numeric: tabular-nums;
   }
 
-  .post-row-title {
+  .post-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3125rem;
+    min-width: 0;
+  }
+
+  .post-title {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    color: var(--ink-strong);
+    text-wrap: balance;
     transition: color var(--dur-1, 120ms) ease-out;
   }
 
-  .post-row-desc {
-    margin-top: 0.4375rem;
-    max-width: 37.5rem;
+  .post-desc {
     font-family: var(--font-serif);
-    font-size: 0.9063rem;
-    line-height: 1.68;
+    font-size: 0.9375rem;
+    line-height: 1.7;
     color: var(--muted);
+    max-width: 42rem;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
   .post-meta {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.1875rem;
-    font-size: 0.6563rem;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-size: 0.625rem;
     letter-spacing: 0.06em;
     color: var(--subtle);
-    text-align: right;
-    line-height: 1.8;
+    white-space: nowrap;
   }
 
-  .post-meta-cat {
-    color: var(--subtle);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-size: 0.5938rem;
+  .post-arrow {
+    color: var(--accent);
+    display: inline-block;
+    transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
   }
 
-  .post-meta-read {
-    color: var(--ink);
-    margin-top: 0.125rem;
-  }
-
-  /* --- foot -------------------------------------------------------------- */
-  .writing-foot {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: 1.375rem;
-    font-family: var(--font-sans);
-    font-size: 0.6563rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--subtle);
-  }
-
-  .writing-foot a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.75rem;
-    color: var(--ink);
-    text-decoration: none;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 2px;
-    transition:
-      color var(--dur-1, 120ms) ease-out,
-      border-color var(--dur-1, 120ms) ease-out;
-  }
-
-
-
-  @media (max-width: 1023px) {
-    .post-featured,
-    .post-row {
-      grid-template-columns: 3rem minmax(0, 1fr) 9rem;
-      gap: 1.25rem;
-    }
-  }
-
-  @media (max-width: 767px) {
-    .post-featured {
-      grid-template-columns: minmax(0, 1fr);
-      position: relative;
-      padding-left: 2.75rem;
-    }
-
-    .post-featured .post-num {
-      position: absolute;
-      left: 0;
-      top: 0.5625rem;
-    }
-
-    .post-side {
-      flex-direction: row;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 1rem;
-      text-align: left;
-      padding-top: 0;
-      margin-top: 1rem;
-    }
-
-    .post-row {
-      grid-template-columns: minmax(0, 1fr);
-      position: relative;
-      padding-left: 2.75rem;
-    }
-
-    .post-row .post-num {
-      position: absolute;
-      left: 0;
-      top: 1.3125rem;
-      padding-top: 0;
-    }
-
-    .post-meta {
-      flex-direction: row;
-      align-items: baseline;
-      justify-content: flex-start;
-      gap: 0.75rem;
-      margin-top: 0.5rem;
-      text-align: left;
-    }
-
-    .post-title {
-      font-size: 1.625rem;
-    }
-
-    .post-row-title {
-      font-size: 1.1875rem;
-    }
-  }
-
-  /* --- hover: only on capable pointers ---------------------------------- */
   @media (hover: hover) and (pointer: fine) {
-    .writing-foot a:hover {
-      color: var(--accent-strong);
-      border-color: var(--accent);
-    }
-
-    .post-featured:hover .post-title {
-      color: var(--accent-strong);
-    }
-
-    .post-featured:hover .post-secondary {
-      color: var(--muted);
-    }
-
-    .post-featured:hover .post-read {
-      color: var(--accent-strong);
-      border-color: var(--accent);
-    }
-
-    .post-featured:hover .post-arrow {
-      transform: translateX(3px);
-    }
-
-    .post-featured:hover .post-desc {
-      color: var(--ink);
-    }
-
     .post-row:hover {
       background: color-mix(in oklab, var(--accent) 4%, transparent);
     }
 
-    .post-row:hover .post-row-title {
+    .post-row:hover .post-title {
       color: var(--accent-strong);
-    }
-
-    .post-row:hover .post-secondary {
-      color: var(--muted);
     }
 
     .post-row:hover .post-arrow {
       transform: translateX(3px);
     }
+  }
 
-    .post-row:hover .post-num {
-      color: var(--accent);
+  @media (max-width: 640px) {
+    .post-row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.375rem;
+      padding-block: 1rem 1.0625rem;
+    }
+
+    .post-date {
+      order: -1;
+    }
+
+    .post-meta {
+      margin-top: 0.25rem;
+    }
+
+    .post-title {
+      font-size: 1.1563rem;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .post-featured,
     .post-row,
     .post-title,
-    .post-read,
-    .post-row-title,
-    .post-arrow,
-    .post-desc,
-    .post-secondary,
-    .post-num,
-    .writing-foot a {
+    .post-arrow {
       transition: none;
     }
 
-    .post-featured:hover .post-arrow,
     .post-row:hover .post-arrow {
       transform: none;
     }

@@ -4,15 +4,15 @@
  * rows. Data comes from src/lib/projects.ts; strings from copy.ts; terminal
  * "screenshots" from ./works-terminal.ts.
  */
-import SectionHeading from '../ui/SectionHeading.astro';
+import SectionHead from '../ui/SectionHead.astro';
 import TerminalCard from '../ui/TerminalCard.astro';
-import { copy, c, pair } from '../../data/copy';
+import { copy, c } from '../../data/copy';
 import type { ProjectEntry, ProjectStatus } from '../../lib/projects';
 import { localizePath, useTranslations } from '../../i18n/utils';
 import type { Locale } from '../../i18n/config';
 import type { TranslationKey } from '../../i18n/ui';
 import { terminalFor } from './works-terminal';
-import { chromeLabel, bilingualPair } from './labels';
+import { chromeLabel } from './labels';
 
 interface Props {
   lang: Locale;
@@ -22,13 +22,13 @@ interface Props {
   tools: ProjectEntry[];
   /** Total tool count for the section meta. */
   total: number;
+  class?: string;
 }
 
-const { lang, featured, tools, total } = Astro.props;
+const { lang, featured, tools, total, class: className = '' } = Astro.props;
 const t = useTranslations(lang);
 
 const section = copy.sections.works;
-const sectionTitle = pair(section.title, lang);
 const worksHref = localizePath('/works', lang);
 const viewProject = chromeLabel('workView', lang);
 
@@ -50,12 +50,11 @@ const typeLabel = (project: ProjectEntry) => {
   if (!tag) return '—';
   const key = TAG_LABEL_KEY[tag];
   const localized = key ? t(key) : tag;
-  // Chinese pages read "产品 · PRODUCT"; English pages would otherwise repeat
-  // themselves ("Product · PRODUCT"), so they keep the mono form only.
-  return lang === 'zh' ? `${localized} · ${tag.toUpperCase()}` : tag.toUpperCase();
+  // One language only: "产品" / "PRODUCT" (no bilingual pair).
+  return lang === 'zh' ? localized : tag.toUpperCase();
 };
 
-const moreTools = bilingualPair('其余工具', 'More tools', lang);
+const moreTools = chromeLabel('moreTools', lang);
 
 const metricLine = (project: ProjectEntry) =>
   project.metrics
@@ -64,12 +63,10 @@ const metricLine = (project: ProjectEntry) =>
     .join(' · ');
 ---
 
-<section class="works section" aria-labelledby="works-title" data-reveal>
+<section class:list={['works', 'section', className]} aria-labelledby="works-title" data-reveal>
   <div class="wrap">
-    <SectionHeading
-      number={section.number}
-      title={sectionTitle.title}
-      en={sectionTitle.secondary}
+    <SectionHead
+      title={c(section.title, lang)}
       lede={c(section.lede, lang)}
       href={worksHref}
       actionLabel={c(section.action, lang)}
@@ -135,18 +132,13 @@ const metricLine = (project: ProjectEntry) =>
       }
     </div>
 
-    <p class="more-label">
-      {moreTools.primary}
-      <span aria-hidden="true">/</span>
-      <span class="more-label-secondary">{moreTools.secondary}</span>
-    </p>
+    <p class="more-label">{moreTools}</p>
     <div class="tool-rows">
       {
         tools.map((project, index) => {
           const href = localizePath(`/works/${project.slug}`, lang);
           return (
             <a class="tool-row focus-ring" href={href}>
-              <span class="tool-num mono">{String(index + 3).padStart(2, '0')}</span>
               <span class="tool-main">
                 <span class="tool-title">{project.title}</span>
                 <span class="tool-slug mono">{project.slug}</span>
@@ -444,7 +436,7 @@ const metricLine = (project: ProjectEntry) =>
 
   .tool-row {
     display: grid;
-    grid-template-columns: 2.75rem minmax(0, 1fr) minmax(0, 22rem) 9.5rem 1.5rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem) 9.5rem 1.5rem;
     gap: 1.375rem;
     align-items: center;
     padding-block: 1.0625rem;
@@ -542,7 +534,7 @@ const metricLine = (project: ProjectEntry) =>
     }
 
     .tool-row {
-      grid-template-columns: 2.25rem minmax(0, 1fr) 8.5rem 1.25rem;
+      grid-template-columns: minmax(0, 1fr) 8.5rem 1.25rem;
       gap: 1rem;
     }
 
@@ -565,7 +557,7 @@ const metricLine = (project: ProjectEntry) =>
     }
 
     .tool-row {
-      grid-template-columns: 2rem minmax(0, 1fr) 1.25rem;
+      grid-template-columns: minmax(0, 1fr) 1.25rem;
       gap: 0.75rem;
       padding-block: 0.9375rem;
     }

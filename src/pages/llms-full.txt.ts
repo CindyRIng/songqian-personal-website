@@ -6,6 +6,9 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { SITE } from '../i18n/config';
+import { notes } from '../data/notes';
+import { now } from '../data/now';
+import { books } from '../data/reading';
 
 const url = (path: string): string => new URL(path, SITE.url).href;
 
@@ -65,6 +68,38 @@ export const GET: APIRoute = async () => {
       out.push(toPlain(project.body ?? ''));
       out.push('');
     }
+  }
+
+  out.push('# 笔记 Notes', '');
+  for (const note of notes) {
+    out.push(`## ${note.date}`);
+    out.push('');
+    out.push(note.text);
+    if (note.tags?.length) out.push('', `Tags: ${note.tags.join(', ')}`);
+    out.push('');
+  }
+
+  out.push('# 现在 Now', '');
+  out.push(`Updated: ${now.updated}`);
+  out.push('');
+  for (const section of now.sections) {
+    out.push(`## ${section.label.zh} / ${section.label.en}`);
+    out.push('');
+    for (const item of section.items) {
+      out.push(`- ${item.zh}`);
+      if (item.en) out.push(`  ${item.en}`);
+    }
+    out.push('');
+  }
+
+  out.push('# 书桌 Reading', '');
+  for (const book of books) {
+    out.push(`## ${book.title} — ${book.author}`);
+    out.push('');
+    out.push(`Status: ${book.status}${book.year ? ` · ${book.year}` : ''}${book.hours ? ` · ${book.hours}` : ''}${book.progress ? ` · ${book.progress}` : ''}`);
+    out.push('');
+    out.push(book.note);
+    out.push('');
   }
 
   return new Response(out.join('\n'), {

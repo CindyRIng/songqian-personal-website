@@ -22,13 +22,13 @@ export const profile = {
   monogram: 'SQ',
 
   role: {
-    zh: '孚盟软件 客户经理 · AI 工作流构建者',
-    en: 'Account manager at Fumamx · AI workflow builder',
+    zh: '孚盟软件 客户经理',
+    en: 'Account manager at Fumamx',
   } as L,
 
   tagline: {
-    zh: '把销售流程写成软件，把经验沉淀成系统。',
-    en: 'Turning sales work into software, and experience into systems.',
+    zh: '真正托住一个人的，是那些日复一日、几乎无人看见的小事。',
+    en: 'What holds a person up is the small, almost unseen things done day after day.',
   } as L,
 
   location: {

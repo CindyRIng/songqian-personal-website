@@ -2,20 +2,18 @@
 /**
  * AboutView — `/about` (zh) and `/en/about` (en).
  *
- * A+ direction: an oversized bilingual title, then the three threads
- * (sales / code / writing) straight from profile.aboutBio, a portrait slot
- * (real photo if public/images/portrait.* exists, monogram plate otherwise),
- * the short CV from timeline entries flagged `cv: true`, Now, optional
- * life/notes photo slots, tools & method (from profile.colophon), contact.
+ * V4: a letter, not a landing page. Written first-person from real records
+ * (`src/data/about.ts`, `timeline.ts`, `/now`). Single-language headings, a
+ * date stamp, thin rules — no numbered section labels, no bilingual italic
+ * subtitles. English is condensed: one summary paragraph, the ledger, the CV
+ * and the FAQ.
  */
-import { existsSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE, localeMeta } from '../i18n/config';
 import PortraitPlate from '../components/about/PortraitPlate.astro';
-import Icon from '../components/ui/Icon.astro';
 import { profile, lt } from '../data/profile';
 import { timeline } from '../data/timeline';
+import { about } from '../data/about';
 import { copy, c } from '../data/copy';
 import type { Locale } from '../i18n/config';
 import { localizePath, useTranslations } from '../i18n/utils';
@@ -31,13 +29,8 @@ const name = lt(profile.name, lang);
 const role = lt(profile.role, lang);
 const location = lt(profile.location, lang);
 const present = t('common.present');
-
-/** Three threads: sales → code → writing. Labels are structural UI copy. */
-const THREADS = [
-  { number: '01', label: { zh: '销售', en: 'Sales' } as const },
-  { number: '02', label: { zh: '代码', en: 'Code' } as const },
-  { number: '03', label: { zh: '写作', en: 'Writing' } as const },
-] as const;
+const updated = about.updated.replaceAll('-', '.');
+const isZh = lang === 'zh';
 
 /** Short CV ledger from timeline entries marked `cv: true`. */
 const cvRows = timeline
@@ -47,7 +40,6 @@ const cvRows = timeline
     const endYear = entry.end ? entry.end.slice(0, 4) : present;
     return {
       id: entry.id,
-      start: entry.start,
       period: !entry.end
         ? `${startYear} — ${present}`
         : endYear === startYear
@@ -55,30 +47,11 @@ const cvRows = timeline
           : `${startYear} — ${endYear}`,
       org: lt(entry.org, lang),
       role: lt(entry.role, lang),
-      summary: lt(entry.summary, lang),
     };
   })
-  .sort((a, b) => b.start.localeCompare(a.start));
+  .sort((a, b) => b.period.localeCompare(a.period));
 
-/** Optional media slots (spec §6): show only when the assets exist. */
-const imagesDir = join(process.cwd(), 'public', 'images');
-const listImages = (prefix: string): string[] => {
-  try {
-    return readdirSync(imagesDir)
-      .filter((file) => file.startsWith(prefix) && /\.(jpe?g|png|webp)$/i.test(file))
-      .sort();
-  } catch {
-    return [];
-  }
-};
-const lifeImages = listImages('life-');
-const noteImages = listImages('notes-');
-const hasWechatQr = existsSync(join(imagesDir, 'wechat-qr.png'));
-
-const colophon = profile.colophon.map((paragraph) => lt(paragraph, lang));
-const quickFacts = copy.home.quickFacts.filter((fact) => ['在读', '网球'].includes(fact.label.zh));
-
-const siteUrl = Astro.site ?? new URL(SITE.url);
+/** FAQ (kept quiet; also emitted as FAQPage structured data). */
 const emailAddress = profile.contact.email;
 const faq = copy.faq.items.map((item) => {
   const answer = c(item.a, lang);
@@ -91,12 +64,15 @@ const faq = copy.faq.items.map((item) => {
     hasEmail: rest.length > 0,
   };
 });
+
+const siteUrl = Astro.site ?? new URL(SITE.url);
 const aboutJsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
       '@type': 'ProfilePage',
       name: c(copy.about.title, lang),
+      description: c(copy.meta.aboutDescription, lang),
       url: new URL(localizePath('/about', lang), siteUrl).href,
       inLanguage: localeMeta[lang].htmlLang,
       mainEntity: { '@id': `${siteUrl.href}#person` },
@@ -123,224 +99,223 @@ const aboutJsonLd = {
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(aboutJsonLd)} />
   </Fragment>
-  <!-- Hero ---------------------------------------------------------------- -->
-  <header class="wrap pt-2 sm:pt-6">
-    <p class="label" data-reveal>{c(copy.about.lede, lang)}</p>
-    <h1 class="display mt-5 max-w-[14ch]" data-reveal style="--reveal-delay: 40ms">
-      {c(copy.about.title, lang)}
-      <span class="display-latin ml-4 text-[0.62em] text-muted">{lang === 'zh' ? 'Song Qian' : '关于'}</span>
-    </h1>
-    <p class="mono mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.75rem] uppercase tracking-[0.1em] text-subtle" data-reveal style="--reveal-delay: 80ms">
-      <span>{role}</span>
-      <span class="size-0.5 rounded-full bg-[var(--faint)]" aria-hidden="true"></span>
-      <span>{location}</span>
-    </p>
-  </header>
 
-  <!-- Three threads ------------------------------------------------------- -->
-  <section class="wrap section" aria-labelledby="about-threads">
-    <div class="flex items-baseline justify-between gap-4 border-b border-line pb-3" data-reveal>
-      <h2 id="about-threads" class="label">{c(copy.about.threadsTitle, lang)}</h2>
-    </div>
+  <article class="wrap">
+    <!-- Header ------------------------------------------------------------ -->
+    <header class="max-w-[46rem] border-t border-line pt-5" data-reveal>
+      <p class="mono flex items-center gap-3 text-[0.6875rem] uppercase tracking-[0.14em] text-subtle">
+        <span>{isZh ? '关于' : 'About'}</span>
+        <span class="h-px w-8 bg-[var(--line-strong)]" aria-hidden="true"></span>
+        <time datetime={about.updated}>{updated}</time>
+      </p>
+      <h1 class="mt-6 font-serif text-[clamp(2.5rem,5vw,3.75rem)] font-[540] leading-[1.05] tracking-[-0.03em] text-ink-strong">
+        {isZh ? '关于' : 'About'}
+      </h1>
+      <p class="mt-6 max-w-[44rem] text-pretty text-[1.0625rem] leading-[1.8] text-ink">{lt(about.intro, lang)}</p>
+      <p class="mono mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.6875rem] uppercase tracking-[0.12em] text-subtle">
+        <span>{role}</span>
+        <span class="size-0.5 rounded-full bg-[var(--faint)]" aria-hidden="true"></span>
+        <span>{location}</span>
+      </p>
+    </header>
 
-    <div class="mt-8 grid grid-cols-1 gap-x-10 gap-y-8 md:grid-cols-3">
-      {
-        profile.aboutBio.map((paragraph, index) => (
-          <article class="flex flex-col gap-3" data-reveal style={`--reveal-delay: ${index * 80}ms`}>
-            <div class="flex items-baseline gap-3">
-              <span class="mono text-[0.6875rem] text-[var(--faint)]">
-                {THREADS[index]?.number ?? String(index + 1).padStart(2, '0')}
-              </span>
-              <h3 class="font-serif text-[1.25rem] font-[540] leading-none tracking-[-0.015em] text-ink-strong">
-                {lang === 'zh' ? THREADS[index]?.label.zh : THREADS[index]?.label.en}
-              </h3>
-            </div>
-            <p class="max-w-[42ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted">{lt(paragraph, lang)}</p>
-          </article>
-        ))
-      }
-    </div>
-  </section>
-
-  <!-- Portrait + manifesto ------------------------------------------------ -->
-  <section class="wrap" aria-label={`${name} — ${role}`}>
-    <div class="grid grid-cols-1 items-end gap-8 md:grid-cols-[minmax(0,20rem)_1fr] md:gap-12">
+    <!-- Portrait + short links ------------------------------------------- -->
+    <div class="mt-12 grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,18rem)_1fr] md:gap-12">
       <div data-reveal>
-        <PortraitPlate
-          name={name}
-          monogram={profile.monogram}
-          alt={t('about.portraitAlt')}
-          caption={`${location} · ${profile.siteLaunch.slice(0, 4)}`}
-        />
+        <PortraitPlate name={name} monogram={profile.monogram} alt={t('about.portraitAlt')} />
       </div>
-      <div class="flex flex-col gap-5 pb-2" data-reveal style="--reveal-delay: 80ms">
-        <p class="max-w-[24ch] font-serif text-[clamp(1.75rem,3.2vw,2.5rem)] leading-[1.18] tracking-[-0.02em] text-ink-strong">
-          {c(copy.home.plate.quote, lang)}
+      <div class="flex flex-col justify-end gap-5 pb-1" data-reveal style="--reveal-delay: 60ms">
+        <p class="max-w-[40ch] font-serif text-[1.3125rem] leading-[1.6] text-ink-strong">
+          {isZh
+            ? '白天卖外贸软件，晚上把重复的部分写成工具。写这个站，是想把记录整理成能给别人看的东西。'
+            : 'Selling foreign-trade software by day, writing tools for the repetitive parts by night. This site is an attempt to make my records readable by someone else.'}
         </p>
-        <p class="mono max-w-[34ch] text-[0.6875rem] uppercase leading-[1.9] tracking-[0.12em] text-subtle">
-          {c(copy.home.plate.meta, lang)}
-        </p>
-        <div class="flex flex-wrap gap-x-4 gap-y-2">
-          <a
-            href={localizePath('/works', lang)}
-            class="group inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted transition-colors duration-200 hover:text-ink"
-          >
-            {t('actions.viewWorks')}
-            <Icon
-              name="arrow-right"
-              size={14}
-              class="transition duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5"
-            />
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/now" class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
+            {isZh ? '现在' : 'Now'}<span aria-hidden="true">→</span>
           </a>
-          <a
-            href={localizePath('/writing', lang)}
-            class="group inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted transition-colors duration-200 hover:text-ink"
-          >
-            {t('actions.readEssays')}
-            <Icon
-              name="arrow-right"
-              size={14}
-              class="transition duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5"
-            />
+          <a href="/reading" class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
+            {isZh ? '书桌' : 'Reading'}<span aria-hidden="true">→</span>
+          </a>
+          <a href={localizePath('/timeline', lang)} class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
+            {isZh ? '时间线' : 'Timeline'}<span aria-hidden="true">→</span>
           </a>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- CV ledger ----------------------------------------------------------- -->
-  <section class="wrap section" aria-labelledby="about-experience">
-    <div class="flex items-baseline justify-between gap-4 border-b border-line pb-3" data-reveal>
-      <h2 id="about-experience" class="label">{c(copy.about.experienceTitle, lang)}</h2>
-    </div>
+    <!-- Letter body ------------------------------------------------------- -->
+    {
+      isZh ? (
+        <>
+          {/* Three threads */}
+          <section class="mt-14 max-w-[46rem]" aria-labelledby="about-threads">
+            <h2 id="about-threads" class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle">
+              {lt(about.threads.label, lang)}
+            </h2>
+            <div class="mt-6 flex flex-col gap-7">
+              {about.threads.items.map((thread) => (
+                <div data-reveal>
+                  <h3 class="font-serif text-[1.1875rem] font-[540] leading-snug tracking-[-0.015em] text-ink-strong">
+                    {lt(thread.label, lang)}
+                  </h3>
+                  <p class="mt-2 max-w-[60ch] text-pretty text-[1rem] leading-[1.8] text-muted">{lt(thread.body, lang)}</p>
+                </div>
+              ))}
+            </div>
+          </section>
 
-    <ol class="mt-2">
-      {
-        cvRows.map((row) => (
-          <li class="cv-row grid grid-cols-1 gap-1 border-b border-line py-4 md:grid-cols-[9rem_1fr] md:gap-6" data-reveal>
-            <span class="cv-year mono pt-0.5 text-[0.6875rem] text-subtle">{row.period}</span>
-            <div class="flex flex-col gap-1">
-              <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h3 class="font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.01em] text-ink-strong">
-                  {row.org}
-                </h3>
+          {/* A normal week */}
+          <section class="mt-14 max-w-[46rem]" aria-labelledby="about-daily">
+            <h2 id="about-daily" class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle">
+              {lt(about.daily.label, lang)}
+            </h2>
+            <p class="mt-4 max-w-[58ch] text-[1rem] leading-[1.8] text-muted">{lt(about.daily.intro, lang)}</p>
+            <dl class="mt-6">
+              {about.daily.items.map((item) => (
+                <div class="grid grid-cols-[4rem_1fr] gap-4 border-t border-line py-3 md:grid-cols-[5rem_1fr] md:gap-6" data-reveal>
+                  <dt class="mono pt-0.5 text-[0.6875rem] tracking-[0.06em] text-subtle">{item.time}</dt>
+                  <dd class="max-w-[58ch] text-pretty text-[0.9375rem] leading-[1.7] text-muted">{lt(item.text, lang)}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+
+          {/* Principles */}
+          <section class="mt-14 max-w-[46rem]" aria-labelledby="about-principles">
+            <h2 id="about-principles" class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle">
+              {lt(about.principles.label, lang)}
+            </h2>
+            <p class="mt-4 max-w-[58ch] text-[1rem] leading-[1.8] text-muted">{lt(about.principles.intro, lang)}</p>
+            <ul class="mt-6">
+              {about.principles.items.map((item) => (
+                <li class="grid grid-cols-[3.25rem_1fr] gap-3 border-t border-line py-4 md:grid-cols-[4rem_1fr] md:gap-5" data-reveal>
+                  <span class="mono pt-1 text-[0.6875rem] tracking-[0.06em] text-subtle">{item.code}</span>
+                  <div>
+                    <h3 class="font-serif text-[1.0625rem] font-[540] leading-snug text-ink-strong">{lt(item.title, lang)}</h3>
+                    <p class="mt-1 max-w-[58ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted">{lt(item.line, lang)}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* Failures */}
+          <section class="mt-14 max-w-[46rem]" aria-labelledby="about-failures">
+            <h2 id="about-failures" class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle">
+              {lt(about.failures.label, lang)}
+            </h2>
+            <p class="mt-4 max-w-[58ch] text-[1rem] leading-[1.8] text-muted">{lt(about.failures.intro, lang)}</p>
+            <ul class="mt-6">
+              {about.failures.items.map((item) => (
+                <li class="border-t border-line py-4" data-reveal>
+                  <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <h3 class="font-serif text-[1.0625rem] font-[540] leading-snug text-ink-strong">{lt(item.title, lang)}</h3>
+                    <span class="mono text-[0.6875rem] tracking-[0.06em] text-subtle">{item.period}</span>
+                  </div>
+                  <p class="mt-1.5 max-w-[58ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted">{lt(item.line, lang)}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* Ledger */}
+          <section class="mt-14 max-w-[46rem]" aria-labelledby="about-ledger">
+            <h2 id="about-ledger" class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle">
+              {lt(about.ledger.label, lang)}
+            </h2>
+            <p class="mt-4 max-w-[58ch] text-[1rem] leading-[1.8] text-muted">{lt(about.ledger.intro, lang)}</p>
+            <dl class="mt-6 grid grid-cols-2 gap-x-8 gap-y-6 border-t border-line pt-6 sm:grid-cols-4">
+              {about.ledger.items.map((item) => (
+                <div class="flex flex-col-reverse" data-reveal>
+                  <dt class="mt-2 font-sans text-[0.75rem] uppercase tracking-[0.1em] text-subtle">{lt(item.label, lang)}</dt>
+                  <dd class="ledger-value mono text-[clamp(2rem,3.4vw,2.75rem)] font-[380] leading-none tracking-[-0.02em] text-ink-strong">{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        </>
+      ) : (
+        <>
+          {/* English: one condensed summary + the ledger */}
+          <section class="mt-14 max-w-[46rem]" aria-labelledby="about-summary">
+            <h2 id="about-summary" class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle">
+              In short
+            </h2>
+            <p class="mt-5 max-w-[60ch] text-pretty text-[1rem] leading-[1.85] text-ink">{about.english}</p>
+            <dl class="mt-8 grid grid-cols-2 gap-x-8 gap-y-6 border-t border-line pt-6 sm:grid-cols-4">
+              {about.ledger.items.map((item) => (
+                <div class="flex flex-col-reverse">
+                  <dt class="mt-2 font-sans text-[0.75rem] uppercase tracking-[0.1em] text-subtle">{lt(item.label, lang)}</dt>
+                  <dd class="ledger-value mono text-[clamp(2rem,3.4vw,2.75rem)] font-[380] leading-none tracking-[-0.02em] text-ink-strong">{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        </>
+      )
+    }
+
+    <!-- CV (simplified) --------------------------------------------------- -->
+    <section class="mt-14 max-w-[46rem]" aria-labelledby="about-cv">
+      <h2 id="about-cv" class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle">
+        {isZh ? '履历' : 'Experience'}
+      </h2>
+      <ol class="mt-2">
+        {
+          cvRows.map((row) => (
+            <li class="grid grid-cols-[7rem_1fr] gap-4 border-b border-line py-3 md:grid-cols-[9rem_1fr] md:gap-6" data-reveal>
+              <span class="mono pt-0.5 text-[0.6875rem] text-subtle">{row.period}</span>
+              <p class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span class="font-serif text-[1rem] font-[540] leading-snug text-ink-strong">{row.org}</span>
                 <span class="text-[0.875rem] text-muted">{row.role}</span>
-              </div>
-              <p class="max-w-[62ch] text-pretty text-[0.875rem] leading-[1.65] text-muted">{row.summary}</p>
-            </div>
-          </li>
-        ))
-      }
-    </ol>
-  </section>
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
 
-  <!-- Now ----------------------------------------------------------------- -->
-  <section class="wrap" aria-labelledby="about-now">
-    <div
-      class="grid grid-cols-1 gap-4 rounded-[6px] border border-line bg-[var(--paper)] p-6 md:grid-cols-[9rem_1fr] md:gap-6 md:p-8"
-      data-reveal
-    >
-      <h2 id="about-now" class="label pt-0.5">{c(copy.about.nowTitle, lang)}</h2>
-      <div class="flex flex-col gap-4">
-        <p class="max-w-[54ch] text-pretty font-serif text-[1.125rem] leading-[1.7] text-ink">{lt(profile.now, lang)}</p>
-        <dl class="flex flex-wrap gap-x-8 gap-y-3">
-          {
-            quickFacts.map((fact) => (
-              <div class="flex flex-col gap-0.5">
-                <dt class="label">{lt(fact.label, lang)}</dt>
-                <dd class="text-[0.875rem] text-muted">{lt(fact.value, lang)}</dd>
+    <!-- FAQ --------------------------------------------------------------- -->
+    <section class="mt-14 max-w-[46rem]" aria-labelledby="about-faq">
+      <h2 id="about-faq" class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle">
+        {c(copy.faq.title, lang)}
+      </h2>
+      <div class="mt-2">
+        {
+          faq.map((item) => (
+            <details class="faq-item" data-faq-item data-reveal>
+              <summary class="faq-summary focus-ring">
+                <span class="faq-q">{item.q}</span>
+                <span aria-hidden="true" class="faq-plus">+</span>
+              </summary>
+              <div class="faq-body">
+                <div class="faq-body-inner">
+                  <p class="faq-a">
+                    {item.hasEmail ? (
+                      <>
+                        {item.before}
+                        <a class="faq-mail" href={`mailto:${emailAddress}`}>{emailAddress}</a>
+                        {item.after}
+                      </>
+                    ) : (
+                      item.a
+                    )}
+                  </p>
+                </div>
               </div>
-            ))
-          }
-        </dl>
+            </details>
+          ))
+        }
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Notes & photos (optional assets, spec §6) --------------------------- -->
-  {
-    (lifeImages.length > 0 || noteImages.length > 0) && (
-      <section class="wrap section" aria-labelledby="about-notes">
-        <div class="flex items-baseline justify-between gap-4 border-b border-line pb-3" data-reveal>
-          <h2 id="about-notes" class="label">{c(copy.about.notesTitle, lang)}</h2>
-        </div>
-        <p class="mt-3 text-[0.875rem] text-subtle">{c(copy.about.notesHint, lang)}</p>
-        <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3">
-          {[...lifeImages, ...noteImages].map((file) => (
-            <figure class="overflow-hidden rounded-[6px] border border-line bg-[var(--paper)]" data-reveal>
-              <img
-                src={`/images/${file}`}
-                alt={file.replace(/\.(jpe?g|png|webp)$/i, '').replace(/[-_]/g, ' ')}
-                width={1200}
-                height={900}
-                loading="lazy"
-                decoding="async"
-                class="aspect-[4/3] w-full object-cover"
-              />
-              <figcaption class="mono px-3 py-2 text-[0.625rem] uppercase tracking-[0.12em] text-subtle">
-                {file}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
-    )
-  }
+    <!-- Signature --------------------------------------------------------- -->
+    <p class="mt-14 max-w-[46rem] border-t border-line pt-8 font-serif text-[0.9375rem] italic leading-relaxed text-subtle" data-reveal>
+      — {lt(about.signature, lang)}
+    </p>
+  </article>
 
-  <!-- Tools & method ------------------------------------------------------ -->
-  <section class="wrap section" aria-labelledby="about-tools">
-    <div class="flex items-baseline justify-between gap-4 border-b border-line pb-3" data-reveal>
-      <h2 id="about-tools" class="label">{c(copy.about.toolsTitle, lang)}</h2>
-    </div>
-    <div class="mt-8 grid grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-3">
-      {
-        colophon.map((paragraph, index) => (
-          <p class="max-w-[44ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted" data-reveal style={`--reveal-delay: ${index * 60}ms`}>
-            {paragraph}
-          </p>
-        ))
-      }
-    </div>
-  </section>
-
-  <!-- FAQ (also emitted as FAQPage structured data) ---------------------- -->
-  <section class="wrap section" aria-labelledby="about-faq">
-    <div class="flex items-baseline justify-between gap-4 border-b border-line pb-3" data-reveal>
-      <h2 id="about-faq" class="label">{c(copy.faq.title, lang)}</h2>
-    </div>
-    <div class="mt-2">
-      {
-        faq.map((item, index) => (
-          <details class="faq-item" data-faq-item data-reveal style={`--reveal-delay: ${index * 40}ms`}>
-            <summary class="faq-summary focus-ring">
-              <span class="faq-q">{item.q}</span>
-              <span aria-hidden="true" class="faq-plus">+</span>
-            </summary>
-            <div class="faq-body">
-              <div class="faq-body-inner">
-                <p class="faq-a">
-                  {item.hasEmail ? (
-                    <>
-                      {item.before}
-                      <a class="faq-mail" href={`mailto:${emailAddress}`}>{emailAddress}</a>
-                      {item.after}
-                    </>
-                  ) : (
-                    item.a
-                  )}
-                </p>
-              </div>
-            </div>
-          </details>
-        ))
-      }
-    </div>
-  </section>
-
-  <!-- Signature — the page ends here; the global footer carries the contact CTA. -->
-  <p class="wrap mt-16 border-t border-line pt-8 font-serif text-[0.9375rem] italic leading-relaxed text-subtle" data-reveal>
-    — {c(copy.about.signature, lang)}
-  </p>
   <Fragment slot="scripts">
     <script>
       // FAQ: animate both opening and closing with the CSS grid-rows trick.
@@ -390,7 +365,6 @@ const aboutJsonLd = {
               },
               { once: true }
             );
-            // Fallback in case the transition never fires.
             window.setTimeout(finish, 280);
           });
         });
@@ -403,45 +377,11 @@ const aboutJsonLd = {
 </BaseLayout>
 
 <style>
-  /* ------------------------------------------------------------------------
-     CV ledger — quiet hover wash, year warms to accent, inset hairline ring.
-     ---------------------------------------------------------------------- */
-  .cv-row {
-    position: relative;
-    isolation: isolate;
+  .ledger-value {
+    margin-inline-start: 0;
   }
 
-  .cv-row::before {
-    content: '';
-    position: absolute;
-    inset: 0 -0.75rem;
-    z-index: -1;
-    border-radius: 6px;
-    background: var(--hover);
-    box-shadow: inset 0 0 0 1px transparent;
-    opacity: 0;
-    transition: opacity 160ms var(--ease-out);
-  }
-
-  .cv-year {
-    transition: color var(--dur-1) var(--ease-out);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .cv-row:hover::before {
-      opacity: 1;
-      box-shadow: inset 0 0 0 1px var(--line);
-    }
-
-    .cv-row:hover .cv-year {
-      color: var(--accent);
-    }
-  }
-
-  /* ------------------------------------------------------------------------
-     FAQ — native <details>, animated open/close via grid rows (220ms),
-     plus → × rotation, focus ring on the summary, linked e-mail.
-     ---------------------------------------------------------------------- */
+  /* FAQ — native <details>, grid-rows animation, plus → ×, focus ring. */
   .faq-item {
     border-top: 1px solid var(--line);
   }
@@ -546,17 +486,11 @@ const aboutJsonLd = {
     }
   }
 
-  .faq-mail:active {
-    color: var(--accent-strong);
-  }
-
   @media (prefers-reduced-motion: reduce) {
     :global(html.js) .faq-body {
       transition: none;
     }
 
-    .cv-row::before,
-    .cv-year,
     .faq-q,
     .faq-plus {
       transition: none;

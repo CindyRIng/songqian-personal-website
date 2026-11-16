@@ -4,8 +4,8 @@
  * Nodes come from src/data/timeline.ts (homeMilestones); year is displayed
  * large, month as a mono sup, then role → org → a short note.
  */
-import SectionHeading from '../ui/SectionHeading.astro';
-import { copy, c, pair } from '../../data/copy';
+import SectionHead from '../ui/SectionHead.astro';
+import { copy, c } from '../../data/copy';
 import type { ResolvedTimelineEntry } from '../../data/timeline';
 import { localizePath } from '../../i18n/utils';
 import type { Locale } from '../../i18n/config';
@@ -13,12 +13,12 @@ import type { Locale } from '../../i18n/config';
 interface Props {
   lang: Locale;
   entries: ResolvedTimelineEntry[];
+  class?: string;
 }
 
-const { lang, entries } = Astro.props;
+const { lang, entries, class: className = '' } = Astro.props;
 
 const section = copy.sections.timeline;
-const sectionTitle = pair(section.title, lang);
 const timelineHref = localizePath('/timeline', lang);
 
 const monthAbbr = (start: string) => {
@@ -30,12 +30,10 @@ const monthAbbr = (start: string) => {
 };
 ---
 
-<section class="timeline section" aria-labelledby="timeline-title">
+<section class:list={['timeline', 'section', className]} aria-labelledby="timeline-title">
   <div class="wrap">
-    <SectionHeading
-      number={section.number}
-      title={sectionTitle.title}
-      en={sectionTitle.secondary}
+    <SectionHead
+      title={c(section.title, lang)}
       lede={c(section.lede, lang)}
       href={timelineHref}
       actionLabel={c(section.action, lang)}

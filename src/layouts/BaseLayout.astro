@@ -38,6 +38,8 @@ interface Props {
   path?: string;
   /** Full-width editorial page (home, works, about) instead of the reading measure. */
   wide?: boolean;
+  /** Chinese-only pages (notes/now/reading) have no translated alternate. */
+  translated?: boolean;
 }
 
 const {
@@ -50,6 +52,7 @@ const {
   type = 'website',
   noindex = false,
   wide = false,
+  translated = true,
 } = Astro.props;
 
 const t = useTranslations(lang);
@@ -60,7 +63,7 @@ const rawPath = Astro.props.path ?? Astro.url.pathname;
 const { path: localeFreePath } = stripLocale(rawPath);
 const currentPath = localeFreePath === '' ? '/' : localeFreePath.replace(/\/$/, '') || '/';
 
-const alternates = getAlternates(currentPath);
+const alternates = translated ? getAlternates(currentPath) : [];
 const siteUrl = Astro.site ?? new URL(SITE.url);
 const canonical = new URL(localizePath(currentPath, lang), siteUrl).href;
 
@@ -204,14 +207,23 @@ const jsonLd = {
       href={localizePath('/rss.xml', lang)}
     />
 
-    {alternates.map((alt) => (
-      <link
-        rel="alternate"
-        hreflang={localeMeta[alt.lang].htmlLang}
-        href={new URL(alt.href, siteUrl).href}
-      />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={new URL(localizePath(currentPath, 'zh'), siteUrl).href} />
+    {translated ? (
+      <>
+        {alternates.map((alt) => (
+          <link
+            rel="alternate"
+            hreflang={localeMeta[alt.lang].htmlLang}
+            href={new URL(alt.href, siteUrl).href}
+          />
+        ))}
+        <link rel="alternate" hreflang="x-default" href={new URL(localizePath(currentPath, 'zh'), siteUrl).href} />
+      </>
+    ) : (
+      <>
+        <link rel="alternate" hreflang={meta.htmlLang} href={canonical} />
+        <link rel="alternate" hreflang="x-default" href={canonical} />
+      </>
+    )}
 
     <meta property="og:type" content={type} />
     <meta property="og:site_name" content={siteName} />
@@ -223,9 +235,10 @@ const jsonLd = {
     <meta property="og:image:height" content={String(imageHeight)} />
     <meta property="og:image:alt" content={`${siteName} — ${lt(profile.tagline, lang)}`} />
     <meta property="og:locale" content={meta.ogLocale} />
-    {alternates
-      .filter((alt) => alt.lang !== lang)
-      .map((alt) => <meta property="og:locale:alternate" content={localeMeta[alt.lang].ogLocale} />)}
+    {translated &&
+      alternates
+        .filter((alt) => alt.lang !== lang)
+        .map((alt) => <meta property="og:locale:alternate" content={localeMeta[alt.lang].ogLocale} />)}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={desc} />

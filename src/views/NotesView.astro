@@ -1,0 +1,109 @@
+---
+/**
+ * NotesView — `/notes`, a notebook of short dated entries.
+ *
+ * Chinese only, like my own notebook. Month groups, dense rows, mono dates,
+ * plain tags. No cards, no numbers, no English subtitle under the title.
+ * Static HTML: no JavaScript, no motion, works with reduced motion by default.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { notes, notesUpdated, type Note } from '../data/notes';
+import type { Locale } from '../i18n/config';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+
+const updatedLabel = notesUpdated.replaceAll('-', '.');
+
+/** `2026-11` → "2026 年 11 月". */
+const monthLabel = (key: string) => {
+  const [year, month] = key.split('-');
+  return `${year} 年 ${Number(month)} 月`;
+};
+
+const groups: { key: string; label: string; items: Note[] }[] = [];
+for (const note of notes) {
+  const key = note.date.slice(0, 7);
+  const last = groups[groups.length - 1];
+  if (last && last.key === key) last.items.push(note);
+  else groups.push({ key, label: monthLabel(key), items: [note] });
+}
+
+const intro =
+  '这里放日记和笔记里的短记录，一般不加工。有些是当天的结论，更多是没想明白的话。按月份排，最新的在上面。';
+---
+
+<BaseLayout
+  lang={lang}
+  title="笔记"
+  description="来自日记和笔记的短记录，按月份排。"
+  path="/notes"
+  translated={false}
+  wide
+>
+  <div class="wrap">
+    <header class="max-w-[42rem] border-t border-line pt-5">
+      <p class="mono flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.6875rem] uppercase tracking-[0.14em] text-subtle">
+        <span>笔记 / NOTES</span>
+        <span aria-hidden="true" class="h-px w-8 bg-[var(--line-strong)]"></span>
+        <span>最后更新 {updatedLabel}</span>
+      </p>
+      <h1
+        class="mt-6 font-serif text-[clamp(2.5rem,5vw,3.75rem)] font-[540] leading-[1.05] tracking-[-0.03em] text-ink-strong"
+      >
+        笔记
+      </h1>
+      <p class="mt-5 max-w-[34rem] text-pretty text-[1.0625rem] leading-[1.75] text-muted">
+        {intro}
+      </p>
+    </header>
+
+    <div class="mt-12 grid grid-cols-1 gap-x-12 gap-y-9 lg:mt-16 lg:grid-cols-[10rem_minmax(0,1fr)]">
+      {
+        groups.map((group) => (
+          <section class="contents">
+            <h2 class="self-start border-t border-line pt-3 font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-subtle lg:sticky lg:top-28 lg:border-t-0 lg:pt-0">
+              {group.label}
+            </h2>
+            <ol class="border-t border-line">
+              {group.items.map((note) => (
+                <li class="grid grid-cols-[3.25rem_minmax(0,1fr)] gap-x-4 gap-y-1 border-b border-line py-3.5 sm:grid-cols-[5rem_minmax(0,1fr)] sm:gap-x-6">
+                  <time
+                    datetime={note.date}
+                    class="pt-[0.2rem] font-mono text-[0.6875rem] tabular tracking-[0.04em] text-subtle"
+                  >
+                    {note.date.slice(5, 7)}.{note.date.slice(8, 10)}
+                  </time>
+                  <div class="min-w-0">
+                    <p class="text-pretty font-serif text-[0.9375rem] leading-[1.8] text-ink sm:text-[1rem]">
+                      {note.text}
+                    </p>
+                    {
+                      note.tags && note.tags.length > 0 && (
+                        <p class="mt-1 font-mono text-[0.625rem] tracking-[0.06em] text-faint">
+                          {note.tags.join(' · ')}
+                        </p>
+                      )
+                    }
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))
+      }
+    </div>
+
+    <div class="mt-12 flex flex-wrap items-baseline gap-x-6 gap-y-2 border-t border-line pt-5">
+      <p class="mono text-[0.6875rem] uppercase tracking-[0.14em] text-subtle">
+        最后更新 · <time datetime={notesUpdated}>{updatedLabel}</time>
+      </p>
+      <p class="font-sans text-[0.8125rem] text-muted">
+        更完整的近况写在<a class="link tap-target" href="/now">/now</a>。
+      </p>
+    </div>
+  </div>
+</BaseLayout>

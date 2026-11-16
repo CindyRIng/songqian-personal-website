@@ -32,11 +32,21 @@ const alternates = getAlternates(currentPath);
 const altFor = (code: Locale) => alternates.find((alt) => alt.lang === code)?.href ?? localizePath('/', code);
 
 const items = [
-  { number: '01', href: '/works', label: t('nav.works') },
-  { number: '02', href: '/writing', label: t('nav.writing') },
-  { number: '03', href: '/timeline', label: t('nav.timeline') },
-  { number: '04', href: '/about', label: t('nav.about') },
+  { href: '/works', label: t('nav.works') },
+  { href: '/writing', label: t('nav.writing') },
+  { href: '/notes', label: t('nav.notes') },
+  { href: '/timeline', label: t('nav.timeline') },
+  { href: '/about', label: t('nav.about') },
 ] as const;
+
+/* /notes, /reading and /now are Chinese-only pages (translated={false}):
+ * they must never be localized to /en/..., and their own masthead hides the
+ * English option instead of pointing at a 404. */
+const ZH_ONLY = ['/notes', '/reading', '/now'];
+const isZhOnlyPath = ZH_ONLY.some(
+  (prefix) => currentPath === prefix || currentPath.startsWith(`${prefix}/`)
+);
+const navHref = (href: string) => (ZH_ONLY.includes(href) ? href : localizePath(href, lang));
 
 const isActive = (href: string) =>
   currentPath === href || currentPath.startsWith(`${href}/`);
@@ -72,12 +82,11 @@ const location = lt(profile.location, lang);
             const active = isActive(item.href);
             return (
               <a
-                href={localizePath(item.href, lang)}
+                href={navHref(item.href)}
                 class:list={['mast-nav-item', active && 'is-active']}
                 aria-current={active ? 'page' : undefined}
                 style={active ? 'view-transition-name: nav-active' : undefined}
               >
-                <i aria-hidden="true">{item.number}</i>
                 <span>{item.label}</span>
               </a>
             );
@@ -88,17 +97,24 @@ const location = lt(profile.location, lang);
       <div class="mast-tools">
         <div class="lang-switch" aria-label={t('lang.switch')}>
           {
-            (['zh', 'en'] as Locale[]).map((code) => (
-              <a
-                href={altFor(code)}
-                hreflang={localeMeta[code].htmlLang}
-                lang={localeMeta[code].htmlLang}
-                class:list={['lang-option', code === lang && 'is-active']}
-                aria-current={code === lang ? 'true' : undefined}
-              >
-                {localeMeta[code].shortLabel}
-              </a>
-            ))
+            isZhOnlyPath ? (
+              <>
+                <span class="lang-option is-active">{localeMeta[lang].shortLabel}</span>
+                <span class="lang-note mono">{lang === 'zh' ? '仅中文' : 'Chinese only'}</span>
+              </>
+            ) : (
+              (['zh', 'en'] as Locale[]).map((code) => (
+                <a
+                  href={altFor(code)}
+                  hreflang={localeMeta[code].htmlLang}
+                  lang={localeMeta[code].htmlLang}
+                  class:list={['lang-option', code === lang && 'is-active']}
+                  aria-current={code === lang ? 'true' : undefined}
+                >
+                  {localeMeta[code].shortLabel}
+                </a>
+              ))
+            )
           }
         </div>
 
@@ -137,7 +153,7 @@ const location = lt(profile.location, lang);
     <nav class="mast-fallback wrap" aria-label={t('nav.works')}>
       {
         items.map((item) => (
-          <a href={localizePath(item.href, lang)} aria-current={isActive(item.href) ? 'page' : undefined}>
+          <a href={navHref(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>
             {item.label}
           </a>
         ))
@@ -172,12 +188,11 @@ const location = lt(profile.location, lang);
         {
           items.map((item, index) => (
             <a
-              href={localizePath(item.href, lang)}
+              href={navHref(item.href)}
               class:list={['mast-menu-link', isActive(item.href) && 'is-active']}
               aria-current={isActive(item.href) ? 'page' : undefined}
               style={`--menu-i:${index}`}
             >
-              <span class="mast-menu-num">{item.number}</span>
               <span class="mast-menu-label">{item.label}</span>
               <span class="mast-menu-arrow" aria-hidden="true">→</span>
             </a>
@@ -188,16 +203,23 @@ const location = lt(profile.location, lang);
       <div class="mast-menu-foot">
         <div class="lang-switch">
           {
-            (['zh', 'en'] as Locale[]).map((code) => (
-              <a
-                href={altFor(code)}
-                class:list={['lang-option', code === lang && 'is-active']}
-                hreflang={localeMeta[code].htmlLang}
-                lang={localeMeta[code].htmlLang}
-              >
-                {localeMeta[code].shortLabel}
-              </a>
-            ))
+            isZhOnlyPath ? (
+              <>
+                <span class="lang-option is-active">{localeMeta[lang].shortLabel}</span>
+                <span class="lang-note mono">{lang === 'zh' ? '仅中文' : 'Chinese only'}</span>
+              </>
+            ) : (
+              (['zh', 'en'] as Locale[]).map((code) => (
+                <a
+                  href={altFor(code)}
+                  class:list={['lang-option', code === lang && 'is-active']}
+                  hreflang={localeMeta[code].htmlLang}
+                  lang={localeMeta[code].htmlLang}
+                >
+                  {localeMeta[code].shortLabel}
+                </a>
+              ))
+            )
           }
         </div>
         <p class="mast-menu-status"><span class="status-dot" aria-hidden="true" />{availability}</p>
@@ -468,7 +490,7 @@ const location = lt(profile.location, lang);
   .mast-nav {
     display: flex;
     align-items: baseline;
-    gap: 2rem;
+    gap: 1.75rem;
     justify-self: center;
   }
 
@@ -476,7 +498,6 @@ const location = lt(profile.location, lang);
     position: relative;
     display: inline-flex;
     align-items: baseline;
-    gap: 0.4375rem;
     min-height: 2.75rem;
     margin-block: -0.4375rem;
     padding-block: 0.4375rem;
@@ -493,15 +514,6 @@ const location = lt(profile.location, lang);
 
   .mast-nav-item:active {
     transform: translateY(1px);
-  }
-
-  .mast-nav-item i {
-    font-family: var(--font-mono);
-    font-style: normal;
-    font-size: 0.5625rem;
-    letter-spacing: 0.06em;
-    color: var(--subtle);
-    transition: color var(--dur-1, 120ms) ease-out;
   }
 
   .mast-nav-item::after {
@@ -568,6 +580,20 @@ const location = lt(profile.location, lang);
   .lang-option.is-active {
     color: var(--ink);
     border-bottom-color: var(--accent);
+  }
+
+  .lang-note {
+    font-size: 0.5625rem;
+    letter-spacing: 0.06em;
+    color: var(--subtle);
+    white-space: nowrap;
+    padding-bottom: 2px;
+  }
+
+  .lang-note::before {
+    content: '·';
+    margin-inline-end: 0.3125rem;
+    color: var(--faint);
   }
 
   .lang-option:active {
@@ -803,7 +829,7 @@ const location = lt(profile.location, lang);
   .mast-menu-link {
     display: grid;
     min-height: 3.25rem;
-    grid-template-columns: 2.25rem 1fr auto;
+    grid-template-columns: 1fr auto;
     align-items: baseline;
     gap: 0.5rem;
     padding-block: 1.125rem;
@@ -818,12 +844,6 @@ const location = lt(profile.location, lang);
     color: var(--accent-strong);
   }
 
-  .mast-menu-num {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    color: var(--subtle);
-  }
-
   .mast-menu-label {
     font-family: var(--font-serif);
     font-size: 1.625rem;
@@ -833,10 +853,6 @@ const location = lt(profile.location, lang);
   .mast-menu-arrow {
     color: var(--accent);
     transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
-  }
-
-  .mast-menu-num {
-    transition: color var(--dur-1, 120ms) ease-out;
   }
 
   @keyframes menu-link-in {
@@ -957,10 +973,6 @@ const location = lt(profile.location, lang);
     .mast-menu-link:hover .mast-menu-arrow {
       transform: translateX(3px);
     }
-
-    .mast-menu-link:hover .mast-menu-num {
-      color: var(--accent);
-    }
   }
 
   @media (max-width: 1023px) {
@@ -999,7 +1011,6 @@ const location = lt(profile.location, lang);
     .mast-menu,
     .mast-nav-item,
     .mast-nav-item::after,
-    .mast-nav-item i,
     .wordmark,
     .lang-option,
     .theme-toggle,
@@ -1010,7 +1021,6 @@ const location = lt(profile.location, lang);
     .mast-menu-in,
     .mast-menu-link,
     .mast-menu-arrow,
-    .mast-menu-num,
     .status-pill {
       transition: none;
       animation: none;

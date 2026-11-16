@@ -1,0 +1,101 @@
+---
+title: 'One step, ten steps ahead'
+description: 'The data format in the first version of my sales tool was whatever came to mind. Three months later I spent two evenings migrating it.'
+date: 2026-10-25
+tags: ['engineering', 'refactoring', 'long-term']
+category: engineering
+featured: false
+cover: '/images/posts/one-step-ten-steps-ahead.webp'
+---
+
+The evening of October 25, I was rewriting my own sales tool.
+
+It started as a toy. One CSV file for customer master data, one script that pulled a list by region, one scheduled job that scraped public leads. At small scale, anything works.
+
+Then more got bolted on: AI lead collection, automatic follow-ups, call record archiving. Complexity arrived and the old structure could not hold it. This month I started the first refactor.
+
+## How the refactor splits
+
+Four layers.
+
+Outside is a CLI layer: what you type, what arguments go in, what format comes out.
+
+Under it a workflow layer that strings together find leads, screen customers, draft follow-ups, record the outcome. Each step runs alone or as a chain.
+
+Under that a data layer: customer master data moves from CSV to SQLite, with a CSV mirror kept so I can still open it in Excel.
+
+Last, a scheduler layer: when things run, retries, where logs go.
+
+I also left a gap for an interface layer, to connect a TUI or a web UI later. Not written yet. Just the opening.
+
+The split itself was not hard. What was hard was making the data line up across layers.
+
+## Where it actually got stuck
+
+Not the layers. The data.
+
+Version one was written casually. Fields in the different CSVs do not agree. The same thing is called customer in one table and client in another. Dates appear as 2026/9/1 and as 2026-09-01. Phone numbers sometimes have a country code and sometimes do not.
+
+At the time I did not care. A few dozen rows; a script would fix it.
+
+When the migration actually started, with a few hundred dirty rows in front of me, I sat there for two evenings. AI can write the migration script, and it did — but every table needed a separate look, and the mismatched fields still had to be fixed by hand. On Thursday night, halfway through, duplicate primary keys showed up: the same customer imported twice. I rolled the whole thing back and started over.
+
+Staring at the screen during the rollback, I thought: if version one had been disciplined, this would have taken an hour.
+
+## One step, ten steps ahead
+
+That experience rewrote the phrase for me.
+
+I used to think it meant planning the next ten steps up front. Impossible. I did not know what the requirements would be in three months. Back then I had not even settled the idea of "customer master data" — it was just a CSV.
+
+Now I read it as: you do not need the whole route mapped, but you should make today's work orderly, and prepare the things likely to be reused.
+
+In that toy model, it would have meant fixing field names, using ISO dates, keeping area codes, adding a primary key column. Half a day at the start, two evenings saved later.
+
+In the short term it is even less efficient — the time spent defining fields and writing a schema could have gone straight into features. Whether it pays off long-term, you only find out the day reuse actually happens.
+
+I forget where I read Zhang Yiming talking about delayed gratification, saying he understood it very young. It meant nothing to me at the time. Then I spent those two evenings.
+
+## What I do now to "look ten steps ahead"
+
+Three small things.
+
+Before writing a new script, spend ten minutes thinking where the data comes from, where it goes, and whether anything else will use it. The thinking will be incomplete. But ten minutes of thinking and no thinking are very different.
+
+Settle field naming first. Chinese names, pinyin, English mixed together all look fine short-term; long-term it always breaks.
+
+Give every module one exit. The data layer exposes a few functions; nothing else reads the CSV directly. When storage changes later, one place changes.
+
+It sounds like a software engineering textbook. I only started believing it after my own data bit me.
+
+## The migration, actually five steps
+
+Looking back, it was five steps: export old data, clean fields, write a mapping table, import, spot-check.
+
+The first two took the most time. Cleaning is not a script; many fields need a human glance before you know where they belong. I wrote the mapping table by hand — twenty-odd fields took two hours.
+
+Importing was quick. Spot checks were quick: twenty rows, if they line up, done.
+
+The thing I did not anticipate was making test data. To verify the migration script I generated thirty fake customers covering every dirty format. Those thirty rows saved a lot of time later.
+
+## Is this over-engineering?
+
+Sometimes I wonder whether a small tool for myself really needs four layers.
+
+The refactor was not for pretty architecture. It was because I could not fit anything else in. One more client and the old structure would collapse.
+
+If the tool stayed single-user and never grew, layering would be pointless. But it now needs a second client and eventually other people, which is when layering becomes worth it.
+
+A tool's value depends on how much it has to carry, not on how many layers it has.
+
+## What is not finished
+
+The refactor is not finished either. The Zhaopin client is not written, the web UI does not exist, and the interface layer is an empty shell.
+
+The data is migrated and one full run works end to end. That counts as stage one, barely.
+
+Version one's data format looks stupid now. But put me back three months and I would probably do the same — I did not know what would attach to it.
+
+All I can do is spend half an hour defining fields the next time I write a toy model.
+
+I might forget again. Then I get bitten again. These habits are not something I reasoned my way into; they are scar tissue.

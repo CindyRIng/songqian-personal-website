@@ -1,0 +1,67 @@
+---
+/**
+ * NowView — `/now`, a dated snapshot kept like a notebook page.
+ * Chinese-first by design; a short English summary closes the page.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { c } from '../data/copy';
+import { now } from '../data/now';
+import type { Locale } from '../i18n/config';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const langLabel = lang === 'zh' ? '现在' : 'Now';
+const dateLabel = now.updated.replaceAll('-', '.');
+---
+
+<BaseLayout lang={lang} title={lang === 'zh' ? '现在' : 'Now'} description={c(now.intro, lang)} path="/now" translated={false} wide>
+  <div class="wrap">
+    <header class="max-w-[42rem] border-t border-line pt-5">
+      <p class="mono flex items-center gap-3 text-[0.6875rem] uppercase tracking-[0.14em] text-subtle">
+        <span>{langLabel} / NOW</span>
+        <span class="h-px w-8 bg-[var(--line-strong)]" aria-hidden="true"></span>
+        <time datetime={now.updated}>{dateLabel}</time>
+      </p>
+      <h1 class="mt-6 font-serif text-[clamp(2.5rem,5vw,3.75rem)] font-[540] leading-[1.05] tracking-[-0.03em] text-ink-strong">
+        现在
+      </h1>
+      <p class="mt-5 max-w-[34rem] text-pretty text-[1.0625rem] leading-[1.75] text-muted">
+        {c(now.intro, lang)}
+      </p>
+    </header>
+
+    <div class="mt-14 grid grid-cols-1 gap-x-14 gap-y-10 lg:grid-cols-[11rem_minmax(0,1fr)]">
+      {
+        now.sections.map((section) => (
+          <div class="contents">
+            <h2 class="border-t border-line pt-4 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle lg:border-t-0 lg:pt-0">
+              {c(section.label, lang)}
+            </h2>
+            <ul class="max-w-[46rem] space-y-4 border-t border-line pt-4">
+              {section.items.map((item) => (
+                <li class="text-pretty text-[1rem] leading-[1.8] text-ink">
+                  {item.href ? (
+                    <a class="link" href={item.href}>{item.zh}</a>
+                  ) : (
+                    item.zh
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="mt-16 max-w-[46rem] border-t border-line pt-6">
+      <p class="label mb-3">English</p>
+      <p class="text-pretty text-[0.9375rem] leading-[1.8] text-muted">{now.english}</p>
+      <p class="mono mt-6 text-[0.6875rem] uppercase tracking-[0.14em] text-subtle">
+        {lang === 'zh' ? '最后更新' : 'Last updated'} · <time datetime={now.updated}>{now.updated}</time>
+      </p>
+    </div>
+  </div>
+</BaseLayout>

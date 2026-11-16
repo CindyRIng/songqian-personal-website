@@ -1,0 +1,100 @@
+---
+/**
+ * NowStrip — four current lines from `src/data/now.ts`, rendered as hanging
+ * labels: a small mono label in the left gutter, one plain sentence on the
+ * right. Dense rules, no cards; "more" goes to /now.
+ */
+import SectionHead from '../ui/SectionHead.astro';
+import { copy, c } from '../../data/copy';
+import { useTranslations } from '../../i18n/utils';
+import type { Locale } from '../../i18n/config';
+
+export interface NowRow {
+  label: string;
+  text: string;
+}
+
+interface Props {
+  lang: Locale;
+  rows: NowRow[];
+  class?: string;
+}
+
+const { lang, rows, class: className = '' } = Astro.props;
+const t = useTranslations(lang);
+---
+
+{
+  rows.length > 0 && (
+    <section class:list={['now-strip', className]} aria-labelledby="now-title">
+      <div class="wrap">
+        <SectionHead
+          title={c(copy.home.nowTitle, lang)}
+          lede={c(copy.home.nowLede, lang)}
+          href="/now"
+          actionLabel={t('common.more')}
+          id="now-title"
+        />
+
+        <dl class="now-list">
+          {rows.map((row) => (
+            <div class="now-row">
+              <dt class="now-label mono">{row.label}</dt>
+              <dd class="now-text">{row.text}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .now-strip {
+    margin-top: clamp(2.5rem, 4vw, 3.5rem);
+  }
+
+  .now-list {
+    margin-top: 1.125rem;
+  }
+
+  .now-row {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: baseline;
+    padding-block: 0.9375rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .now-label {
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    color: var(--subtle);
+    padding-top: 0.25rem;
+  }
+
+  .now-text {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1.0313rem;
+    line-height: 1.8;
+    color: var(--ink);
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 640px) {
+    .now-row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.25rem;
+    }
+
+    .now-label {
+      padding-top: 0;
+    }
+
+    .now-text {
+      font-size: 1rem;
+    }
+  }
+</style>

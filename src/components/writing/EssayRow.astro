@@ -2,9 +2,10 @@
 /**
  * EssayRow — one entry of the numbered writing index (A+ direction).
  *
- * Layout: mono number → title + English/Chinese subtitle + one-liner → right
- * meta (category · date) with a quiet arrow. The first (featured) row is set
- * larger and shows the "read" action; later rows are compact.
+ * Layout: mono number → title + one-liner → right meta (category · date) with a
+ * quiet arrow. Single-language rows; the numbering reads like a table of
+ * contents. The first (featured) row is set larger and shows the "read" action;
+ * later rows are compact.
  *
  * Interaction: the whole row is one link. Hover only fires on hover-capable
  * pointers (row wash + title/number/arrow accents), focus-visible draws the
@@ -30,10 +31,6 @@ const t = useTranslations(lang);
 const href = localizePath(post.path, lang);
 const number = String(index).padStart(2, '0');
 const categoryKey = (`writing.category.${post.category}`) as TranslationKey;
-
-/** The other language's title, shown as the bilingual subtitle. */
-const otherLocale: Locale = lang === 'zh' ? 'en' : 'zh';
-const subtitle = post.titleByLocale[otherLocale];
 ---
 <a
   href={href}
@@ -67,19 +64,6 @@ const subtitle = post.titleByLocale[otherLocale];
     >
       {post.title}
     </h2>
-
-    {
-      subtitle && (
-        <p
-          class:list={[
-            'essay-subtitle display-latin mt-1.5 text-muted',
-            featured ? 'text-[1.125rem] sm:text-[1.25rem]' : 'text-[0.9375rem]',
-          ]}
-        >
-          {subtitle}
-        </p>
-      )
-    }
 
     <p
       class:list={[
@@ -145,8 +129,7 @@ const subtitle = post.titleByLocale[otherLocale];
   }
 
   .essay-row .essay-title,
-  .essay-row .essay-number,
-  .essay-row .essay-subtitle {
+  .essay-row .essay-number {
     transition:
       color var(--dur-1) ease-out,
       transform var(--dur-2) var(--ease-out);
@@ -203,7 +186,6 @@ const subtitle = post.titleByLocale[otherLocale];
     .essay-row::before,
     .essay-row .essay-title,
     .essay-row .essay-number,
-    .essay-row .essay-subtitle,
     :global(.essay-row .essay-arrow),
     :global(.essay-row .essay-readmore-arrow) {
       transition: none;

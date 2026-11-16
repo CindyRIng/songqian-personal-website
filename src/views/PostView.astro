@@ -42,7 +42,6 @@ const canonical = new URL(localizePath(post.path, lang), siteUrl).href;
 const cover = hasCoverAsset(post.cover) ? post.cover : undefined;
 const writingHref = localizePath('/writing', lang);
 const authorName = lt(profile.name, lang) || profile.latinName;
-const otherLocale: Locale = lang === 'zh' ? 'en' : 'zh';
 
 const ogImage = cover ? `/og/posts/${post.slug}.jpg` : '/og/default.png';
 

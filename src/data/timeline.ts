@@ -4,6 +4,12 @@
  * `start`/`end` are `YYYY-MM` strings, `end: null` means "Present". The array
  * is newest-first; `getTimeline()` sorts defensively. Only the entries marked
  * `cv: true` appear in the About page's short CV ledger.
+ *
+ * V4: expanded to 22 entries from the Obsidian vault project log
+ * (`Project/` docs, dated PJ files) and the diary milestones. No invented
+ * facts; failed/cancelled projects are recorded as such (AgentOS, the
+ * three-person sales team, the rolling course for a client that was cancelled
+ * when I left Huayun).
  */
 import type { L } from './profile';
 import type { Locale } from '../i18n/config';
@@ -71,6 +77,20 @@ export const timeline: TimelineEntry[] = [
     tags: ['Astro', 'TypeScript', 'Design'],
   },
   {
+    id: 'ai-livestream-sales',
+    type: 'work',
+    start: '2026-11',
+    end: null,
+    org: { zh: '孚盟软件', en: 'Fumamx' },
+    role: { zh: '客户经理 · 自建销售系统', en: 'Account manager · self-built sales system' },
+    summary: {
+      zh: '销售系统又往前推了一步：探迹、BOSS 客户端已经能用，智联还差一半。11 月开始偶尔直播，讲外贸 AI 怎么接进业务流程。',
+      en: 'The sales system moved forward again: the Tanji and BOSS clients work, Zhaopin is half done. In November I started occasional livestreams about how AI actually fits into foreign-trade workflows.',
+    },
+    location: LOC,
+    tags: ['Sales', 'AI', 'Livestream'],
+  },
+  {
     id: 'canton-fair-sop',
     type: 'work',
     start: '2026-10',
@@ -114,6 +134,20 @@ export const timeline: TimelineEntry[] = [
     tags: ['Sales', 'SaaS'],
   },
   {
+    id: 'training-course',
+    type: 'work',
+    start: '2026-07',
+    end: '2026-07',
+    org: { zh: '制造业 AI 培训', en: 'Manufacturing AI training' },
+    role: { zh: '课程设计', en: 'Course design' },
+    summary: {
+      zh: '给一家制造企业准备 AI 培训：写大纲、做 PPT、准备试讲。7 月 27 日从华云离职，课最后没讲成。',
+      en: 'Prepared an AI training course for a manufacturing company: outline, slides, a rehearsal. I left Huayun on 27 July and the course never ran.',
+    },
+    location: LOC,
+    tags: ['AI', 'Training'],
+  },
+  {
     id: 'graduation',
     type: 'milestone',
     start: '2026-06',
@@ -128,6 +162,21 @@ export const timeline: TimelineEntry[] = [
     tags: ['Graduation'],
   },
   {
+    id: 'thesis-completed',
+    type: 'education',
+    start: '2026-06',
+    end: '2026-06',
+    cv: true,
+    org: { zh: '河北工程技术学院', en: 'Hebei University of Engineering Technology' },
+    role: { zh: '毕业设计', en: 'Thesis' },
+    summary: {
+      zh: '6 月 11 日交了毕业设计终稿：网球捡球机器人，五层架构、两轮差速底盘、滚筒拾球机构和 3D 打印结构。',
+      en: 'Submitted the final thesis on 11 June: a tennis-ball-collecting robot with a five-layer architecture, differential drive, roller pickup and 3D-printed parts.',
+    },
+    location: LOC,
+    tags: ['Thesis', 'ROS', '3D Printing'],
+  },
+  {
     id: 'sales-team-experiment',
     type: 'milestone',
     start: '2026-06',
@@ -135,25 +184,39 @@ export const timeline: TimelineEntry[] = [
     org: { zh: '三人销售小组', en: 'Three-person sales team' },
     role: { zh: '销售与方案', en: 'Sales & solutions' },
     summary: {
-      zh: '和两个伙伴做了一次小规模销售创业实验：选品、找客户、做报价。两个月后，各自回到更合适的路径。',
-      en: 'A short three-person sales experiment: picking products, finding customers, quoting. Two months later we each chose a better-fitting path.',
+      zh: '和两个朋友凑了个销售小组。卖什么、谁负责什么都没定，就急着去找客户，一个夏天不到就散了。',
+      en: 'Two friends and I started a sales team. We had not decided what we were selling or who owned what, but went looking for customers anyway. It fell apart within a summer.',
     },
     location: LOC,
-    tags: ['Startup', 'Sales'],
+    tags: ['Sales'],
+  },
+  {
+    id: 'agentos',
+    type: 'milestone',
+    start: '2026-05',
+    end: '2026-05',
+    org: { zh: 'AgentOS', en: 'AgentOS' },
+    role: { zh: '项目尝试', en: 'Project attempt' },
+    summary: {
+      zh: '想把公司内部的 Agent 做成一套能推广的系统，做了两周多、25 个小时，发现目标没说清，5 月 28 日取消。只留下命名规范和配置规范。',
+      en: 'Tried to turn the company’s internal agents into a system that could be rolled out. Two-plus weeks and 25 hours in, the goal was still unclear; cancelled on 28 May. Only the naming and configuration specs survived.',
+    },
+    location: LOC,
+    tags: ['AI', 'Agents'],
   },
   {
     id: 'korea-partnership',
     type: 'milestone',
-    start: '2026-05',
+    start: '2026-04',
     end: '2026-05',
-    org: { zh: '国际教育合作项目', en: 'International education project' },
+    org: { zh: '韩国工大合作项目', en: 'Korean university partnership' },
     role: { zh: '项目推进', en: 'Project lead' },
     summary: {
-      zh: '参与韩国高校来访合作：接待、方案、翻译与后续落地推进。',
-      en: 'Helped host a Korean university delegation: reception, proposals, translation and follow-up.',
+      zh: '先给韩国工大做中文官网（4 月），5 月接待来访团，做方案、翻译和后续推进。',
+      en: 'Built a Chinese-language website for a Korean engineering university in April, then hosted its delegation in May: proposals, translation and follow-up.',
     },
     location: LOC,
-    tags: ['Partnership'],
+    tags: ['Partnership', 'Web'],
   },
   {
     id: 'ai-implementation-intern',
@@ -171,6 +234,34 @@ export const timeline: TimelineEntry[] = [
     tags: ['AI', 'Product', 'Pre-sales'],
   },
   {
+    id: 'tennis-3-5',
+    type: 'life',
+    start: '2026-02',
+    end: null,
+    org: { zh: '网球', en: 'Tennis' },
+    role: { zh: '冲 3.5', en: 'Chasing 3.5' },
+    summary: {
+      zh: '给自己定了个目标：两场 Tennis123 3.5 单打冠军。做了六天一个循环的 PHASE1 训练计划，每周两三次，现在还在改底线和发球。',
+      en: 'Set a goal: two Tennis123 3.5 singles titles. Built a six-day PHASE1 training cycle and play two or three times a week; still reworking the baseline and the toss.',
+    },
+    location: LOC,
+    tags: ['Tennis', 'Training'],
+  },
+  {
+    id: 'apostol',
+    type: 'education',
+    start: '2026-02',
+    end: null,
+    org: { zh: '自学', en: 'Self-study' },
+    role: { zh: '微积分', en: 'Calculus' },
+    summary: {
+      zh: '开始读 Apostol《微积分》第一卷，记了 23 小时 15 分，还没读完。实变部分得自己在纸上推，推不动就停两天。',
+      en: 'Started Apostol’s Calculus Vol. I — 23 hours and 15 minutes logged, still unfinished. The real-analysis parts only move if I redo the proofs on paper.',
+    },
+    location: LOC,
+    tags: ['Math', 'Reading'],
+  },
+  {
     id: 'thesis-robot',
     type: 'education',
     start: '2025-11',
@@ -183,6 +274,20 @@ export const timeline: TimelineEntry[] = [
     },
     location: LOC,
     tags: ['ROS', 'Embedded', '3D Printing'],
+  },
+  {
+    id: 'principles-system',
+    type: 'life',
+    start: '2025-10',
+    end: '2025-10',
+    org: { zh: '个人原则系统', en: 'Personal principles' },
+    role: { zh: 'CP1–CP6', en: 'CP1–CP6' },
+    summary: {
+      zh: '写完六条个人原则 v1.0：精力优先、单通道专注、日记与复盘、输入节食、承诺边界、风险闸门。',
+      en: 'Finished six personal principles v1.0: energy first, single-channel focus, diary and review, input diet, commitment boundaries, risk gate.',
+    },
+    location: LOC,
+    tags: ['Systems', 'Writing'],
   },
   {
     id: 'reimbursement-system',
@@ -214,18 +319,32 @@ export const timeline: TimelineEntry[] = [
     tags: ['Leadership', 'Community'],
   },
   {
-    id: 'knowledge-system',
+    id: 'diary-system',
     type: 'life',
     start: '2025-05',
     end: null,
-    org: { zh: '个人系统', en: 'Personal system' },
-    role: { zh: '写作者', en: 'Writer' },
+    org: { zh: '日记与复盘', en: 'Diary and review' },
+    role: { zh: '持续记录', en: 'Ongoing record' },
     summary: {
-      zh: '开始用纯文本与双链管理知识：日记、周复盘、原则系统，并把经验写成文章。',
-      en: 'Started managing knowledge in plain text and backlinks: diary, weekly reviews, a principles system, and turning experience into essays.',
+      zh: '5 月 29 日写了《为什么要写日记与怎样写日记》，之后基本每天都写，到现在 392 天。',
+      en: 'On 29 May I wrote down why and how I keep a diary. I have written almost every day since — 392 days so far.',
     },
     location: LOC,
-    tags: ['Writing', 'PKM'],
+    tags: ['Diary', 'Systems'],
+  },
+  {
+    id: 'systems-engineering',
+    type: 'education',
+    start: '2025-02',
+    end: null,
+    org: { zh: '自学', en: 'Self-study' },
+    role: { zh: '系统工程', en: 'Systems engineering' },
+    summary: {
+      zh: '开始读《系统工程原则与实践》，中间停了大半年；做毕设时又捡起来，现在读到 156/661 页。',
+      en: 'Started Systems Engineering Principles and Practice, stopped for most of a year, picked it up again for the thesis. Now on page 156 of 661.',
+    },
+    location: LOC,
+    tags: ['Systems', 'Reading', 'Thesis'],
   },
   {
     id: 'university-start',
@@ -234,10 +353,10 @@ export const timeline: TimelineEntry[] = [
     end: '2026-06',
     cv: true,
     org: { zh: '河北工程技术学院', en: 'Hebei University of Engineering Technology' },
-    role: { zh: '物联网工程 · 本科', en: 'B.Eng. Internet of Things Engineering' },
+    role: { zh: '物联网工程 · 学士', en: 'B.Eng. Internet of Things Engineering' },
     summary: {
-      zh: '从硬件到软件都学了一遍；真正留下来的，是对系统的兴趣和一套自己的学习方式。',
-      en: 'Studied both hardware and software; what stayed was an interest in systems and a way of learning that is my own.',
+      zh: '从唐山到石家庄读大学，学物联网工程。四年里硬件、软件、社团都碰过，真正留下来的是对系统和自学方法的兴趣。',
+      en: 'Moved from Tangshan to Shijiazhuang for university and studied IoT engineering. Four years of hardware, software and a student club; what stayed was an interest in systems and a way of learning that is my own.',
     },
     location: LOC,
     tags: ['IoT', 'Computer Science'],

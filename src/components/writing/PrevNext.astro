@@ -20,7 +20,6 @@ interface Props {
 
 const { lang, older, newer } = Astro.props;
 const t = useTranslations(lang);
-const otherLocale: Locale = lang === 'zh' ? 'en' : 'zh';
 ---
 {
   (older || newer) && (
@@ -37,9 +36,6 @@ const otherLocale: Locale = lang === 'zh' ? 'en' : 'zh';
           </span>
           <span class="pn-title font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.012em] text-ink-strong text-balance">
             {older.title}
-          </span>
-          <span class="display-latin text-[0.9375rem] text-muted">
-            {older.titleByLocale[otherLocale]}
           </span>
           <time
             datetime={isoDate(older.date)}
@@ -62,9 +58,6 @@ const otherLocale: Locale = lang === 'zh' ? 'en' : 'zh';
           </span>
           <span class="pn-title font-serif text-[1.0625rem] font-[540] leading-snug tracking-[-0.012em] text-ink-strong text-balance">
             {newer.title}
-          </span>
-          <span class="display-latin text-[0.9375rem] text-muted">
-            {newer.titleByLocale[otherLocale]}
           </span>
           <time
             datetime={isoDate(newer.date)}

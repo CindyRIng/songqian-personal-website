@@ -34,7 +34,7 @@ const posts = defineCollection({
     /** Same slug across locales links translations together. */
     slug: z.string().optional(),
     tags: z.array(z.string()).default([]),
-    category: z.enum(['design', 'engineering', 'life', 'notes']).default('notes'),
+    category: z.enum(['design', 'engineering', 'life', 'notes', 'work', 'tennis']).default('notes'),
     featured: z.boolean().default(false),
     draft: z.boolean().default(false),
     cover: z.string().optional(),

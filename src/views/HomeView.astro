@@ -1,27 +1,32 @@
 ---
 /**
- * HomeView — the A+ home page, shared by zh (/) and en (/en/).
+ * HomeView — V4 content-first home: a person's desk, not a portfolio poster.
  *
- * Order: Hero → StatBar → full-bleed ArtPlate → Works (2 terminal cards +
- * 4 compact rows) → Writing (numbered index) → Timeline (5 nodes).
- * The global SiteFooter closes the page with the contact CTA.
+ * Order: Hero → StatBar → Recent notes → Now → Works → Writing → Reading →
+ * Timeline. The ArtPlate manifesto is gone; sections are headed by a plain
+ * label + lede (no numbering, no English italic subtitles).
  *
- * Copy: src/data/copy.ts · identity: src/data/profile.ts ·
- * projects/posts/timeline: the libraries + data modules.
+ * Notes (`../data/notes`) and reading (`../data/reading`) are owned by other
+ * agents and may land late: they are loaded through import.meta.glob so a
+ * missing module degrades to an empty section instead of a red build.
  */
 import Hero from '../components/home/Hero.astro';
+import NotesSection from '../components/home/NotesSection.astro';
+import NowStrip from '../components/home/NowStrip.astro';
 import WorksSection from '../components/home/WorksSection.astro';
 import WritingSection from '../components/home/WritingSection.astro';
 import type { WritingItem } from '../components/home/WritingSection.astro';
+import ReadingStrip from '../components/home/ReadingStrip.astro';
 import TimelineStrip from '../components/home/TimelineStrip.astro';
 import HomeMotion from '../components/home/HomeMotion.astro';
 import StatBar from '../components/ui/StatBar.astro';
-import ArtPlate from '../components/ui/ArtPlate.astro';
-import { categoryLabel } from '../components/home/labels';
-import { copy, c, pair } from '../data/copy';
+import { copy, c } from '../data/copy';
 import { getFeaturedProjects, getLocalizedProjects, type ProjectEntry } from '../lib/projects';
 import { getAllPosts } from '../lib/posts';
 import { getTimeline, homeMilestones } from '../data/timeline';
+import { latestNotes } from '../data/notes';
+import { currentlyReading } from '../data/reading';
+import { now } from '../data/now';
 import { localizePath } from '../i18n/utils';
 import type { Locale } from '../i18n/config';
 
@@ -38,8 +43,7 @@ const allProjects = await getLocalizedProjects(lang);
 const featuredProjects = await getFeaturedProjects(lang, 2);
 const featuredSlugs = new Set(featuredProjects.map((project) => project.slug));
 
-/* The A+ direction orders the compact rows as BOSS → 智联 → 探迹 → robot,
- * which is the story order (job boards become leads before the thesis toy). */
+/* The A+ story order: job boards become leads before the thesis toy. */
 const TOOL_ORDER = ['boss-client', 'zhilian-client', 'tanji-client', 'tennis-ball-robot'];
 const tools: ProjectEntry[] = allProjects
   .filter((project) => !featuredSlugs.has(project.slug))
@@ -50,58 +54,36 @@ const tools: ProjectEntry[] = allProjects
   });
 
 /* -------------------------------------------------------------------------- */
-/* Writing                                                                    */
+/* Writing — the four newest essays                                           */
 /* -------------------------------------------------------------------------- */
 const posts = await getAllPosts(lang);
-const otherLang: Locale = lang === 'zh' ? 'en' : 'zh';
-const otherPosts = await getAllPosts(otherLang);
-const otherTitleBySlug = new Map(otherPosts.map((post) => [post.slug, post.title]));
-
-const dateLabel = (date: Date) => date.toISOString().slice(0, 10).replaceAll('-', '.');
-
-const toWritingItem = (post: (typeof posts)[number], index: number): WritingItem => ({
+const latestPosts: WritingItem[] = posts.slice(0, 4).map((post) => ({
   title: post.title,
-  secondaryTitle: otherTitleBySlug.get(post.slug) ?? '',
   description: post.description,
-  category: categoryLabel(post.category, lang),
-  tag: post.tags[0] ?? '',
-  dateLabel: dateLabel(post.date),
+  category: post.category,
+  dateLabel: post.date.toISOString().slice(0, 10).replaceAll('-', '.'),
   readingTime: post.readingTime,
   href: localizePath(post.path, lang),
-  number: String(index + 1).padStart(2, '0'),
-});
+}));
 
-/* Editorial order from the A+ direction: the featured essay first, then the
- * sequence that builds the argument (leverage → knowledge → AI → tennis). */
-const WRITING_ORDER = [
-  'compounding-through-university',
-  'linear-labor-and-compounding-leverage',
-  'personal-knowledge-management',
-  'ai-after-the-internet',
-  'tennis-as-neural-training',
-];
-const orderedPosts = [...posts].sort((a, b) => {
-  const indexA = WRITING_ORDER.indexOf(a.slug);
-  const indexB = WRITING_ORDER.indexOf(b.slug);
-  if (indexA !== -1 || indexB !== -1) {
-    return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
-  }
-  return b.date.getTime() - a.date.getTime();
-});
+/* -------------------------------------------------------------------------- */
+/* Notes / reading — Chinese-only source data (live modules)                   */
+/* -------------------------------------------------------------------------- */
+const recentNotes = latestNotes(4);
+const deskBooks = currentlyReading.slice(0, 3);
 
-const featuredPost = orderedPosts.find((post) => post.slug === WRITING_ORDER[0]) ?? orderedPosts[0];
-
-const writingTotal = posts.length;
-const years = posts.map((post) => post.date.getUTCFullYear());
-const yearRange = years.length ? `${String(Math.min(...years))}—${String(Math.max(...years))}` : '';
-
-const writingFeatured = featuredPost ? toWritingItem(featuredPost, 0) : null;
-const writingRows = featuredPost
-  ? orderedPosts
-      .filter((post) => post.slug !== featuredPost.slug)
-      .slice(0, 4)
-      .map((post, index) => toWritingItem(post, index + 1))
-  : orderedPosts.slice(0, 4).map((post, index) => toWritingItem(post, index + 1));
+/* -------------------------------------------------------------------------- */
+/* Now — four current lines from the Lead-owned data module                   */
+/* -------------------------------------------------------------------------- */
+const nowRows = now.sections
+  .map((section) => {
+    const first = section.items[0];
+    if (!first) return null;
+    const text = lang === 'en' && first.en ? first.en : first.zh;
+    return { label: c(section.label, lang), text };
+  })
+  .filter((row): row is { label: string; text: string } => row !== null)
+  .slice(0, 4);
 
 /* -------------------------------------------------------------------------- */
 /* Timeline                                                                   */
@@ -113,16 +95,17 @@ const milestones = homeMilestones
   .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
 
 /* -------------------------------------------------------------------------- */
-/* Stats + plate                                                              */
+/* Stats                                                                      */
 /* -------------------------------------------------------------------------- */
-const stats = copy.home.stats.map((stat) => {
-  const label = pair(stat.label, lang);
-  return { value: stat.value, label: label.title, en: label.secondary };
-});
-
-const plateQuote = pair(copy.home.plate.quote, lang);
-const plateMeta = c(copy.home.plate.meta, lang);
-const statLabel = lang === 'zh' ? '数字速览' : 'At a glance';
+const stats = copy.home.stats.map((stat) => ({
+  value: stat.value,
+  label: c(stat.label, lang),
+}));
+const statLabel = lang === 'zh' ? '数字' : 'Numbers';
+/* The notes and reading data are written in Chinese only, so they stay on the
+ * Chinese home page; /en/ shows the bilingual sections (works, writing, now). */
+const showNotes = lang === 'zh' && recentNotes.length > 0;
+const showReading = lang === 'zh' && deskBooks.length > 0;
 ---
 
 <div data-home class="home-page">
@@ -144,36 +127,45 @@ const statLabel = lang === 'zh' ? '数字速览' : 'At a glance';
     <StatBar stats={stats} label={statLabel} class="home-stats" />
   </div>
 
-  <ArtPlate quote={plateQuote.title} quoteEn={plateQuote.secondary} meta={plateMeta} />
+  {showNotes && <NotesSection lang={lang} notes={recentNotes} />}
 
-  <WorksSection lang={lang} featured={featuredProjects} tools={tools} total={allProjects.length} />
+  <NowStrip lang={lang} rows={nowRows} />
 
-  {
-    writingFeatured && (
-      <WritingSection
-        lang={lang}
-        featured={writingFeatured}
-        rows={writingRows}
-        total={writingTotal}
-        yearRange={yearRange}
-      />
-    )
-  }
+  <WorksSection
+    lang={lang}
+    featured={featuredProjects}
+    tools={tools}
+    total={allProjects.length}
+    class="home-block"
+  />
 
-  <TimelineStrip lang={lang} entries={milestones} />
+  <WritingSection lang={lang} posts={latestPosts} class="home-block" />
+
+  {showReading && <ReadingStrip lang={lang} books={deskBooks} />}
+
+  <TimelineStrip lang={lang} entries={milestones} class="home-block" />
 
   <HomeMotion />
 </div>
 
 <style>
   /* BaseLayout's main already owns the page top padding; trim it so the hero
-     sits close to the masthead like the A+ direction. */
+     sits close to the masthead. */
   .home-page {
     margin-top: calc(var(--space-8) * -1);
   }
 
   .home-stats {
-    margin-top: clamp(2.5rem, 4.5vw, 4rem);
+    margin-top: clamp(2.25rem, 3.5vw, 3rem);
+  }
+
+  /* Denser than the editorial `.section` rhythm: a desk, not a magazine. */
+  .home-block {
+    padding-block: clamp(3.25rem, 5.5vw, 4.75rem);
+  }
+
+  .home-block.section {
+    padding-block: clamp(3.25rem, 5.5vw, 4.75rem);
   }
 
   @media (min-width: 640px) {

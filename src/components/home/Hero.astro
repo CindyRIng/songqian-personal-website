@@ -1,230 +1,163 @@
 ---
 /**
- * Hero — information-first opening: kicker → oversized name → role pair →
- * two honest paragraphs → three CTAs, with the quick-facts column on the right.
+ * Hero — short, plain opening. Kicker, name, one role line, two paragraphs,
+ * three CTAs. No quick-facts column (that content now lives in "现在"),
+ * no bilingual role line, no availability badge.
+ *
  * Each block opts into BaseLayout's [data-hero-step] stagger via --stagger.
  */
-import { copy, c, pair } from '../../data/copy';
-import { profile } from '../../data/profile';
-import { localizePath, useTranslations } from '../../i18n/utils';
+import { copy, c } from '../../data/copy';
+import { localizePath } from '../../i18n/utils';
 import type { Locale } from '../../i18n/config';
-import { chromeLabel, bilingualPair } from './labels';
 
 interface Props {
   lang: Locale;
 }
 
 const { lang } = Astro.props;
-const t = useTranslations(lang);
 
-const kicker = pair(copy.home.kicker, lang);
-const name = pair(copy.home.name, lang);
-const role = pair(copy.home.role, lang);
+const kicker = c(copy.home.kicker, lang);
+const primaryName = lang === 'zh' ? copy.home.name.zh : copy.home.latinName;
+const secondaryName = lang === 'zh' ? copy.home.latinName : copy.home.name.zh;
+const role = c(copy.home.role, lang);
 const intro = copy.home.intro.map((paragraph) => c(paragraph, lang));
+
 const ctas = [
-  {
-    label: c(copy.home.ctas.works, lang),
-    href: localizePath('/works', lang),
-    primary: true,
-  },
   {
     label: c(copy.home.ctas.writing, lang),
     href: localizePath('/writing', lang),
+    primary: true,
+  },
+  {
+    label: c(copy.home.ctas.works, lang),
+    href: localizePath('/works', lang),
     primary: false,
   },
   {
     label: c(copy.home.ctas.contact, lang),
-    href: `mailto:${profile.contact.email}`,
+    href: '/now',
     primary: false,
   },
 ];
-const facts = copy.home.quickFacts.map((fact) => ({
-  label: c(fact.label, lang),
-  value: c(fact.value, lang),
-}));
-const updated = new Date().toISOString().slice(0, 10).replaceAll('-', '.');
-const factsTitle = bilingualPair('速览', 'At a glance', lang);
 ---
 
 <section class="hero wrap" aria-labelledby="hero-title">
-  <div class="hero-main">
-    <p class="hero-kicker" data-hero-step style="--stagger:0">
-      <span class="hero-kicker-line" aria-hidden="true"></span>
-      <span>{kicker.title}</span>
-      <span class="hero-kicker-sep" aria-hidden="true">/</span>
-      <span class="hero-kicker-secondary">{kicker.secondary}</span>
-    </p>
+  <p class="hero-kicker" data-hero-step style="--stagger:0">
+    <span class="hero-kicker-line" aria-hidden="true"></span>
+    <span>{kicker}</span>
+  </p>
 
-    <h1 id="hero-title" class="hero-title display" data-hero-step style="--stagger:1">
-      {name.title}
-      <em class="display-latin hero-latin">{name.secondary}</em>
-    </h1>
+  <h1 id="hero-title" class="hero-title" data-hero-step style="--stagger:1">
+    {primaryName}
+    <span class:list={['hero-alt', lang === 'zh' && 'hero-alt--latin']}>{secondaryName}</span>
+  </h1>
 
-    <div class="hero-role" data-hero-step style="--stagger:2">
-      <p class="hero-role-primary">{role.title}</p>
-      <p class="hero-role-secondary">{role.secondary}</p>
-    </div>
+  <p class="hero-role" data-hero-step style="--stagger:2">{role}</p>
 
-    <div class="hero-bio" data-hero-step style="--stagger:3">
-      {intro.map((paragraph) => <p>{paragraph}</p>)}
-    </div>
-
-    <div class="hero-cta" data-hero-step style="--stagger:4">
-      {
-        ctas.map((cta) => (
-          <a
-            href={cta.href}
-            class:list={[
-              'btn',
-              cta.primary ? 'btn--solid' : 'btn--quiet',
-              cta.primary ? 'hero-cta-primary' : 'hero-cta-quiet',
-            ]}
-          >
-            <span>{cta.label}</span>
-            <span class="hero-cta-arrow" aria-hidden="true">→</span>
-          </a>
-        ))
-      }
-    </div>
+  <div class="hero-bio" data-hero-step style="--stagger:3">
+    {intro.map((paragraph) => <p>{paragraph}</p>)}
   </div>
 
-  <aside
-    class="hero-facts"
-    data-hero-step
-    style="--stagger:5"
-    aria-label={chromeLabel('factsTitle', lang)}
-  >
-    <div class="facts-head">
-      <span class="facts-title">
-        {factsTitle.primary}
-        <span aria-hidden="true">/</span>
-        {factsTitle.secondary}
-      </span>
-    </div>
-    <dl class="facts-list">
-      {
-        facts.map((fact) => (
-          <div class="facts-row">
-            <dt>{fact.label}</dt>
-            <dd>{fact.value}</dd>
-          </div>
-        ))
-      }
-    </dl>
-    <p class="facts-foot mono">
-      {chromeLabel('lastUpdated', lang)} {updated} · GMT+8<br />
-      {c(copy.home.availability, lang)}
-    </p>
-  </aside>
+  <div class="hero-cta" data-hero-step style="--stagger:4">
+    {
+      ctas.map((cta) => (
+        <a
+          href={cta.href}
+          class:list={['btn', cta.primary ? 'btn--solid' : 'btn--quiet']}
+        >
+          <span>{cta.label}</span>
+          <span class="hero-cta-arrow" aria-hidden="true">
+            →
+          </span>
+        </a>
+      ))
+    }
+  </div>
 </section>
 
 <style>
   .hero {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 19.25rem;
-    gap: clamp(3rem, 6vw, 5.75rem);
-    align-items: start;
     padding-top: clamp(1.5rem, 2.5vw, 2.5rem);
+    padding-bottom: clamp(2.5rem, 4.5vw, 3.5rem);
   }
 
-  /* --- kicker ------------------------------------------------------------ */
   .hero-kicker {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem;
-    font-family: var(--font-sans);
-    font-size: 0.6875rem;
-    letter-spacing: 0.24em;
+    font-family: var(--font-mono);
+    font-size: 0.6563rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--muted);
   }
 
   .hero-kicker-line {
-    width: 2.25rem;
+    width: 2.5rem;
     height: 1px;
-    background: var(--line-strong);
+    background: color-mix(in oklab, var(--ink) 26%, transparent);
   }
 
-  .hero-kicker-sep {
-    color: var(--faint);
-  }
-
-  .hero-kicker-secondary {
-    color: var(--subtle);
-    letter-spacing: 0.18em;
-  }
-
-  /* --- name -------------------------------------------------------------- */
   .hero-title {
     margin-top: 1.375rem;
-    letter-spacing: 0.015em;
-    font-weight: 500;
-  }
-
-  .hero-latin {
-    display: inline-block;
-    margin-inline-start: 0.5rem;
-    font-size: clamp(2rem, 3.4vw, 3.25rem);
-    color: var(--faint);
-    letter-spacing: -0.01em;
-    white-space: nowrap;
-  }
-
-  /* --- role -------------------------------------------------------------- */
-  .hero-role {
-    margin-top: 1.375rem;
-  }
-
-  .hero-role-primary {
-    font-family: var(--font-sans);
-    font-size: 0.9375rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    color: var(--accent-strong);
-    line-height: 1.5;
-  }
-
-  .hero-role-secondary {
-    margin-top: 0.4375rem;
-    font-family: var(--font-sans);
-    font-size: 0.6563rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--subtle);
-    line-height: 1.5;
-  }
-
-  /* --- bio --------------------------------------------------------------- */
-  .hero-bio {
-    margin-top: 1.75rem;
-    max-width: var(--measure);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.125rem 1.125rem;
     font-family: var(--font-serif);
-    font-size: clamp(1.0625rem, 1.22vw, 1.125rem);
-    line-height: 1.78;
+    font-size: var(--text-display);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.06;
+    color: var(--ink-strong);
+  }
+
+  .hero-alt {
+    font-family: var(--font-serif);
+    font-size: clamp(1.875rem, 3.2vw, 2.5rem);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--subtle);
+    font-style: normal;
+  }
+
+  .hero-alt--latin {
+    font-family: var(--font-serif);
+    font-style: italic;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-role {
+    margin-top: 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
     color: var(--muted);
-    letter-spacing: 0.008em;
+  }
+
+  .hero-bio {
+    margin-top: 1.625rem;
+    max-width: 39rem;
+  }
+
+  .hero-bio p {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.82;
+    color: var(--ink);
+    text-wrap: pretty;
   }
 
   .hero-bio p + p {
-    margin-top: 1em;
+    margin-top: 1rem;
   }
 
-  /* --- CTA ---------------------------------------------------------------
-     All three CTAs use the shared .btn system (44px, pill, focus/active/hover
-     from global.css); this file only owns the row rhythm and the little arrow
-     nudge that signals "this goes somewhere". */
   .hero-cta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.875rem;
-    margin-top: 2.125rem;
-  }
-
-  .hero-cta .btn {
-    font-size: 0.8125rem;
-    letter-spacing: 0.01em;
+    gap: 0.75rem;
+    margin-top: 2rem;
   }
 
   .hero-cta-arrow {
@@ -233,7 +166,7 @@ const factsTitle = bilingualPair('速览', 'At a glance', lang);
     transition: transform var(--dur-2, 200ms) var(--ease-out, ease-out);
   }
 
-  .hero-cta-primary .hero-cta-arrow {
+  .btn--solid .hero-cta-arrow {
     color: inherit;
   }
 
@@ -244,6 +177,15 @@ const factsTitle = bilingualPair('速览', 'At a glance', lang);
   }
 
   @media (max-width: 640px) {
+    .hero-bio {
+      margin-top: 1.375rem;
+    }
+
+    .hero-bio p {
+      font-size: 1rem;
+      line-height: 1.78;
+    }
+
     .hero-cta {
       gap: 0.625rem;
     }
@@ -256,103 +198,6 @@ const factsTitle = bilingualPair('速览', 'At a glance', lang);
 
     .hero-cta .btn:hover .hero-cta-arrow {
       transform: none;
-    }
-  }
-
-  /* --- facts ------------------------------------------------------------- */
-  .hero-facts {
-    border-top: 2px solid var(--ink);
-    padding-top: 0.875rem;
-  }
-
-  .facts-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .facts-title {
-    font-family: var(--font-sans);
-    font-size: 0.6875rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .facts-index {
-    font-size: 0.625rem;
-    letter-spacing: 0.1em;
-    color: var(--accent);
-  }
-
-  .facts-list {
-    margin-top: 0.75rem;
-  }
-
-  .facts-row {
-    display: grid;
-    grid-template-columns: 3.375rem minmax(0, 1fr);
-    gap: 0.625rem;
-    padding-block: 0.75rem;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .facts-row dt {
-    font-family: var(--font-mono);
-    font-size: 0.625rem;
-    letter-spacing: 0.06em;
-    color: var(--accent-strong);
-    padding-top: 2px;
-  }
-
-  .facts-row dd {
-    font-family: var(--font-sans);
-    font-size: 0.8125rem;
-    line-height: 1.55;
-    letter-spacing: 0.005em;
-    color: var(--ink);
-  }
-
-  .facts-foot {
-    margin-top: 0.8125rem;
-    font-size: 0.5938rem;
-    letter-spacing: 0.06em;
-    line-height: 1.9;
-    color: var(--subtle);
-  }
-
-  @media (max-width: 1023px) {
-    .hero {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 2.5rem;
-      padding-top: clamp(1.5rem, 5vw, 2.5rem);
-    }
-
-    .hero-latin {
-      display: block;
-      margin-inline-start: 0;
-      margin-top: 0.375rem;
-      font-size: clamp(1.75rem, 5vw, 2.5rem);
-    }
-
-    .hero-facts {
-      max-width: 32rem;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .hero-kicker {
-      letter-spacing: 0.16em;
-      gap: 0.5rem;
-    }
-
-    .hero-kicker-line {
-      width: 1.5rem;
-    }
-
-    .hero-cta {
-      gap: 0.625rem;
     }
   }
 </style>
