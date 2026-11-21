@@ -73,4 +73,25 @@ const projects = defineCollection({
   }),
 });
 
-export const collections = { posts, projects };
+/**
+ * Guides — the Chinese foreign-trade knowledge cluster (hub & spokes).
+ * Deliberately zh-only: the notes/guides are written for a Chinese audience and
+ * are not translated (their pages emit zh-CN + x-default hreflang only).
+ */
+const guides = defineCollection({
+  loader: glob({ pattern: '**/*.mdx', base: './src/content/guides' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    updated: z.coerce.date(),
+    keywords: z.array(z.string()).default([]),
+    order: z.number().default(99),
+    summary: z.array(z.string()).default([]),
+    faqs: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
+    related: z.array(z.string()).default([]),
+    cover: z.string().optional(),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { posts, projects, guides };

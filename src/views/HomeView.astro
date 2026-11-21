@@ -10,8 +10,11 @@
  * agents and may land late: they are loaded through import.meta.glob so a
  * missing module degrades to an empty section instead of a red build.
  */
+import { getCollection } from 'astro:content';
 import Hero from '../components/home/Hero.astro';
 import NotesSection from '../components/home/NotesSection.astro';
+import TradeSection from '../components/home/TradeSection.astro';
+import type { TradeGuide } from '../components/home/TradeSection.astro';
 import NowStrip from '../components/home/NowStrip.astro';
 import WorksSection from '../components/home/WorksSection.astro';
 import WritingSection from '../components/home/WritingSection.astro';
@@ -73,6 +76,28 @@ const recentNotes = latestNotes(4);
 const deskBooks = currentlyReading.slice(0, 3);
 
 /* -------------------------------------------------------------------------- */
+/* Trade cluster — zh-only guides collection (may be empty while content lands) */
+/* -------------------------------------------------------------------------- */
+let tradeGuides: TradeGuide[] = [];
+try {
+  const guideEntries = await getCollection('guides', (entry) => entry.data.draft !== true);
+  tradeGuides = guideEntries
+    .sort(
+      (a, b) =>
+        a.data.order - b.data.order || b.data.updated.getTime() - a.data.updated.getTime()
+    )
+    .slice(0, 3)
+    .map((entry) => ({
+      title: entry.data.title,
+      description: entry.data.description,
+      keyword: entry.data.keywords?.[0] ?? '',
+      href: `/foreign-trade/${entry.id}/`,
+    }));
+} catch {
+  tradeGuides = [];
+}
+
+/* -------------------------------------------------------------------------- */
 /* Now — four current lines from the Lead-owned data module                   */
 /* -------------------------------------------------------------------------- */
 const nowRows = now.sections
@@ -106,6 +131,8 @@ const statLabel = lang === 'zh' ? '数字' : 'Numbers';
  * Chinese home page; /en/ shows the bilingual sections (works, writing, now). */
 const showNotes = lang === 'zh' && recentNotes.length > 0;
 const showReading = lang === 'zh' && deskBooks.length > 0;
+/* The trade cluster is Chinese-only (guides/hub/consulting are zh pages). */
+const showTrade = lang === 'zh';
 ---
 
 <div data-home class="home-page">
@@ -130,6 +157,8 @@ const showReading = lang === 'zh' && deskBooks.length > 0;
   {showNotes && <NotesSection lang={lang} notes={recentNotes} />}
 
   <NowStrip lang={lang} rows={nowRows} />
+
+  {showTrade && <TradeSection lang={lang} guides={tradeGuides} />}
 
   <WorksSection
     lang={lang}

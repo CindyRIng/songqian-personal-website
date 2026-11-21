@@ -1140,11 +1140,6 @@ html.theme-transition::view-transition-new(root) {
    8. Reading experience — headings, code copy, lightbox
    -------------------------------------------------------------------------- */
 
-/* Jumping from the TOC must clear the fixed mobile pill. */
-.prose :is(h2, h3, h4)[id] {
-  scroll-margin-top: 7rem;
-}
-
 /* Heading anchors — appended by ReadingEnhancements (decorative, pointer-only:
    keyboard readers already have the TOC). */
 .heading-anchor {

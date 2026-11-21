@@ -7,6 +7,7 @@
  */
 export const ui = {
   zh: {
+    'nav.trade': '外贸',
     'nav.works': '作品',
     'nav.writing': '写作',
     'nav.timeline': '时间线',
@@ -99,6 +100,7 @@ export const ui = {
     'about.contact': '联系',
     'about.portraitAlt': '宋谦的肖像',
 
+    'footer.trade': '外贸',
     'footer.notes': '笔记',
     'footer.reading': '书桌',
     'footer.now': '现在',
@@ -116,6 +118,7 @@ export const ui = {
   },
 
   en: {
+    'nav.trade': 'Trade',
     'nav.works': 'Works',
     'nav.writing': 'Writing',
     'nav.timeline': 'Timeline',
@@ -208,6 +211,7 @@ export const ui = {
     'about.contact': 'Contact',
     'about.portraitAlt': 'Portrait of Song Qian',
 
+    'footer.trade': 'Trade',
     'footer.notes': 'Notes',
     'footer.reading': 'Reading',
     'footer.now': 'Now',

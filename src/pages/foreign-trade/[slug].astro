@@ -1,0 +1,36 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import GuideView from '../../views/GuideView.astro';
+import { defaultLocale } from '../../i18n/config';
+import { readingTime as estimateReadingTime } from '../../i18n/utils';
+
+export const getStaticPaths = (async () => {
+  const guides = await getCollection('guides', ({ data }) => !data.draft);
+  return guides.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props as { entry: Awaited<ReturnType<typeof getCollection<'guides'>>>[number] };
+const { Content, headings } = await render(entry);
+
+const all = await getCollection('guides', ({ data }) => !data.draft);
+const related = entry.data.related
+  .map((id) => all.find((item) => item.id === id))
+  .filter((item): item is NonNullable<typeof item> => Boolean(item))
+  .map((item) => ({ id: item.id, title: item.data.title, description: item.data.description }));
+
+const minutes = estimateReadingTime(entry.body ?? '', 420);
+---
+
+<GuideView
+  lang={defaultLocale}
+  slug={entry.id}
+  data={entry.data}
+  Content={Content}
+  headings={headings}
+  related={related}
+  readingTime={minutes}
+/>

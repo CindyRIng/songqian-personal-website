@@ -131,15 +131,20 @@ const aboutJsonLd = {
             : 'Selling foreign-trade software by day, writing tools for the repetitive parts by night. This site is an attempt to make my records readable by someone else.'}
         </p>
         <div class="flex flex-wrap gap-x-5 gap-y-2">
-          <a href="/now" class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
+          <a href="/now/" class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
             {isZh ? '现在' : 'Now'}<span aria-hidden="true">→</span>
           </a>
-          <a href="/reading" class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
+          <a href="/reading/" class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
             {isZh ? '书桌' : 'Reading'}<span aria-hidden="true">→</span>
           </a>
           <a href={localizePath('/timeline', lang)} class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
             {isZh ? '时间线' : 'Timeline'}<span aria-hidden="true">→</span>
           </a>
+          {isZh && (
+            <a href="/consulting/" class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
+              咨询<span aria-hidden="true">→</span>
+            </a>
+          )}
         </div>
       </div>
     </div>

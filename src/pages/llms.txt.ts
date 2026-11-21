@@ -13,6 +13,7 @@ import { timeline } from '../data/timeline';
 import { notes } from '../data/notes';
 import { now } from '../data/now';
 import { books } from '../data/reading';
+import { foreignTrade } from '../data/foreignTrade';
 
 const url = (path: string): string => new URL(path, SITE.url).href;
 
@@ -58,7 +59,26 @@ export const GET: APIRoute = async () => {
   lines.push(`- [笔记 / Notes](${url('/notes/')}): 从日记和知识库里挑出来的短记录 (Chinese, updated regularly)`);
   lines.push(`- [书桌 / Reading](${url('/reading/')}): 在读、读完、和读不下去的书 (Chinese)`);
   lines.push(`- [现在 / Now](${url('/now/')}): 2026 年 11 月正在做的事 (Chinese, dated ${now.updated})`);
+  lines.push(`- [外贸 / Foreign trade](${url('/foreign-trade/')}): 外贸获客与客户管理指南 (Chinese)`);
+  lines.push(`- [外贸咨询 / Consulting](${url('/consulting/')}): 个人身份的外贸获客诊断、客户管理系统落地、团队培训 (Chinese)`);
+  lines.push(`- [外贸术语表 / Glossary](${url('/foreign-trade/glossary/')}): 客户、报价、单据、物流与获客常用词 (Chinese)`);
   lines.push(`- [English home](${url('/en/')})`);
+  lines.push('');
+  lines.push('## Foreign trade (Chinese)');
+  lines.push('');
+  lines.push(foreignTrade.intro);
+  lines.push('');
+  const tradeGuides = (await getCollection('guides', ({ data }) => !data.draft)).sort((a, b) => a.data.order - b.data.order);
+  for (const guide of tradeGuides) {
+    lines.push(`- [${guide.data.title}](${url(`/foreign-trade/${guide.id}/`)}): ${guide.data.description}`);
+  }
+  lines.push('');
+  lines.push('### Foreign trade FAQ');
+  lines.push('');
+  for (const faq of foreignTrade.faqs) {
+    lines.push(`- Q: ${faq.q}`);
+    lines.push(`  A: ${faq.a}`);
+  }
   lines.push('');
   lines.push('## Recent notes (Chinese)');
   lines.push('');

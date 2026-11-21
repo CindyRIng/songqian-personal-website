@@ -2,7 +2,7 @@
 
 The personal site of **宋谦 (Song Qian)** — account manager at [Fumamx](https://www.fumamx.com) in Shijiazhuang, 2026 graduate in IoT engineering, and someone who writes tools, keeps a diary, reads software architecture and calculus, and plays tennis.
 
-Not a portfolio template: a content-first site built from an Obsidian vault of **392 days of journaling, 561 notes and 43 project logs**. Chinese is the primary language; the ten essays are also available in English under `/en/`.
+Not a portfolio template: a content-first site built from an Obsidian vault of **392 days of journaling, 561 notes and 43 project logs**. Chinese is the primary language; the ten essays are also available in English under `/en/`. It also hosts a practical Chinese **外贸 (foreign-trade) knowledge cluster** — lead generation, customer-management systems, cold outreach, Canton Fair follow-up and AI — plus an independent consulting page.
 
 **Live:** https://songqian.me · **Repo:** https://github.com/CindyRIng/songqian-personal-website
 
@@ -19,6 +19,10 @@ Not a portfolio template: a content-first site built from an Obsidian vault of *
 | Timeline | Writing | 404 |
 | --- | --- | --- |
 | ![Timeline](docs/screenshots/timeline-light.jpg) | ![Writing](docs/screenshots/writing-light.jpg) | ![404](docs/screenshots/notfound-light.jpg) |
+
+| Trade hub | Trade guide |
+| --- | --- |
+| ![外贸 hub](docs/screenshots/trade-hub.jpg) | ![外贸客户管理系统](docs/screenshots/trade-guide.jpg) |
 
 | Mobile | Mobile menu |
 | --- | --- |
@@ -49,6 +53,10 @@ Not a portfolio template: a content-first site built from an Obsidian vault of *
 | `/works` + `/works/<slug>` | Six self-built tools with CLI terminal cards, honest metrics and case-study bodies |
 | `/about` | A letter: three threads, a week in Shijiazhuang, six principles, four failures, the record counts, a short CV, FAQ |
 | `/timeline` | Twenty-two entries from 2022 to now, including cancelled projects |
+| `/foreign-trade/` | 外贸 pillar page: 外贸获客 / 外贸客户管理 hub with guides, glossary, consulting links and FAQ |
+| `/foreign-trade/<slug>/` | Five guides: 外贸客户管理系统 · 外贸获客 · 开发信与电话开发 · 广交会客户跟进 · 外贸 AI (Chinese only) |
+| `/foreign-trade/glossary/` | 30 外贸术语 in four groups, anchored and cross-linked to the guides (Chinese only) |
+| `/consulting/` | Personal-scope 外贸咨询与培训: 获客诊断 / 客户管理系统落地 / 团队培训, with FAQ and a clear disclaimer (Chinese only) |
 | `/en/…` | English versions of home, about, timeline, works, writing and articles |
 | `/rss.xml`, `/en/rss.xml` | One localized feed per language (10 items each) |
 
@@ -61,6 +69,9 @@ Not a portfolio template: a content-first site built from an Obsidian vault of *
 - **Notes (28):** dated entries from 2025-05 to 2026-11.
 - **Books (17):** systems engineering, calculus, DDD/architecture, Linux, Python, economics, Covey.
 - **Timeline (22):** study, club, internships, thesis, first job, tools, cancelled projects.
+- **Foreign-trade guides (5, Chinese):** 外贸客户管理系统 · 外贸获客 · 外贸开发信与电话开发 · 广交会客户跟进 · 外贸 AI. Each 1,800–2,100 字, with TL;DR, tables, SOPs, FAQs and internal links.
+- **Glossary (30 terms):** customers/leads, quotation/contract, logistics/customs, acquisition/channels.
+- **Consulting page:** personal-capacity services and constraints, not a software sales page.
 
 ### Where the content comes from
 
@@ -77,10 +88,12 @@ src/
 │   ├── about/       # portrait plate
 │   ├── projects/    # featured cards, rows, layer diagram
 │   ├── timeline/    # timeline entries + type colours
-│   └── writing/     # essay rows, TOC, reading enhancements
+│   ├── writing/     # essay rows, TOC, reading enhancements
+│   └── views/       # GuideView, GlossaryView, ConsultingView, …
 ├── content/
 │   ├── posts/{zh,en}/<slug>.mdx
-│   └── projects/{zh,en}/<slug>.mdx
+│   ├── projects/{zh,en}/<slug>.mdx
+│   └── guides/<slug>.mdx          # 外贸 guides (zh-only)
 ├── data/
 │   ├── copy.ts      # ← page-level strings, zh + en
 │   ├── profile.ts   # ← identity, bio, contact, colophon
@@ -88,7 +101,9 @@ src/
 │   ├── notes.ts     # ← dated notes + latestNotes()
 │   ├── reading.ts   # ← books + currentlyReading
 │   ├── now.ts       # ← the /now snapshot
-│   └── about.ts     # ← about-page sections
+│   ├── about.ts     # ← about-page sections
+│   ├── foreignTrade.ts  # ← 外贸 hub copy + FAQ
+│   └── glossary.ts      # ← 30 外贸术语
 ├── i18n/            # locales (zh default, en), typed dictionary, helpers
 ├── layouts/BaseLayout.astro
 ├── lib/             # posts / projects helpers
@@ -105,7 +120,8 @@ src/
 5. **Now** — edit `src/data/now.ts`; `/now` renders it directly.
 6. **Timeline** — `src/data/timeline.ts` (`cv: true` rows appear on About).
 7. **Essays** — `src/content/posts/{zh,en}/<slug>.mdx`; covers in `public/images/posts/<slug>.webp` (og variants in `public/og/posts/`).
-8. **Domain** — `site` in `astro.config.mjs`, `SITE.url` in `src/i18n/config.ts`, `public/robots.txt`.
+8. **外贸 guides** — `src/content/guides/<slug>.mdx` (`summary`, `faqs`, `keywords`, `related` drive the template and schema); glossary in `src/data/glossary.ts`; consulting copy in `src/views/ConsultingView.astro`.
+9. **Domain** — `site` in `astro.config.mjs`, `SITE.url` in `src/i18n/config.ts`, `public/robots.txt`.
 
 ## Commands
 
@@ -128,16 +144,33 @@ node scripts/indexnow.mjs https://songqian.me   # submit sitemap to IndexNow
 - **Interaction:** sticky paper-glass masthead, nav underline view transitions, theme wipe, full-screen mobile menu (stagger, focus trap, exact scroll restore), single-link cards, copy-to-clipboard email/phone, WeChat-QR lightbox, filter and FAQ animations, timeline year highlighting, article TOC/lightbox/keyboard flows. Every hover runs only on capable pointers; all motion respects `prefers-reduced-motion`; pages remain readable without JavaScript.
 - **Client-side navigation:** only the content region cross-fades; intent prefetch + a short HTML cache keep page changes near-instant.
 
+## SEO strategy — 外贸 keyword cluster
+
+The site is built as a **hub & spoke** around the queries a Chinese foreign-trade buyer actually types. One pillar page, five long guides, a glossary and a service page, all internally linked; every page has one primary keyword and its own FAQ block.
+
+| Page | Primary keyword | Long-tail covered |
+|---|---|---|
+| `/foreign-trade/` | 外贸获客 / 外贸客户管理 | 外贸流程、外贸客户开发 |
+| `/foreign-trade/customer-management/` | **外贸客户管理系统** | 外贸CRM、客户管理软件、CRM选型 |
+| `/foreign-trade/lead-generation/` | **外贸获客** | 获客渠道、谷歌开发客户、海关数据、领英获客 |
+| `/foreign-trade/outreach/` | 外贸开发信 / 外贸电话开发 | 开发信模板、跟进节奏、WhatsApp、外贸话术 |
+| `/foreign-trade/canton-fair/` | 广交会客户跟进 | 展会获客、展前邀约、展后跟进 |
+| `/foreign-trade/ai/` | 外贸AI | AI获客、AI客户管理、外贸AI落地 |
+| `/foreign-trade/glossary/` | 外贸术语 | PI、FOB、CIF、HS code、报关 |
+| `/consulting/` | 外贸咨询 / 外贸培训 | 外贸专家、客户管理系统实施、团队培训 |
+
+E-E-A-T signals: first-person experience (2,700 calls / 3 deals / 6 self-built tools), dated updates, transparent limits and disclaimers, author box on every guide, no invented numbers, no customer or employer-confidential data. Each guide is original (no copying from the vault or company material) and links to the tools and essays that back it up.
+
 ## SEO & GEO
 
-- **Canonical domain** `songqian.me`, `hreflang` zh-CN / en / x-default (zh-only pages: zh-CN + x-default), per-page titles and descriptions, per-article 1200×630 social images, XML sitemap (47 URLs), two RSS feeds (10 items each), `rel=me` identity links.
-- **Structured data:** `Person`, `WebSite`, `Blog`, `BlogPosting` + `BreadcrumbList`, `CollectionPage` + `ItemList`, `SoftwareApplication`/`CreativeWork`, `ProfilePage` + `FAQPage` — all validated JSON-LD.
-- **GEO:** `/llms.txt` (entity facts, page map, recent notes, now, reading) and `/llms-full.txt` (full essay, case-study, note, now and reading text) generated from the data modules at build time; `robots.txt` welcomes major LLM crawlers; IndexNow submission to Bing/Yandex.
+- **Canonical domain** `songqian.me`, `hreflang` zh-CN / en / x-default (Chinese-only pages: zh-CN + x-default), per-page titles and descriptions, per-article 1200×630 social images, XML sitemap (55 URLs), two RSS feeds (10 items each), `rel=me` identity links.
+- **Structured data:** `Person`, `WebSite`, `Blog`, `BlogPosting` + `BreadcrumbList`, `CollectionPage` + `ItemList`, `SoftwareApplication`/`CreativeWork`, `ProfilePage` + `FAQPage`, `TechArticle` + `FAQPage` on every trade guide, `DefinedTermSet` for the glossary, `ProfessionalService` + `FAQPage` on consulting — all validated JSON-LD (107 blocks, 0 errors).
+- **GEO:** `/llms.txt` (entity facts, page map, recent notes/now/reading, 外贸 guides and FAQ) and `/llms-full.txt` (~200 KB: full essays, case studies, notes, now, reading, all five trade guides with FAQs, the 30-term glossary and consulting summary) generated at build time; `robots.txt` welcomes major LLM crawlers; IndexNow submission to Bing/Yandex.
 - **Legacy URLs:** `/projects/*` → `/works/*`; old `/zh /ja /es /fr /de` prefixes → the two-language routes. The old `pages.dev` host 301s to the domain via `functions/_middleware.ts`.
 
 ## Verification
 
-- 49 pages build clean; 0 broken internal links; 0 console errors; one `<h1>` per page.
+- 57 pages build clean; 0 broken internal links; 0 console errors; one `<h1>` per page.
 - CLS 0; no horizontal overflow at 320 / 390 / 768 / 1024 / 1440.
 - Keyboard walkthroughs on all interactive flows; reduced-motion and no-JS passes on every page type.
 

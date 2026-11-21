@@ -1,0 +1,247 @@
+---
+/**
+ * GuideView — a long-form Chinese guide in the foreign-trade cluster.
+ *
+ * Layout: breadcrumb → keyword label → H1 → lede → updated/reading time →
+ * cover → TL;DR → sticky TOC + prose → FAQ (native details) → related guides →
+ * author + consulting CTA. SEO: Article + FAQPage + BreadcrumbList JSON-LD,
+ * zh-only hreflang through `translated={false}`.
+ */
+import type { MarkdownHeading } from 'astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Toc from '../components/writing/Toc.astro';
+import Icon from '../components/ui/Icon.astro';
+import { SITE, type Locale } from '../i18n/config';
+import { useTranslations } from '../i18n/utils';
+import { profile, lt } from '../data/profile';
+import { hasCoverAsset } from '../lib/posts';
+
+interface GuideData {
+  title: string;
+  description: string;
+  updated: Date;
+  keywords: string[];
+  summary: string[];
+  faqs: { q: string; a: string }[];
+  cover?: string;
+}
+
+interface RelatedGuide {
+  id: string;
+  title: string;
+  description: string;
+}
+
+interface Props {
+  lang: Locale;
+  slug: string;
+  data: GuideData;
+  Content: any;
+  headings: MarkdownHeading[];
+  related: RelatedGuide[];
+  readingTime: number;
+}
+
+const { lang, slug, data, Content, headings, related, readingTime } = Astro.props;
+const t = useTranslations(lang);
+const siteUrl = Astro.site ?? new URL(SITE.url);
+const canonical = new URL(`/foreign-trade/${slug}/`, siteUrl).href;
+const coverCandidate = data.cover ?? `/images/guides/${slug}.webp`;
+const cover = hasCoverAsset(coverCandidate) ? coverCandidate : undefined;
+const ogImage = hasCoverAsset(`/og/guides/${slug}.jpg`) ? `/og/guides/${slug}.jpg` : '/og/default.png';
+const updated = data.updated.toISOString().slice(0, 10);
+const authorName = lt(profile.name, lang) || profile.latinName;
+
+const crumbTitle = data.title.split(/[：:]/)[0].trim();
+const breadcrumbItems = [
+  { name: '首页', href: '/' },
+  { name: '外贸', href: '/foreign-trade/' },
+  { name: crumbTitle, href: `/foreign-trade/${slug}/` },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'TechArticle',
+      '@id': `${canonical}#article`,
+      headline: data.title,
+      name: data.title,
+      description: data.description,
+      url: canonical,
+      mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+      datePublished: updated,
+      dateModified: updated,
+      inLanguage: 'zh-CN',
+      keywords: data.keywords.join(', '),
+      articleSection: '外贸',
+      timeRequired: `PT${readingTime}M`,
+      image: new URL(ogImage, siteUrl).href,
+      author: { '@id': `${siteUrl.href}#person` },
+      publisher: { '@id': `${siteUrl.href}#person` },
+      about: { '@type': 'Thing', name: '外贸获客与客户管理' },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: breadcrumbItems.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: item.name,
+        item: new URL(item.href, siteUrl).href,
+      })),
+    },
+    ...(data.faqs.length
+      ? [
+          {
+            '@type': 'FAQPage',
+            mainEntity: data.faqs.map((faq) => ({
+              '@type': 'Question',
+              name: faq.q,
+              acceptedAnswer: { '@type': 'Answer', text: faq.a },
+            })),
+          },
+        ]
+      : []),
+  ],
+};
+---
+
+<BaseLayout
+  lang={lang}
+  title={data.title}
+  description={data.description}
+  path={`/foreign-trade/${slug}`}
+  translated={false}
+  wide
+  image={ogImage}
+  imageWidth={1200}
+  imageHeight={630}
+>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </Fragment>
+
+  <div class="wrap">
+    <!-- Breadcrumb -------------------------------------------------------- -->
+    <nav aria-label="面包屑" class="mono flex flex-wrap items-center gap-2 text-[0.6875rem] uppercase tracking-[0.12em] text-subtle">
+      {breadcrumbItems.map((item, index) => (
+        <>
+          {index > 0 && <span aria-hidden="true">/</span>}
+          {index === breadcrumbItems.length - 1 ? (
+            <span aria-current="page" class="text-muted">{item.name}</span>
+          ) : (
+            <a href={item.href} class="focus-ring rounded-sm transition-colors hover:text-ink">{item.name}</a>
+          )}
+        </>
+      ))}
+    </nav>
+
+    <article class="mt-8">
+      <!-- Header ---------------------------------------------------------- -->
+      <header class="max-w-[46rem]">
+        <p class="label">{data.keywords[0] ?? '外贸'}</p>
+        <h1 class="mt-5 text-pretty font-serif text-[clamp(2.25rem,4.6vw,3.5rem)] font-[540] leading-[1.08] tracking-[-0.03em] text-ink-strong">
+          {data.title}
+        </h1>
+        <p class="mt-5 max-w-[40rem] text-pretty text-[1.0625rem] leading-[1.75] text-muted">
+          {data.description}
+        </p>
+        <p class="mono mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.6875rem] uppercase tracking-[0.12em] text-subtle">
+          <span>宋谦</span>
+          <span aria-hidden="true">·</span>
+          <time datetime={updated}>更新于 {updated}</time>
+          <span aria-hidden="true">·</span>
+          <span>{readingTime} 分钟</span>
+        </p>
+      </header>
+
+      {cover && (
+        <figure class="mx-auto mt-10 max-w-[40rem] overflow-hidden rounded-md border border-line">
+          <img src={cover} alt="" width="1600" height="1067" loading="eager" decoding="async" class="aspect-[3/2] w-full object-cover" />
+        </figure>
+      )}
+
+      <!-- TL;DR ----------------------------------------------------------- -->
+      {data.summary.length > 0 && (
+        <aside class="mt-12 border-y border-line bg-[var(--sage-tint)]/40 px-5 py-6 sm:px-7" aria-label="先说结论">
+          <p class="label">先说结论</p>
+          <ul class="mt-4 space-y-3">
+            {data.summary.map((item) => (
+              <li class="flex gap-3 text-pretty text-[0.9375rem] leading-[1.75] text-ink">
+                <span aria-hidden="true" class="mt-[0.55em] size-1 shrink-0 rounded-full bg-[var(--accent)]"></span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )}
+
+      <!-- Body + TOC ------------------------------------------------------ -->
+      <div class="mt-12 lg:relative">
+        <div class="prose measure mx-auto">
+          <p class="border-l-2 border-[var(--accent-line)] pl-4 text-[0.9375rem] leading-[1.75] text-subtle">
+            写于石家庄。基于我自己的客户开发、跟进和工具搭建经验，不代表所在公司；涉及具体软件采购请走官方渠道。
+          </p>
+          <Content />
+        </div>
+        <Toc headings={headings} lang={lang} />
+      </div>
+
+      <!-- FAQ ------------------------------------------------------------- -->
+      {data.faqs.length > 0 && (
+        <section class="measure mx-auto mt-16 border-t border-line pt-8" aria-labelledby="guide-faq">
+          <h2 id="guide-faq" class="font-serif text-[1.5rem] font-[540] tracking-[-0.02em] text-ink-strong">常见问题</h2>
+          <div class="mt-2 divide-y divide-line">
+            {data.faqs.map((faq) => (
+              <details class="group py-4">
+                <summary class="flex cursor-pointer list-none items-start justify-between gap-6 text-pretty font-serif text-[1.0625rem] font-[540] leading-snug text-ink-strong transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--ring)]">
+                  <span>{faq.q}</span>
+                  <span aria-hidden="true" class="mt-1 shrink-0 font-mono text-[0.75rem] text-subtle transition-transform duration-200 group-open:rotate-45">+</span>
+                </summary>
+                <p class="mt-3 max-w-[56ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- Related --------------------------------------------------------- -->
+      {related.length > 0 && (
+        <section class="measure mx-auto mt-14" aria-labelledby="guide-related">
+          <div class="flex items-baseline justify-between gap-4 border-t border-line pt-4">
+            <h2 id="guide-related" class="label">继续读</h2>
+            <a href="/foreign-trade/" class="mono text-[0.6875rem] uppercase tracking-[0.1em] text-subtle transition-colors hover:text-ink">外贸全部 →</a>
+          </div>
+          <ul class="mt-4 divide-y divide-line">
+            {related.map((item) => (
+              <li>
+                <a href={`/foreign-trade/${item.id}/`} class="group flex flex-col gap-1 py-4 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--ring)]">
+                  <span class="font-serif text-[1.0625rem] font-[540] leading-snug text-ink-strong transition-colors group-hover:text-accent">{item.title}</span>
+                  <span class="text-[0.875rem] leading-[1.65] text-muted">{item.description}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <!-- Author + CTA ---------------------------------------------------- -->
+      <footer class="measure mx-auto mt-14 border-t border-line pt-6">
+        <div class="flex flex-wrap items-start justify-between gap-6">
+          <div class="max-w-[30rem]">
+            <p class="font-serif text-[1rem] text-ink-strong">宋谦</p>
+            <p class="mt-1 text-[0.875rem] leading-[1.7] text-muted">
+              孚盟软件客户经理，写外贸获客、客户管理与销售工具。
+              <a href="/about/" class="link">关于我</a> ·
+              <a href="/writing/cold-calls-at-fumamx/" class="link">在孚盟打电话</a>
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <a href="/consulting/" class="btn btn--solid">聊聊你的获客流程</a>
+            <a href="/foreign-trade/" class="btn btn--quiet">回外贸目录</a>
+          </div>
+        </div>
+      </footer>
+    </article>
+  </div>
+</BaseLayout>

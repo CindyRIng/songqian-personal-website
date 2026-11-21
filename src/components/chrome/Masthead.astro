@@ -32,9 +32,10 @@ const alternates = getAlternates(currentPath);
 const altFor = (code: Locale) => alternates.find((alt) => alt.lang === code)?.href ?? localizePath('/', code);
 
 const items = [
+  { href: '/foreign-trade/', label: t('nav.trade') },
   { href: '/works', label: t('nav.works') },
   { href: '/writing', label: t('nav.writing') },
-  { href: '/notes', label: t('nav.notes') },
+  { href: '/notes/', label: t('nav.notes') },
   { href: '/timeline', label: t('nav.timeline') },
   { href: '/about', label: t('nav.about') },
 ] as const;
@@ -42,11 +43,18 @@ const items = [
 /* /notes, /reading and /now are Chinese-only pages (translated={false}):
  * they must never be localized to /en/..., and their own masthead hides the
  * English option instead of pointing at a 404. */
-const ZH_ONLY = ['/notes', '/reading', '/now'];
+const ZH_ONLY = ['/foreign-trade', '/consulting', '/notes', '/reading', '/now'];
 const isZhOnlyPath = ZH_ONLY.some(
-  (prefix) => currentPath === prefix || currentPath.startsWith(`${prefix}/`)
+  (prefix) =>
+    currentPath === prefix ||
+    currentPath === `${prefix}/` ||
+    currentPath.startsWith(`${prefix}/`)
 );
-const navHref = (href: string) => (ZH_ONLY.includes(href) ? href : localizePath(href, lang));
+/* zh-only destinations are exported with a trailing slash (their routes are
+ * directories), and must never be localized. */
+const zhOnlyHref = (href: string) => (href.endsWith('/') ? href : `${href}/`);
+const navHref = (href: string) =>
+  ZH_ONLY.includes(href) ? zhOnlyHref(href) : localizePath(href, lang);
 
 const isActive = (href: string) =>
   currentPath === href || currentPath.startsWith(`${href}/`);

@@ -5,6 +5,7 @@
  */
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { glossaryGroups, glossaryUpdated } from '../data/glossary';
 import { SITE } from '../i18n/config';
 import { notes } from '../data/notes';
 import { now } from '../data/now';
@@ -101,6 +102,50 @@ export const GET: APIRoute = async () => {
     out.push(book.note);
     out.push('');
   }
+
+  const tradeGuides = (await getCollection('guides', ({ data }) => !data.draft)).sort((a, b) => a.data.order - b.data.order);
+  out.push('# 外贸指南 Foreign trade guides', '');
+  for (const guide of tradeGuides) {
+    out.push(`## ${guide.data.title}`);
+    out.push('');
+    out.push(`URL: ${url(`/foreign-trade/${guide.id}/`)}`);
+    out.push(`Updated: ${guide.data.updated.toISOString().slice(0, 10)}`);
+    out.push(`Keywords: ${guide.data.keywords.join(', ')}`);
+    out.push('');
+    out.push(guide.data.description);
+    out.push('');
+    if (guide.data.summary.length) {
+      for (const point of guide.data.summary) out.push(`- ${point}`);
+      out.push('');
+    }
+    out.push(toPlain(guide.body ?? ''));
+    out.push('');
+    if (guide.data.faqs.length) {
+      for (const faq of guide.data.faqs) {
+        out.push(`Q: ${faq.q}`);
+        out.push(`A: ${faq.a}`);
+        out.push('');
+      }
+    }
+  }
+
+  out.push('# 外贸术语表 / Glossary', '');
+  out.push(`URL: ${url('/foreign-trade/glossary/')} · Updated: ${glossaryUpdated}`);
+  out.push('');
+  for (const group of glossaryGroups) {
+    out.push(`## ${group.label} / ${group.en}`, '');
+    out.push(group.intro, '');
+    for (const term of group.terms) {
+      out.push(`- **${term.term}** (${term.en}): ${term.definition}`);
+    }
+    out.push('');
+  }
+
+  out.push('# 外贸咨询 / Consulting', '');
+  out.push(`URL: ${url('/consulting/')}`);
+  out.push('');
+  out.push('宋谦以个人身份提供外贸获客诊断、客户管理系统落地、外贸团队培训；不卖软件、不拿返点，软件采购走官方渠道。服务对象：刚组建的外贸团队、有询盘但转化率低的企业、准备上 CRM 或展会前的团队。');
+  out.push('');
 
   return new Response(out.join('\n'), {
     headers: { 'Content-Type': 'text/plain; charset=utf-8' },

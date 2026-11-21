@@ -81,6 +81,11 @@ export const copy = {
         en: 'Diary · 21 Oct 2026',
       } as L,
     },
+    tradeTitle: { zh: '外贸', en: 'Foreign trade' } as L,
+    tradeLede: {
+      zh: '外贸获客与客户管理，写给刚入行和正在带团队的人。',
+      en: 'Foreign-trade lead generation and customer management — for people just starting out or running a team.',
+    } as L,
     notesTitle: { zh: '最近在想', en: 'Recent notes' } as L,
     notesLede: {
       zh: '从日记和笔记里挑出来的，没怎么改。',
@@ -229,14 +234,14 @@ export const copy = {
   },
 
   meta: {
-    homeTitle: { zh: '宋谦 — 孚盟软件客户经理，写工具和文章', en: 'Song Qian — account manager at Fumamx' } as L,
+    homeTitle: { zh: '宋谦｜外贸 SaaS 客户经理 · 外贸获客与客户管理', en: 'Song Qian — foreign-trade SaaS account manager' } as L,
     homeDescription: {
-      zh: '宋谦，石家庄，孚盟软件客户经理。写工具、写文章，也打网球。',
-      en: 'Song Qian, account manager at Fumamx in Shijiazhuang. Builds tools, writes, plays tennis.',
+      zh: '宋谦，孚盟软件客户经理，写外贸获客、外贸客户管理系统与销售工具。2700 通电话、6 个自建工具的实践记录。',
+      en: 'Song Qian, foreign-trade SaaS account manager in Shijiazhuang. Notes on foreign-trade lead generation, customer management systems and sales tooling.',
     } as L,
     worksDescription: {
-      zh: '宋谦的 6 个自建工具：孚盟本地封装平台、飞鸽外呼平台、BOSS/智联/探迹本地客户端、网球捡球机器人。',
-      en: "Song Qian's six self-built tools: a local Fumamx platform, an outbound-calling platform, local clients for BOSS/Zhaopin/Tanji, and a tennis-ball robot.",
+      zh: '宋谦的 6 个自建外贸工具：孚盟本地封装平台（外贸客户管理系统）、飞鸽外呼平台、BOSS/智联/探迹获客客户端、网球捡球机器人。',
+      en: "Song Qian's six self-built foreign-trade tools: a local Fumamx customer-management platform, an outbound-calling platform, clients for BOSS/Zhaopin/Tanji, and a tennis-ball robot.",
     } as L,
     writingDescription: {
       zh: '关于工作、学习、网球，和一些没答案的问题。',

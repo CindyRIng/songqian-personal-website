@@ -1,0 +1,460 @@
+---
+/**
+ * ConsultingView — `/consulting/` (Chinese only).
+ *
+ * A personal-service page, written in the first person and deliberately
+ * un-salesy: what I can actually do (获客诊断 / 客户管理系统落地 / 团队培训),
+ * who it fits, the three-step process, what I will not do, five real
+ * questions, and one email CTA. Personal capacity only — not Fumamx.
+ *
+ * JSON-LD: ProfessionalService + hasOfferCatalog + FAQPage + BreadcrumbList.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../i18n/config';
+import { profile } from '../data/profile';
+import type { Locale } from '../i18n/config';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+
+const updated = '2026-11-21';
+const updatedLabel = updated.replaceAll('-', '.');
+const email = profile.contact.email;
+const mailto = `mailto:${email}?subject=${encodeURIComponent('外贸咨询')}`;
+
+const title = '外贸咨询：获客诊断、客户管理系统与团队培训';
+const description =
+  '外贸咨询：以个人身份接的外贸获客诊断、客户管理系统落地和外贸团队培训。先聊清现状再给方案，不卖软件、不承诺询盘量，软件采购走官方渠道，服务范围按实际需要定。';
+
+const services = [
+  {
+    title: '外贸获客诊断',
+    lead: '先看你的客户从哪来、询盘为什么没接住。',
+    body: '把现在用的渠道（平台、展会、谷歌、海关数据、开发信）逐个过一遍：各带来什么质量的询盘，回复和跟进卡在哪一步。工具用得不对的，先调工具；流程缺环节的，补流程。',
+    deliver: '一页诊断 + 优先级清单 + 30 天动作表',
+  },
+  {
+    title: '客户管理系统落地',
+    lead: '把散在 Excel、邮箱和 WhatsApp 里的客户，整理成能查、能交接的一套东西。',
+    body: '先把字段和跟进阶段定清楚，再决定用现成 CRM、轻量表格还是本地工具。历史数据怎么导入、重复客户怎么合并、谁有权限看什么，都会一起定。不绑定任何一家软件。',
+    deliver: '字段与阶段设计 + 历史数据导入清洗 + 跟进与交接模板',
+  },
+  {
+    title: '外贸团队培训',
+    lead: '给 3–10 人的小团队做能马上用的话术训练。',
+    body: '电话开发、询盘回复、展前邀约、展后跟进，分成几个半天的模块。用你们自己的客户和产品练，现场录音、现场改话术，不讲大课，也不发一套放之四海皆准的模板。',
+    deliver: '半天到两天的课程 + 录音复盘 + 可直接用的话术卡',
+  },
+];
+
+const fitFor = [
+  '刚起量的外贸团队，1–20 人，销售流程还没定下来。',
+  '询盘不少但转化低，说不清钱花在哪个渠道上。',
+  '准备上 CRM，但不知道字段、阶段和交接该怎么定。',
+  '展会前后需要一套能执行的邀约与跟进动作。',
+];
+
+const notFor = [
+  '想要承诺询盘量、排名或成交结果的。',
+  '想找人全托管平台店铺或独立站运营的。',
+  '只想买软件、找销售返点的——请直接走官方渠道。',
+  '产品和市场完全超出我能判断的范围；先聊，帮不上我会直说。',
+];
+
+const processSteps = [
+  {
+    step: '01',
+    title: '先聊一次',
+    body: '30 分钟，线上。你说清产品、客户来源和现在最卡的一步；我判断能不能帮上，帮不上会直接说，不收钱。',
+  },
+  {
+    step: '02',
+    title: '诊断与方案',
+    body: '给一页问题诊断、建议动作和大概工作量，按次或按项目报价。确认后再开始，不做长期绑定。',
+  },
+  {
+    step: '03',
+    title: '交付与复盘',
+    body: '按约定交付文档、培训或系统配置。结束两周内做一次线上复盘，看哪些动作真的留下来了，哪些要改。',
+  },
+];
+
+const notDo = [
+  '不承诺询盘量、搜索排名或成交结果。',
+  '不替你和客户谈价格，也不碰你的报价底线。',
+  '不卖软件、不拿软件返点；需要工具时只给选型建议，采购走官方渠道。',
+  '不做纯代运营（平台店铺、独立站 SEO 全托管）。',
+  '不要求你把客户数据交给我；诊断在你看得见的范围内做，需要时可以签保密协议。',
+  '不代表孚盟，不使用公司名义、资料或客户资源。',
+];
+
+const faqs = [
+  {
+    q: '你和孚盟是什么关系？',
+    a: '我是孚盟软件的客户经理，对外咨询是以个人身份接的，不代表公司，也不用公司的客户资源。涉及孚盟产品，请走官方销售渠道。',
+  },
+  {
+    q: '一定要买 CRM 吗？',
+    a: '不一定。客户少、流程简单的时候，Excel 或表格加上统一字段就能跑。先把跟进记录和交接做顺，再判断要不要上系统。',
+  },
+  {
+    q: '怎么收费？',
+    a: '诊断按次，培训按天，系统落地按项目。第一次聊完、给出一页方案后再报价；在了解你的情况之前，我不给数字。',
+  },
+  {
+    q: '只在石家庄吗？',
+    a: '线上为主；石家庄及周边可以到公司。外地需要现场培训时，差旅另算。',
+  },
+  {
+    q: '多久能看到效果？',
+    a: '获客诊断 1–2 周能给出可执行清单；系统落地一般 4–8 周，取决于历史数据量；培训当场能看到话术的变化。效果取决于执行，我不承诺数字。',
+  },
+];
+
+const siteUrl = Astro.site ?? new URL(SITE.url);
+const pageUrl = new URL('/consulting/', siteUrl).href;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'ProfessionalService',
+      '@id': `${pageUrl}#service`,
+      name: '宋谦 · 外贸咨询',
+      description,
+      url: pageUrl,
+      provider: {
+        '@type': 'Person',
+        '@id': `${siteUrl.href}#person`,
+        name: '宋谦',
+        url: siteUrl.href,
+      },
+      areaServed: { '@type': 'Country', name: '中国' },
+      availableLanguage: ['zh-CN', 'en'],
+      serviceType: ['外贸获客诊断', '外贸客户管理系统落地', '外贸团队培训'],
+      hasOfferCatalog: {
+        '@type': 'OfferCatalog',
+        name: '外贸咨询服务',
+        itemListElement: services.map((service) => ({
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: service.title,
+            description: service.lead,
+          },
+        })),
+      },
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.q,
+        acceptedAnswer: { '@type': 'Answer', text: faq.a },
+      })),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '首页', item: siteUrl.href },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: '外贸',
+          item: new URL('/foreign-trade/', siteUrl).href,
+        },
+        { '@type': 'ListItem', position: 3, name: '咨询', item: pageUrl },
+      ],
+    },
+  ],
+};
+---
+
+<BaseLayout
+  lang={lang}
+  title={title}
+  description={description}
+  path="/consulting"
+  translated={false}
+  wide
+>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </Fragment>
+
+  <div class="wrap">
+    <!-- Header ------------------------------------------------------------ -->
+    <header class="max-w-[46rem] border-t border-line pt-5" data-reveal>
+      <nav aria-label="面包屑" class="mono flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.6875rem] uppercase tracking-[0.14em] text-subtle">
+        <a href="/foreign-trade/" class="focus-ring hover:text-ink">外贸</a>
+        <span aria-hidden="true">/</span>
+        <span>咨询</span>
+        <span class="h-px w-8 bg-[var(--line-strong)]" aria-hidden="true"></span>
+        <time datetime={updated}>{updatedLabel}</time>
+      </nav>
+      <h1 class="mt-6 font-serif text-[clamp(2.5rem,5vw,3.75rem)] font-[540] leading-[1.05] tracking-[-0.03em] text-ink-strong">
+        外贸咨询
+      </h1>
+      <p class="mt-5 max-w-[42rem] text-pretty text-[1.0625rem] leading-[1.8] text-muted">
+        我在孚盟软件做客户经理，每天见外贸公司怎么获客、怎么管客户。这里接一点个人的咨询和培训：获客诊断、客户管理系统落地、团队培训。
+      </p>
+      <p class="mt-4 max-w-[42rem] text-pretty text-[0.9375rem] leading-[1.75] text-subtle">
+        先说清楚：这是个人身份接的，不代表孚盟；我不卖软件，软件采购请走官方渠道。下面写的都是我能做到和做不到的事。
+      </p>
+      <p class="mono mt-4 text-[0.6875rem] uppercase tracking-[0.14em] text-subtle">
+        最后更新 · <time datetime={updated}>{updated}</time>
+      </p>
+    </header>
+
+    <!-- Services ---------------------------------------------------------- -->
+    <section class="mt-12 max-w-[46rem]" aria-labelledby="consulting-services" data-reveal>
+      <h2
+        id="consulting-services"
+        class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle"
+      >
+        我能做什么
+      </h2>
+      <div class="mt-6 flex flex-col gap-8">
+        {
+          services.map((service) => (
+            <article>
+              <h3 class="font-serif text-[1.25rem] font-[540] leading-snug tracking-[-0.015em] text-ink-strong">
+                {service.title}
+              </h3>
+              <p class="mt-1.5 max-w-[60ch] text-pretty text-[1rem] leading-[1.7] text-ink">{service.lead}</p>
+              <p class="mt-2 max-w-[60ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted">{service.body}</p>
+              <p class="mono mt-2 text-[0.6875rem] uppercase tracking-[0.1em] text-subtle">交付 · {service.deliver}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Fit / not fit ----------------------------------------------------- -->
+    <section class="mt-12 max-w-[46rem]" aria-labelledby="consulting-fit" data-reveal>
+      <h2
+        id="consulting-fit"
+        class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle"
+      >
+        适合谁，不适合谁
+      </h2>
+      <div class="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div>
+          <h3 class="font-serif text-[1.0625rem] font-[540] text-ink-strong">适合</h3>
+          <ul class="mt-2">
+            {fitFor.map((item) => (
+              <li class="flex gap-2.5 border-t border-line py-2.5 text-[0.9375rem] leading-[1.65] text-muted">
+                <span aria-hidden="true" class="mt-2 size-1 shrink-0 rounded-full bg-[var(--accent)]"></span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-serif text-[1.0625rem] font-[540] text-ink-strong">不适合</h3>
+          <ul class="mt-2">
+            {notFor.map((item) => (
+              <li class="flex gap-2.5 border-t border-line py-2.5 text-[0.9375rem] leading-[1.65] text-muted">
+                <span aria-hidden="true" class="mt-2 size-1 shrink-0 rounded-full bg-[var(--faint)]"></span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Process ----------------------------------------------------------- -->
+    <section class="mt-12 max-w-[46rem]" aria-labelledby="consulting-process" data-reveal>
+      <h2
+        id="consulting-process"
+        class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle"
+      >
+        怎么合作
+      </h2>
+      <ol class="mt-2">
+        {
+          processSteps.map((step) => (
+            <li class="grid grid-cols-[3rem_1fr] gap-4 border-b border-line py-4 md:grid-cols-[4rem_1fr] md:gap-6">
+              <span class="mono pt-1 text-[0.6875rem] tracking-[0.06em] text-subtle">{step.step}</span>
+              <div>
+                <h3 class="font-serif text-[1.0625rem] font-[540] text-ink-strong">{step.title}</h3>
+                <p class="mt-1 max-w-[58ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted">{step.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <!-- What I don't do --------------------------------------------------- -->
+    <section class="mt-12 max-w-[46rem]" aria-labelledby="consulting-not" data-reveal>
+      <h2
+        id="consulting-not"
+        class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle"
+      >
+        我不做什么
+      </h2>
+      <ul class="mt-4">
+        {
+          notDo.map((item) => (
+            <li class="flex gap-3 border-t border-line py-2.5 text-[0.9375rem] leading-[1.7] text-muted">
+              <span aria-hidden="true" class="mono text-[var(--faint)]">—</span>
+              <span>{item}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- FAQ --------------------------------------------------------------- -->
+    <section class="mt-12 max-w-[46rem]" aria-labelledby="consulting-faq" data-reveal>
+      <h2
+        id="consulting-faq"
+        class="border-t border-line pt-3 font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle"
+      >
+        常见问题
+      </h2>
+      <div class="mt-2">
+        {
+          faqs.map((faq) => (
+            <details class="faq-item">
+              <summary class="faq-summary focus-ring">
+                <span class="faq-q">{faq.q}</span>
+                <span aria-hidden="true" class="faq-plus">+</span>
+              </summary>
+              <div class="faq-body">
+                <p class="faq-a">{faq.a}</p>
+              </div>
+            </details>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- CTA --------------------------------------------------------------- -->
+    <section class="mt-12 max-w-[46rem]" aria-labelledby="consulting-contact" data-reveal>
+      <div class="border-t border-line pt-6">
+        <h2
+          id="consulting-contact"
+          class="font-serif text-[clamp(1.5rem,3vw,2rem)] font-[540] leading-tight tracking-[-0.02em] text-ink-strong"
+        >
+          先写一封邮件
+        </h2>
+        <p class="mt-3 max-w-[44rem] text-pretty text-[1rem] leading-[1.8] text-muted">
+          不用写正式的需求文档，几行字就行：你们做什么产品、客户主要从哪来、团队几个人、现在最卡的一件事。我看完再约时间聊。
+        </p>
+        <p class="mt-5">
+          <a
+            href={mailto}
+            class="focus-ring inline-flex min-h-11 items-center gap-2 border-b border-[var(--ink)] pb-1 font-serif text-[1.125rem] text-ink-strong hover:text-accent-strong"
+          >
+            {email}
+            <span aria-hidden="true">→</span>
+          </a>
+        </p>
+        <p class="mt-6 max-w-[46rem] border-t border-line pt-3 text-[0.8125rem] leading-[1.7] text-subtle">
+          以上服务以个人身份提供，不代表我的雇主孚盟软件，也不使用公司名义、资料或客户资源。涉及软件采购，请通过官方渠道；我不销售软件，也不收取软件返点。
+        </p>
+      </div>
+    </section>
+
+    <!-- Related reading ---------------------------------------------------- -->
+    <div class="mt-12 flex max-w-[46rem] flex-wrap items-baseline gap-x-6 gap-y-2 border-t border-line pt-5">
+      <span class="mono text-[0.6875rem] uppercase tracking-[0.14em] text-subtle">先看看</span>
+      <a href="/foreign-trade/" class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
+        外贸栏目
+        <span aria-hidden="true">→</span>
+      </a>
+      <a href="/foreign-trade/customer-management/" class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
+        客户管理系统指南
+        <span aria-hidden="true">→</span>
+      </a>
+      <a href="/foreign-trade/glossary/" class="focus-ring inline-flex min-h-11 items-center gap-2 text-[0.875rem] text-muted hover:text-ink">
+        外贸术语表
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* FAQ — native <details>, no JS: plus rotates on [open]. */
+  .faq-item {
+    border-top: 1px solid var(--line);
+  }
+
+  .faq-item:first-child {
+    border-top: 0;
+  }
+
+  .faq-summary {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    min-height: 2.75rem;
+    padding-block: 0.9rem;
+    cursor: pointer;
+    list-style: none;
+    border-radius: 4px;
+    touch-action: manipulation;
+  }
+
+  .faq-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-q {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    font-weight: 540;
+    line-height: 1.4;
+    color: var(--ink-strong);
+    text-wrap: pretty;
+    transition: color var(--dur-1) var(--ease-out);
+  }
+
+  .faq-plus {
+    margin-top: 0.15rem;
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1;
+    color: var(--subtle);
+    transition:
+      transform 220ms var(--ease-out),
+      color var(--dur-1) var(--ease-out);
+  }
+
+  .faq-item[open] .faq-plus {
+    transform: rotate(45deg);
+    color: var(--accent);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .faq-item:hover .faq-q,
+    .faq-item:hover .faq-plus {
+      color: var(--accent-strong);
+    }
+  }
+
+  .faq-a {
+    margin: 0;
+    padding-bottom: 1rem;
+    max-width: 56ch;
+    text-wrap: pretty;
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    color: var(--muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq-q,
+    .faq-plus {
+      transition: none;
+    }
+  }
+</style>

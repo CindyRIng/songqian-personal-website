@@ -1,0 +1,219 @@
+---
+/**
+ * /foreign-trade/ — the Chinese pillar page for 外贸获客 / 外贸客户管理.
+ *
+ * Hub & spoke structure: this page links to the guides, the glossary and the
+ * consulting page, and carries CollectionPage + ItemList + FAQPage JSON-LD.
+ * Chinese-only by design (`translated={false}`).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { SITE } from '../../i18n/config';
+import { foreignTrade } from '../../data/foreignTrade';
+
+const siteUrl = Astro.site ?? new URL(SITE.url);
+const canonical = new URL('/foreign-trade/', siteUrl).href;
+const updated = foreignTrade.updated;
+
+const guides = (await getCollection('guides', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      '@id': `${canonical}#page`,
+      name: '外贸获客与客户管理',
+      description:
+        '外贸获客、外贸客户管理系统、外贸开发信与电话开发、广交会跟进、外贸 AI 的实践指南。',
+      url: canonical,
+      inLanguage: 'zh-CN',
+      dateModified: updated,
+      isPartOf: { '@type': 'WebSite', url: siteUrl.href },
+    },
+    {
+      '@type': 'ItemList',
+      name: '外贸指南',
+      itemListElement: guides.map((guide, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: guide.data.title,
+        description: guide.data.description,
+        url: new URL(`/foreign-trade/${guide.id}/`, siteUrl).href,
+      })),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '首页', item: siteUrl.href },
+        { '@type': 'ListItem', position: 2, name: '外贸', item: canonical },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: foreignTrade.faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.q,
+        acceptedAnswer: { '@type': 'Answer', text: faq.a },
+      })),
+    },
+  ],
+};
+
+const title = '外贸获客与客户管理';
+const description =
+  '外贸 SaaS 客户经理的外贸获客与外贸客户管理系统实践：获客渠道、客户分层、开发信与电话、广交会跟进、外贸 AI 落地，附外贸术语表。';
+---
+
+<BaseLayout lang="zh" title={title} description={description} path="/foreign-trade" translated={false} wide>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </Fragment>
+
+  <div class="wrap">
+    <nav aria-label="面包屑" class="mono flex flex-wrap items-center gap-2 text-[0.6875rem] uppercase tracking-[0.12em] text-subtle">
+      <a href="/" class="focus-ring rounded-sm transition-colors hover:text-ink">首页</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page" class="text-muted">外贸</span>
+    </nav>
+
+    <header class="mt-8 max-w-[50rem]">
+      <p class="label">{foreignTrade.kicker}</p>
+      <h1 class="mt-5 text-pretty font-serif text-[clamp(2.5rem,5.2vw,4rem)] font-[540] leading-[1.05] tracking-[-0.035em] text-ink-strong">
+        {foreignTrade.title}
+      </h1>
+      <p class="mt-6 max-w-[42rem] text-pretty text-[1.0625rem] leading-[1.8] text-muted">
+        {foreignTrade.intro}
+      </p>
+      <p class="mono mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.6875rem] uppercase tracking-[0.12em] text-subtle">
+        <span>宋谦</span>
+        <span aria-hidden="true">·</span>
+        <time datetime={updated}>更新于 {updated}</time>
+        <span aria-hidden="true">·</span>
+        <span>{guides.length} 篇指南</span>
+      </p>
+    </header>
+
+    <!-- TL;DR -->
+    <aside class="mt-12 max-w-[50rem] border-y border-line bg-[var(--sage-tint)]/40 px-5 py-6 sm:px-7" aria-label="先说结论">
+      <p class="label">先说结论</p>
+      <ul class="mt-4 space-y-3">
+        {foreignTrade.summary.map((item) => (
+          <li class="flex gap-3 text-pretty text-[0.9375rem] leading-[1.75] text-ink">
+            <span aria-hidden="true" class="mt-[0.55em] size-1 shrink-0 rounded-full bg-[var(--accent)]"></span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </aside>
+
+    <!-- Guides -->
+    <section class="mt-16 max-w-[58rem]" aria-labelledby="trade-guides">
+      <div class="flex items-baseline justify-between gap-4 border-b border-line pb-3">
+        <h2 id="trade-guides" class="label">指南</h2>
+        <span class="mono text-[0.625rem] uppercase tracking-[0.12em] text-subtle">按顺序读，或挑你需要的</span>
+      </div>
+      <ol class="divide-y divide-line">
+        {
+          guides.map((guide, index) => (
+            <li>
+              <a
+                href={`/foreign-trade/${guide.id}/`}
+                class="group grid gap-x-8 gap-y-2 py-6 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--ring)] sm:grid-cols-[3.5rem_minmax(0,1fr)]"
+              >
+                <span class="mono pt-1 text-[0.6875rem] tracking-[0.1em] text-subtle">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span>
+                  <span class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span class="font-serif text-[1.25rem] font-[540] leading-snug tracking-[-0.015em] text-ink-strong transition-colors group-hover:text-accent">
+                      {guide.data.title}
+                    </span>
+                    <span class="mono text-[0.625rem] uppercase tracking-[0.1em] text-subtle">
+                      {guide.data.keywords[0]}
+                    </span>
+                  </span>
+                  <span class="mt-1 block max-w-[44rem] text-pretty text-[0.9375rem] leading-[1.7] text-muted">
+                    {guide.data.description}
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <!-- Fit -->
+    <section class="mt-16 max-w-[58rem]" aria-labelledby="trade-fit">
+      <h2 id="trade-fit" class="label border-b border-line pb-3">适不适合你</h2>
+      <div class="mt-6 grid gap-8 sm:grid-cols-2">
+        <div>
+          <p class="font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle">适合</p>
+          <ul class="mt-3 space-y-2 text-[0.9375rem] leading-[1.7] text-ink">
+            {foreignTrade.fit.yes.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+        <div>
+          <p class="font-sans text-[0.75rem] font-medium uppercase tracking-[0.12em] text-subtle">不适合</p>
+          <ul class="mt-3 space-y-2 text-[0.9375rem] leading-[1.7] text-muted">
+            {foreignTrade.fit.no.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Related -->
+    <section class="mt-16 max-w-[58rem]" aria-labelledby="trade-related">
+      <h2 id="trade-related" class="label border-b border-line pb-3">还需要这些</h2>
+      <ul class="mt-2 divide-y divide-line">
+        {
+          foreignTrade.relatedLinks.map((link) => (
+            <li>
+              <a href={link.href} class="group flex flex-col gap-1 py-4 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--ring)]">
+                <span class="font-serif text-[1.0625rem] font-[540] text-ink-strong transition-colors group-hover:text-accent">{link.label}</span>
+                <span class="text-[0.875rem] leading-[1.65] text-muted">{link.note}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- FAQ -->
+    <section class="mt-16 max-w-[50rem] border-t border-line pt-8" aria-labelledby="trade-faq">
+      <h2 id="trade-faq" class="font-serif text-[1.5rem] font-[540] tracking-[-0.02em] text-ink-strong">常见问题</h2>
+      <div class="mt-2 divide-y divide-line">
+        {
+          foreignTrade.faqs.map((faq) => (
+            <details class="group py-4">
+              <summary class="flex cursor-pointer list-none items-start justify-between gap-6 text-pretty font-serif text-[1.0625rem] font-[540] leading-snug text-ink-strong transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--ring)]">
+                <span>{faq.q}</span>
+                <span aria-hidden="true" class="mt-1 shrink-0 font-mono text-[0.75rem] text-subtle transition-transform duration-200 group-open:rotate-45">+</span>
+              </summary>
+              <p class="mt-3 max-w-[56ch] text-pretty text-[0.9375rem] leading-[1.75] text-muted">{faq.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="mt-16 max-w-[50rem] border-t border-line pt-8">
+      <div class="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <p class="font-serif text-[1.25rem] font-[540] tracking-[-0.01em] text-ink-strong">想聊聊你的获客和客户管理？</p>
+          <p class="mt-2 max-w-[34rem] text-[0.9375rem] leading-[1.7] text-muted">
+            我以个人身份提供外贸获客诊断、客户管理流程梳理和团队培训，不推销软件。
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a href="/consulting/" class="btn btn--solid">看看咨询能做什么</a>
+          <a href="/about/" class="btn btn--quiet">关于我</a>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
