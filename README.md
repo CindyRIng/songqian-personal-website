@@ -54,7 +54,7 @@ Not a portfolio template: a content-first site built from an Obsidian vault of *
 | `/about` | A letter: three threads, a week in Shijiazhuang, six principles, four failures, the record counts, a short CV, FAQ |
 | `/timeline` | Twenty-two entries from 2022 to now, including cancelled projects |
 | `/foreign-trade/` | 外贸 pillar page: 外贸获客 / 外贸客户管理 hub with guides, glossary, consulting links and FAQ |
-| `/foreign-trade/<slug>/` | Five guides: 外贸客户管理系统 · 外贸获客 · 开发信与电话开发 · 广交会客户跟进 · 外贸 AI (Chinese only) |
+| `/foreign-trade/<slug>/` | Ten guides: 外贸客户管理系统 · 外贸获客 · 开发信与电话开发 · 广交会跟进 · 外贸 AI · 海关数据 · 领英开发 · 报价与 PI · 客户跟进 · 外贸新人 30 天 (Chinese only) |
 | `/foreign-trade/glossary/` | 30 外贸术语 in four groups, anchored and cross-linked to the guides (Chinese only) |
 | `/consulting/` | Personal-scope 外贸咨询与培训: 获客诊断 / 客户管理系统落地 / 团队培训, with FAQ and a clear disclaimer (Chinese only) |
 | `/en/…` | English versions of home, about, timeline, works, writing and articles |
@@ -69,7 +69,7 @@ Not a portfolio template: a content-first site built from an Obsidian vault of *
 - **Notes (28):** dated entries from 2025-05 to 2026-11.
 - **Books (17):** systems engineering, calculus, DDD/architecture, Linux, Python, economics, Covey.
 - **Timeline (22):** study, club, internships, thesis, first job, tools, cancelled projects.
-- **Foreign-trade guides (5, Chinese):** 外贸客户管理系统 · 外贸获客 · 外贸开发信与电话开发 · 广交会客户跟进 · 外贸 AI. Each 1,800–2,100 字, with TL;DR, tables, SOPs, FAQs and internal links.
+- **Foreign-trade guides (10, Chinese):** 外贸客户管理系统 · 外贸获客 · 外贸开发信与电话开发 · 广交会客户跟进 · 外贸 AI · 海关数据 · 领英开发客户 · 外贸报价与 PI · 外贸客户跟进 · 外贸新人 30 天. Each 1,800–2,500 字, with TL;DR, tables, SOPs, FAQs and internal links.
 - **Glossary (30 terms):** customers/leads, quotation/contract, logistics/customs, acquisition/channels.
 - **Consulting page:** personal-capacity services and constraints, not a software sales page.
 
@@ -156,6 +156,11 @@ The site is built as a **hub & spoke** around the queries a Chinese foreign-trad
 | `/foreign-trade/outreach/` | 外贸开发信 / 外贸电话开发 | 开发信模板、跟进节奏、WhatsApp、外贸话术 |
 | `/foreign-trade/canton-fair/` | 广交会客户跟进 | 展会获客、展前邀约、展后跟进 |
 | `/foreign-trade/ai/` | 外贸AI | AI获客、AI客户管理、外贸AI落地 |
+| `/foreign-trade/customs-data/` | 海关数据 | 海关数据获客、采购商背调、数据选型 |
+| `/foreign-trade/linkedin-prospecting/` | 领英开发客户 | LinkedIn 外贸、领英搜索、私信、目标画像 |
+| `/foreign-trade/quotation-and-pi/` | 外贸报价 | 报价单、PI、FOB/CIF、报价跟进 |
+| `/foreign-trade/customer-follow-up/` | 外贸客户跟进 | 客户分层、跟进节奏、沉默客户激活 |
+| `/foreign-trade/new-salesperson-30-days/` | 外贸新人 | 业务员入门、学习路径、30 天计划、带教 |
 | `/foreign-trade/glossary/` | 外贸术语 | PI、FOB、CIF、HS code、报关 |
 | `/consulting/` | 外贸咨询 / 外贸培训 | 外贸专家、客户管理系统实施、团队培训 |
 
@@ -163,14 +168,15 @@ E-E-A-T signals: first-person experience (2,700 calls / 3 deals / 6 self-built t
 
 ## SEO & GEO
 
-- **Canonical domain** `songqian.me`, `hreflang` zh-CN / en / x-default (Chinese-only pages: zh-CN + x-default), per-page titles and descriptions, per-article 1200×630 social images, XML sitemap (55 URLs), two RSS feeds (10 items each), `rel=me` identity links.
-- **Structured data:** `Person`, `WebSite`, `Blog`, `BlogPosting` + `BreadcrumbList`, `CollectionPage` + `ItemList`, `SoftwareApplication`/`CreativeWork`, `ProfilePage` + `FAQPage`, `TechArticle` + `FAQPage` on every trade guide, `DefinedTermSet` for the glossary, `ProfessionalService` + `FAQPage` on consulting — all validated JSON-LD (107 blocks, 0 errors).
-- **GEO:** `/llms.txt` (entity facts, page map, recent notes/now/reading, 外贸 guides and FAQ) and `/llms-full.txt` (~200 KB: full essays, case studies, notes, now, reading, all five trade guides with FAQs, the 30-term glossary and consulting summary) generated at build time; `robots.txt` welcomes major LLM crawlers; IndexNow submission to Bing/Yandex.
+- **Canonical domain** `songqian.me`, `hreflang` zh-CN / en / x-default (Chinese-only pages: zh-CN + x-default), per-page titles and descriptions, per-article 1200×630 social images, XML sitemap (60 URLs), two RSS feeds (10 items each), `rel=me` identity links.
+- **Structured data:** `Person`, `WebSite`, `Blog`, `BlogPosting` + `BreadcrumbList`, `CollectionPage` + `ItemList`, `SoftwareApplication`/`CreativeWork`, `ProfilePage` + `FAQPage`, `TechArticle` + `FAQPage` on every trade guide, `DefinedTermSet` for the glossary, `ProfessionalService` + `FAQPage` on consulting — all validated JSON-LD (117 blocks, 0 errors).
+- **GEO:** `/llms.txt` (entity facts, page map, recent notes/now/reading, all ten 外贸 guides and FAQ) and `/llms-full.txt` (~250 KB: full essays, case studies, notes, now, reading, all ten trade guides with FAQs, the 30-term glossary and consulting summary) generated at build time; `robots.txt` welcomes major LLM crawlers; IndexNow submission to Bing/Yandex.
+- **Google Search Console:** verification is wired through `SITE.googleVerification` in `src/i18n/config.ts` (HTML-tag method); paste the token from GSC, redeploy, click verify, then submit `https://songqian.me/sitemap-index.xml`.
 - **Legacy URLs:** `/projects/*` → `/works/*`; old `/zh /ja /es /fr /de` prefixes → the two-language routes. The old `pages.dev` host 301s to the domain via `functions/_middleware.ts`.
 
 ## Verification
 
-- 57 pages build clean; 0 broken internal links; 0 console errors; one `<h1>` per page.
+- 62 pages build clean; 0 broken internal links; 0 console errors; one `<h1>` per page.
 - CLS 0; no horizontal overflow at 320 / 390 / 768 / 1024 / 1440.
 - Keyboard walkthroughs on all interactive flows; reduced-motion and no-JS passes on every page type.
 

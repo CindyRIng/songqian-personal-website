@@ -103,6 +103,11 @@ const jsonLd = {
       },
       knowsLanguage: ['zh-CN', 'en'],
       knowsAbout: [
+        'foreign trade',
+        'foreign-trade lead generation',
+        'foreign-trade customer management',
+        '外贸获客',
+        '外贸客户管理系统',
         'AI implementation',
         'sales engineering',
         'foreign-trade SaaS',
@@ -158,6 +163,7 @@ const jsonLd = {
     )}
     <meta name="author" content="宋谦 (Song Qian)" />
     <meta name="generator" content={Astro.generator} />
+    {SITE.googleVerification && <meta name="google-site-verification" content={SITE.googleVerification} />}
     <link rel="canonical" href={canonical} />
 
     <ClientRouter />

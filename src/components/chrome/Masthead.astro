@@ -52,12 +52,17 @@ const isZhOnlyPath = ZH_ONLY.some(
 );
 /* zh-only destinations are exported with a trailing slash (their routes are
  * directories), and must never be localized. */
+const cleanHref = (href: string) => href.replace(/\/+$/, '') || '/';
 const zhOnlyHref = (href: string) => (href.endsWith('/') ? href : `${href}/`);
-const navHref = (href: string) =>
-  ZH_ONLY.includes(href) ? zhOnlyHref(href) : localizePath(href, lang);
+const navHref = (href: string) => {
+  const clean = cleanHref(href);
+  return ZH_ONLY.includes(clean) ? zhOnlyHref(clean) : localizePath(clean, lang);
+};
 
-const isActive = (href: string) =>
-  currentPath === href || currentPath.startsWith(`${href}/`);
+const isActive = (href: string) => {
+  const clean = cleanHref(href);
+  return currentPath === clean || currentPath.startsWith(`${clean}/`);
+};
 
 const homeHref = localizePath('/', lang);
 const availability = c(copy.home.availability, lang);

@@ -56,4 +56,6 @@ export const SITE = {
   github: 'https://github.com/CindyRIng',
   /** Used by the footer's "handcrafted for N months" counter (first sketch). */
   siteLaunch: '2026-07-14',
+  /** Google Search Console HTML-tag verification token (paste from GSC). */
+  googleVerification: '',
 } as const;
